@@ -5,6 +5,8 @@ namespace WeatherApp.Core.Data;
 
 public class AppDbContext : DbContext
 {
+    private readonly string? _connectionString;
+
     public AppDbContext()
     {
     }
@@ -14,8 +16,21 @@ public class AppDbContext : DbContext
     {
     }
 
+    public AppDbContext(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
     public DbSet<CityEntity> Cities { get; set; }
     public DbSet<WeatherCacheEntity> WeatherCache { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured && !string.IsNullOrEmpty(_connectionString))
+        {
+            optionsBuilder.UseSqlite(_connectionString);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

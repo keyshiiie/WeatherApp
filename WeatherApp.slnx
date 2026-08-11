@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="WeatherApp.Core/WeatherApp.Core.csproj" Id="cc4fa0dd-0162-47f7-8d60-b33311289a5c" />
+  <Project Path="WeatherApp.Migrations/WeatherApp.Migrations.csproj" />
   <Project Path="WeatherApp.Tests/WeatherApp.Tests.csproj" Id="e40387b9-ee61-4077-a6aa-0ed301a58d1e" />
   <Project Path="WeatherApp.UI/WeatherApp.UI.csproj" />
 </Solution>
