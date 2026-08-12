@@ -17,6 +17,7 @@ namespace WeatherApp.Core.Mappers
             {
                 CityName = dto.Location?.Name,
                 Country = dto.Location?.Country,
+                Region = dto.Location?.Region,
                 Latitude = dto.Location?.Lat ?? 0,
                 Longitude = dto.Location?.Lon ?? 0,
 
@@ -103,7 +104,7 @@ namespace WeatherApp.Core.Mappers
                     Moonrise = dayDto.Astro?.Moonrise,
                     Moonset = dayDto.Astro?.Moonset,
                     MoonPhase = dayDto.Astro?.MoonPhase,
-                    MoonIllumination = dayDto.Astro?.MoonIllumination
+                    MoonIllumination = dayDto.Astro?.MoonIllumination ?? 0
                 };
 
                 // Маппинг почасового прогноза
@@ -132,8 +133,8 @@ namespace WeatherApp.Core.Mappers
                             CloudCover = hourDto.Cloud,
                             VisibilityKm = hourDto.VisKm,
 
-                            ChanceOfRain = int.TryParse(hourDto.ChanceOfRain, out var rainChance) ? rainChance : 0,
-                            ChanceOfSnow = int.TryParse(hourDto.ChanceOfSnow, out var snowChance) ? snowChance : 0,
+                            ChanceOfRain = hourDto.ChanceOfRain,
+                            ChanceOfSnow = hourDto.ChanceOfSnow,
                             WillItRain = hourDto.WillItRain == 1,
                             WillItSnow = hourDto.WillItSnow == 1
                         };
@@ -160,6 +161,7 @@ namespace WeatherApp.Core.Mappers
             {
                 CityName = dto.Location?.Name,
                 Country = dto.Location?.Country,
+                Region = dto.Location?.Region,
                 Latitude = dto.Location?.Lat ?? 0,
                 Longitude = dto.Location?.Lon ?? 0,
 
@@ -230,12 +232,18 @@ namespace WeatherApp.Core.Mappers
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
 
+            var address = dto.Address;
+            var cityName = address?.GetCityName() ?? "Неизвестное место";
+
             return new City
             {
-                Name = dto.Address?.GetCityName() ?? "Unknown",
-                Country = dto.Address?.Country ?? "Unknown",
-                Latitude = double.TryParse(dto.Lat, out var lat) ? lat : 0,
-                Longitude = double.TryParse(dto.Lon, out var lon) ? lon : 0,
+                Name = cityName,
+                Country = address?.Country ?? "Unknown",
+                Region = address?.State ?? address?.Region ?? address?.County,
+                Latitude = double.TryParse(dto.Lat, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var lat) ? lat : 0,
+                Longitude = double.TryParse(dto.Lon, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var lon) ? lon : 0,
                 AddedAt = DateTime.UtcNow,
                 IsLastSelected = false
             };

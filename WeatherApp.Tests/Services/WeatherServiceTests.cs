@@ -19,7 +19,7 @@ namespace WeatherApp.Tests.Services
     public class WeatherServiceTests
     {
         private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
-        private readonly HttpClient _httpClient;
+        private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
         private readonly Mock<ILogger<WeatherService>> _loggerMock;
         private readonly ApiSettings _apiSettings;
         private readonly WeatherService _weatherService;
@@ -27,10 +27,18 @@ namespace WeatherApp.Tests.Services
         public WeatherServiceTests()
         {
             _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-            _httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+
+            // Создаем HttpClient с мок-обработчиком
+            var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
             {
                 BaseAddress = new Uri("https://api.weatherapi.com/v1")
             };
+
+            _httpClientFactoryMock = new Mock<IHttpClientFactory>();
+            _httpClientFactoryMock
+                .Setup(x => x.CreateClient("WeatherApi"))
+                .Returns(httpClient);
+
             _loggerMock = new Mock<ILogger<WeatherService>>();
 
             _apiSettings = new ApiSettings
@@ -43,7 +51,7 @@ namespace WeatherApp.Tests.Services
             optionsMock.Setup(x => x.Value).Returns(_apiSettings);
 
             _weatherService = new WeatherService(
-                _httpClient,
+                _httpClientFactoryMock.Object,  
                 optionsMock.Object,
                 _loggerMock.Object);
         }

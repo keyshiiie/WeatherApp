@@ -29,7 +29,7 @@ public class ForecastDay
     public double MaxWindKph { get; set; }
     public double TotalPrecipMm { get; set; }
     public int AvgHumidity { get; set; }
-    public int UVIndex { get; set; }
+    public double UVIndex { get; set; }
     public double AvgVisibilityKm { get; set; }
 
     // Астрономические данные
@@ -38,11 +38,14 @@ public class ForecastDay
     public string? Moonrise { get; set; }
     public string? Moonset { get; set; }
     public string? MoonPhase { get; set; }
-    public string? MoonIllumination { get; set; }
+    public int MoonIllumination { get; set; } 
 
     // Почасовой прогноз
     public List<HourlyForecast> Hours { get; set; } = new();
 
     public string TemperatureRange => $"{MinTempC}° / {MaxTempC}°";
     public bool HasRain => TotalPrecipMm > 0;
+
+    // Для отображения в UI
+    public string MoonIlluminationDisplay => $"{MoonIllumination}%";
 }

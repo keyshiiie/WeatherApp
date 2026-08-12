@@ -3,13 +3,13 @@
 public static class ApiConstants
 {
     // Базовые URL будут загружаться из конфигурации
-    public const string WeatherApiBaseUrl = "https://api.weatherapi.com/v1";
-    public const string NominatimBaseUrl = "https://nominatim.openstreetmap.org";
+    public const string WeatherApiBaseUrl = "https://api.weatherapi.com/v1/";
+    public const string NominatimBaseUrl = "https://nominatim.openstreetmap.org/";
 
     // Эндпоинты
-    public const string CurrentWeatherEndpoint = "/current.json";
-    public const string ForecastEndpoint = "/forecast.json";
-    public const string SearchEndpoint = "/search.json";
+    public const string CurrentWeatherEndpoint = "current.json";
+    public const string ForecastEndpoint = "forecast.json";
+    public const string SearchEndpoint = "search.json";
 
     // Параметры Nominatim
     public const string NominatimFormat = "json";

@@ -33,7 +33,7 @@ public class WeatherData
     public double PressureIn { get; set; }
     public double PrecipitationMm { get; set; }
     public double PrecipitationIn { get; set; }
-    public int UVIndex { get; set; }
+    public double UVIndex { get; set; }
     public double VisibilityKm { get; set; }
     public double VisibilityMiles { get; set; }
     public int CloudCover { get; set; }
@@ -42,6 +42,27 @@ public class WeatherData
 
     public DateTime LastUpdated { get; set; }
     public bool IsCached { get; set; }
+
+    public string? Region { get; set; }
+
+    public string DisplayName
+    {
+        get
+        {
+            var parts = new List<string>();
+
+            if (!string.IsNullOrEmpty(CityName))
+                parts.Add(CityName);
+
+            if (!string.IsNullOrEmpty(Region) && Region != CityName)
+                parts.Add(Region);
+
+            if (!string.IsNullOrEmpty(Country))
+                parts.Add(Country);
+
+            return parts.Count > 0 ? string.Join(", ", parts) : "Неизвестное место";
+        }
+    }
 }
 public class AirQualityData
 {
@@ -53,4 +74,5 @@ public class AirQualityData
     public double Pm10 { get; set; }
     public int UsEpaIndex { get; set; }
     public int GbDefraIndex { get; set; }
+
 }

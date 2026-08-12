@@ -1,11 +1,86 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:WeatherApp.Core.ViewModels;assembly=WeatherApp.Core"
-             x:Class="WeatherApp.UI.MainPage"
-             x:DataType="vm:MainPageViewModel">
+             xmlns:viewmodels="clr-namespace:WeatherApp.UI.ViewModels"
+             x:Class="WeatherApp.UI.Views.MainPage"
+             Title="Поиск города">
 
-    <ScrollView>
-    </ScrollView>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <!-- Поисковая строка -->
+        <Entry Grid.Row="0"
+               x:Name="SearchEntry"
+               Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
+               Placeholder="Введите название города..."
+               FontSize="14"
+               HeightRequest="44"
+               Margin="16,16,16,8" />
+
+        <!-- Результаты поиска -->
+        <CollectionView Grid.Row="1"
+                        x:Name="SearchResultsList"
+                        ItemsSource="{Binding SearchSuggestions}"
+                        IsVisible="{Binding ShowSearchSuggestions}"
+                        HeightRequest="200"
+                        Margin="16,0,16,8"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="12,8" BackgroundColor="LightGray" Margin="0,2">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer 
+                                Command="{Binding BindingContext.SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                CommandParameter="{Binding}" />
+                        </Grid.GestureRecognizers>
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                            <Label Text="{Binding FullDisplayText}" FontSize="12" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Центральная панель -->
+        <VerticalStackLayout Grid.Row="2" 
+                             HorizontalOptions="Center" 
+                             VerticalOptions="Center"
+                             Spacing="20">
+
+            <!-- Индикатор загрузки -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <!-- Сообщение об ошибке -->
+            <Label Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   TextColor="Red"
+                   HorizontalOptions="Center"
+                   FontSize="14" />
+
+            <!-- Кнопка определения местоположения -->
+            <Button Text="📍 Определить мое местоположение"
+                    Command="{Binding GetLocationCommand}"
+                    BackgroundColor="Green"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    WidthRequest="250" />
+
+            <Label Text="- или -"
+                   FontSize="16"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Введите название города в поиске выше"
+                   FontSize="14"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+    </Grid>
 </ContentPage>

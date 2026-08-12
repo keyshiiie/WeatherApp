@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:WeatherApp.UI.ViewModels"
+             x:Class="WeatherApp.UI.Views.CurrentWeatherPage"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <!-- Индикатор загрузки -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Margin="0,20" />
+
+            <!-- Сообщение об ошибке -->
+            <Label Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   TextColor="Red"
+                   HorizontalOptions="Center"
+                   FontSize="14"
+                   Margin="0,10" />
+
+            <!-- Информация о городе - используем DisplayName -->
+            <Label Text="{Binding CurrentWeather.DisplayName}" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+
+            <!-- Температура -->
+            <Label Text="{Binding CurrentWeather.TemperatureC, StringFormat='{0}°C'}"
+                   FontSize="48"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+            <Label Text="{Binding CurrentWeather.ConditionText}"
+                   FontSize="18"
+                   HorizontalOptions="Center" />
+
+            <!-- Детали погоды -->
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, *, *" Padding="0,10" RowSpacing="8" ColumnSpacing="8">
+                <Label Grid.Row="0" Grid.Column="0" Text="💧 Влажность" />
+                <Label Grid.Row="0" Grid.Column="1" Text="💨 Ветер" />
+                <Label Grid.Row="0" Grid.Column="2" Text="📊 Давление" />
+
+                <Label Grid.Row="1" Grid.Column="0" Text="{Binding CurrentWeather.Humidity, StringFormat='{0}%'}" />
+                <Label Grid.Row="1" Grid.Column="1" Text="{Binding CurrentWeather.WindSpeedKph, StringFormat='{0} км/ч'}" />
+                <Label Grid.Row="1" Grid.Column="2" Text="{Binding CurrentWeather.PressureMb, StringFormat='{0} мб'}" />
+            </Grid>
+
+            <!-- Прогноз на 5 дней -->
+            <Label Text="Прогноз на 5 дней" FontSize="18" FontAttributes="Bold" Margin="0,10,0,5" />
+
+            <CollectionView ItemsSource="{Binding ForecastDays}"
+                            HeightRequest="300">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" BackgroundColor="LightGray" Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="0" Text="{Binding FormattedDate}" />
+                            <Label Grid.Column="1" Text="{Binding ConditionText}" />
+                            <Label Grid.Column="2" Text="{Binding MaxTempC, StringFormat='{0}°C'}" TextColor="Red" />
+                            <Label Grid.Column="3" Text="{Binding MinTempC, StringFormat='{0}°C'}" TextColor="Blue" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Кнопка обновления -->
+            <Button Text="Обновить"
+                    Command="{Binding RefreshCommand}"
+                    BackgroundColor="Blue"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="48" />
+
+            <!-- Кнопка назад -->
+            <Button Text="← Назад к поиску"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="Gray"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="48" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

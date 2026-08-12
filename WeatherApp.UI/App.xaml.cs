@@ -1,4 +1,5 @@
 ﻿using WeatherApp.Core.Services;
+using WeatherApp.UI.Views;
 
 namespace WeatherApp.UI;
 
@@ -16,7 +17,6 @@ public partial class App : Application
     {
         return new Window(new AppShell());
     }
-
 
     protected override async void OnStart()
     {

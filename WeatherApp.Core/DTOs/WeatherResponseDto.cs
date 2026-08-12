@@ -104,7 +104,7 @@ public class CurrentWeatherDto
     public double VisMiles { get; set; }
 
     [JsonPropertyName("uv")]
-    public int Uv { get; set; }
+    public double Uv { get; set; }
 
     [JsonPropertyName("gust_mph")]
     public double GustMph { get; set; }

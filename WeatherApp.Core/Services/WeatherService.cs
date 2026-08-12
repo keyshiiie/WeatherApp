@@ -16,19 +16,13 @@ namespace WeatherApp.Core.Services
         private readonly ILogger<WeatherService> _logger;
 
         public WeatherService(
-            HttpClient httpClient,
+            IHttpClientFactory httpClientFactory,
             IOptions<ApiSettings> apiSettings,
             ILogger<WeatherService> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _httpClient = httpClientFactory.CreateClient("WeatherApi");
             _apiSettings = apiSettings?.Value ?? throw new ArgumentNullException(nameof(apiSettings));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            // Настройка базового URL
-            if (!string.IsNullOrEmpty(_apiSettings.WeatherApiBaseUrl))
-            {
-                _httpClient.BaseAddress = new Uri(_apiSettings.WeatherApiBaseUrl);
-            }
         }
 
         public async Task<WeatherData?> GetCurrentWeatherAsync(
@@ -76,7 +70,9 @@ namespace WeatherApp.Core.Services
         {
             try
             {
-                var query = $"{latitude},{longitude}";
+                var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var query = $"{latStr},{lonStr}";
                 var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<WeatherResponseDto>(
@@ -152,7 +148,9 @@ namespace WeatherApp.Core.Services
             try
             {
                 days = Math.Clamp(days, 1, 14);
-                var query = $"{latitude},{longitude}";
+                var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var query = $"{latStr},{lonStr}";
                 var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
@@ -269,7 +267,9 @@ namespace WeatherApp.Core.Services
             try
             {
                 days = Math.Clamp(days, 1, 14);
-                var query = $"{latitude},{longitude}";
+                var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var query = $"{latStr},{lonStr}";
                 var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(

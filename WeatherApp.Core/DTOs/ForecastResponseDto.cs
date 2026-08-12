@@ -83,7 +83,7 @@ public class DayDataDto
     public ConditionDto? Condition { get; set; }
 
     [JsonPropertyName("uv")]
-    public int Uv { get; set; }
+    public double Uv { get; set; }
 }
 
 public class AstroDto
@@ -104,7 +104,7 @@ public class AstroDto
     public string? MoonPhase { get; set; }
 
     [JsonPropertyName("moon_illumination")]
-    public string? MoonIllumination { get; set; }
+    public int MoonIllumination { get; set; }
 }
 
 public class HourlyForecastDto
@@ -185,13 +185,13 @@ public class HourlyForecastDto
     public int WillItRain { get; set; }
 
     [JsonPropertyName("chance_of_rain")]
-    public string? ChanceOfRain { get; set; }
+    public int ChanceOfRain { get; set; }
 
     [JsonPropertyName("will_it_snow")]
     public int WillItSnow { get; set; }
 
     [JsonPropertyName("chance_of_snow")]
-    public string? ChanceOfSnow { get; set; }
+    public int ChanceOfSnow { get; set; }
 
     [JsonPropertyName("vis_km")]
     public double VisKm { get; set; }

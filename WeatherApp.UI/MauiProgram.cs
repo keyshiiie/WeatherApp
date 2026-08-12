@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CommunityToolkit.Maui;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using WeatherApp.Core.Configuration;
 using WeatherApp.Core.Data;
 using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
 using WeatherApp.Core.ViewModels;
 using WeatherApp.UI.Services;
+using WeatherApp.UI.ViewModels;
 using WeatherApp.UI.Views;
 
 namespace WeatherApp.UI;
@@ -19,20 +22,30 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // 1. Настройка Configuration
+        // 1. Настройка Configuration с поддержкой переменных окружения
+        var basePath = AppContext.BaseDirectory;
+
         var config = new ConfigurationBuilder()
-        .SetBasePath(FileSystem.Current.AppDataDirectory)
-        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-        .Build();
+            .SetBasePath(basePath)
+            // Базовый файл с общими настройками
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            // Файл для разработки (не в Git)
+            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+            .Build();
 
         builder.Configuration.AddConfiguration(config);
 
+        // Для отладки - проверяем, загрузился ли ключ
+        var apiKey = config.GetSection("ApiSettings")["WeatherApiKey"];
+        System.Diagnostics.Debug.WriteLine($"🔑 API Key загружен: {(string.IsNullOrEmpty(apiKey) ? "❌ НЕТ" : "✅ ДА")}");
+        System.Diagnostics.Debug.WriteLine($"📁 BasePath: {basePath}");
 
         // 2. Регистрация настроек через IOptions
         builder.Services.Configure<ApiSettings>(
@@ -49,7 +62,23 @@ public static class MauiProgram
             options.UseSqlite(connectionString));
 
         // 4. Регистрация HttpClient
-        builder.Services.AddHttpClient();
+        builder.Services.AddHttpClient("WeatherApi", (sp, client) =>
+        {
+            var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
+
+            // Проверяем, что ключ загружен
+            if (string.IsNullOrEmpty(apiSettings?.WeatherApiKey))
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ ВНИМАНИЕ: WeatherApiKey не загружен!");
+            }
+
+            var baseUrl = apiSettings?.WeatherApiBaseUrl ?? "https://api.weatherapi.com/v1";
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            System.Diagnostics.Debug.WriteLine($"✅ HttpClient настроен на: {baseUrl}");
+        });
 
         // 5. Регистрация сервисов
         RegisterServices(builder.Services);
@@ -77,12 +106,9 @@ public static class MauiProgram
 
     private static void RegisterServices(IServiceCollection services)
     {
-        // Основные сервисы
         services.AddSingleton<IWeatherService, WeatherService>();
         services.AddSingleton<IGeolocationService, GeolocationService>();
         services.AddSingleton<IFavoritesService, FavoritesService>();
-
-        // Сервисы уведомлений
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<WeatherAlertService>();
     }
@@ -95,6 +121,7 @@ public static class MauiProgram
     private static void RegisterViewModels(IServiceCollection services)
     {
         services.AddTransient<MainPageViewModel>();
+        services.AddTransient<CurrentWeatherViewModel>();
         services.AddTransient<ForecastPageViewModel>();
         services.AddTransient<DetailsPageViewModel>();
         services.AddTransient<FavoritesPageViewModel>();
@@ -104,6 +131,7 @@ public static class MauiProgram
     private static void RegisterPages(IServiceCollection services)
     {
         services.AddTransient<MainPage>();
+        services.AddTransient<CurrentWeatherPage>();
         services.AddTransient<ForecastPage>();
         services.AddTransient<DetailsPage>();
         services.AddTransient<FavoritesPage>();

@@ -13,6 +13,7 @@ namespace WeatherApp.UI
         private void RegisterRoutes()
         {
             Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
+            Routing.RegisterRoute(nameof(CurrentWeatherPage), typeof(CurrentWeatherPage));
             Routing.RegisterRoute(nameof(ForecastPage), typeof(ForecastPage));
             Routing.RegisterRoute(nameof(DetailsPage), typeof(DetailsPage));
             Routing.RegisterRoute(nameof(FavoritesPage), typeof(FavoritesPage));

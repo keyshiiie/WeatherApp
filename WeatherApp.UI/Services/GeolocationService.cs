@@ -24,13 +24,11 @@ namespace WeatherApp.UI.Services
             _apiSettings = apiSettings?.Value ?? throw new ArgumentNullException(nameof(apiSettings));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            // Настройка базового URL для Nominatim
             if (!string.IsNullOrEmpty(_apiSettings.NominatimBaseUrl))
             {
                 _httpClient.BaseAddress = new Uri(_apiSettings.NominatimBaseUrl);
             }
 
-            // Nominatim требует User-Agent
             _httpClient.DefaultRequestHeaders.Add("User-Agent", ApiConstants.NominatimUserAgent);
         }
 
@@ -52,40 +50,73 @@ namespace WeatherApp.UI.Services
                     return null;
                 }
 
-                var cityName = await GetCityNameFromCoordinatesAsync(
+                var address = await GetAddressFromCoordinatesAsync(
                     coordinates.Value.Latitude,
                     coordinates.Value.Longitude,
                     cancellationToken);
 
-                if(string.IsNullOrEmpty(cityName))
+                if (address == null)
                 {
-                    _logger.LogWarning($"Failed to get city name for coordinates: {coordinates.Value.Latitude}, {coordinates.Value.Longitude}");
+                    _logger.LogWarning("Failed to get address from coordinates");
+                    return null;
+                }
+
+                var cityName = address.GetCityName();
+                if (string.IsNullOrEmpty(cityName))
+                {
+                    _logger.LogWarning($"City name not found for coordinates");
                     return null;
                 }
 
                 return new City
                 {
                     Name = cityName,
+                    Country = address.Country ?? "Unknown",
+                    Region = address.State ?? address.Region,
                     Latitude = coordinates.Value.Latitude,
                     Longitude = coordinates.Value.Longitude,
                     AddedAt = DateTime.UtcNow,
                     IsLastSelected = false
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting current location");
                 return null;
             }
         }
 
-        public async Task<string?> GetCityNameFromCoordinatesAsync(double latitude,
+        private async Task<AddressDto?> GetAddressFromCoordinatesAsync(
+            double latitude,
             double longitude,
             CancellationToken cancellationToken = default)
         {
             try
             {
-                var url = $"reverse?format={ApiConstants.NominatimFormat}&lat={latitude}&lon={longitude}";
+                var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var url = $"reverse?format={ApiConstants.NominatimFormat}&lat={latStr}&lon={lonStr}&zoom=10";
+
+                var response = await _httpClient.GetFromJsonAsync<GeocodingResponseDto>(url, cancellationToken);
+                return response?.Address;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting address from coordinates: {latitude}, {longitude}");
+                return null;
+            }
+        }
+
+        public async Task<string?> GetCityNameFromCoordinatesAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var url = $"reverse?format={ApiConstants.NominatimFormat}&lat={latStr}&lon={lonStr}";
 
                 var response = await _httpClient.GetFromJsonAsync<GeocodingResponseDto>(url, cancellationToken);
                 if (response?.Address == null)
@@ -123,8 +154,8 @@ namespace WeatherApp.UI.Services
                 var location = await Geolocation.Default.GetLocationAsync(
                 new GeolocationRequest
                 {
-                    DesiredAccuracy = GeolocationAccuracy.Medium, // Средняя точность
-                    Timeout = TimeSpan.FromSeconds(30) // Таймаут 30 секунд
+                    DesiredAccuracy = GeolocationAccuracy.Medium, 
+                    Timeout = TimeSpan.FromSeconds(30)
                 },
                 cancellationToken);
 
@@ -177,13 +208,31 @@ namespace WeatherApp.UI.Services
         {
             try
             {
-                // Сначала проверяем, есть ли уже разрешение
                 if (await CheckLocationPermissionAsync())
                 {
                     return true;
                 }
 
-                // Запрашиваем разрешение
+                if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
+                {
+                    var page = Shell.Current?.CurrentPage;
+                    if (page == null)
+                        return false;
+
+                    var result = await page.DisplayAlertAsync(
+                        "📍 Разрешение на геолокацию",
+                        "Для определения вашего местоположения необходимо включить доступ к геолокации в настройках Windows.\n\n" +
+                        "Перейдите в: Настройки > Конфиденциальность > Местоположение и включите доступ для этого приложения.",
+                        "Открыть настройки",
+                        "Отмена");
+
+                    if (result)
+                    {
+                        await Launcher.Default.OpenAsync("ms-settings:privacy-location");
+                    }
+                    return false;
+                }
+
                 var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
 
                 if (status == PermissionStatus.Granted)

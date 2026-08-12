@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
-namespace WeatherApp.Core.DTOs;
+﻿using System.Text.Json.Serialization;
 
 public class GeocodingResponseDto
 {
@@ -44,8 +41,17 @@ public class AddressDto
     [JsonPropertyName("village")]
     public string? Village { get; set; }
 
+    [JsonPropertyName("hamlet")]
+    public string? Hamlet { get; set; }
+
     [JsonPropertyName("state")]
     public string? State { get; set; }
+
+    [JsonPropertyName("region")]
+    public string? Region { get; set; }
+
+    [JsonPropertyName("county")]
+    public string? County { get; set; }
 
     [JsonPropertyName("country")]
     public string? Country { get; set; }
@@ -55,8 +61,35 @@ public class AddressDto
 
     [JsonPropertyName("postcode")]
     public string? Postcode { get; set; }
+
     public string GetCityName()
     {
-        return City ?? Town ?? Village ?? "Unknown";
+        var cityName = City ?? Town ?? Village ?? Hamlet;
+
+        if (string.IsNullOrEmpty(cityName))
+        {
+            cityName = County ?? State ?? Region;
+        }
+
+        return cityName ?? "Неизвестное место";
+    }
+
+    public string GetFullAddress()
+    {
+        var parts = new List<string>();
+        var cityName = GetCityName();
+
+        if (!string.IsNullOrEmpty(cityName) && cityName != "Неизвестное место")
+            parts.Add(cityName);
+
+        if (!string.IsNullOrEmpty(State))
+            parts.Add(State);
+        else if (!string.IsNullOrEmpty(Region))
+            parts.Add(Region);
+
+        if (!string.IsNullOrEmpty(Country))
+            parts.Add(Country);
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "Неизвестное место";
     }
 }
