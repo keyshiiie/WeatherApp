@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:WeatherApp.UI.ViewModels"
+             x:Class="WeatherApp.UI.Views.LoginPage"
+             x:DataType="vm:LoginPageViewModel"
+             Title="Вход в приложение">
+
+    <Grid Padding="20" RowDefinitions="Auto, Auto, Auto, Auto, *">
+        <Label Text="Добро пожаловать!" 
+               FontSize="32" FontAttributes="Bold" 
+               HorizontalOptions="Center" Margin="0,40,0,20"/>
+
+        <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
+               FontSize="16" HorizontalOptions="Center" Margin="0,0,0,30"
+               Grid.Row="1"/>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <Label Text="Ваш API ключ:" />
+
+            <Entry x:Name="ApiKeyEntry" 
+           Text="{Binding ApiKey, Mode=TwoWay}" 
+           Placeholder="Введите ключ..." 
+           IsPassword="True" />
+
+            <Label TextColor="Blue" TextDecorations="Underline" Margin="0,5,0,15">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenLinkCommand}" />
+                </Label.GestureRecognizers>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Не знаете где взять? Получить ключ на сайте" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </VerticalStackLayout>
+
+        <Button Text="Войти" Grid.Row="3" Command="{Binding LoginCommand}" 
+                HeightRequest="50" CornerRadius="8" Margin="0,20,0,0"/>
+    </Grid>
+</ContentPage>

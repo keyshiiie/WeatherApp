@@ -1,9 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using WeatherApp.Core.Configuration;
+using WeatherApp.Core.Constants;
 using WeatherApp.Core.Data;
 using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
@@ -29,67 +27,27 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // 1. Настройка Configuration с поддержкой переменных окружения
-        var basePath = AppContext.BaseDirectory;
-
-        var config = new ConfigurationBuilder()
-            .SetBasePath(basePath)
-            // Базовый файл с общими настройками
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            // Файл для разработки (не в Git)
-            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
-            .Build();
-
-        builder.Configuration.AddConfiguration(config);
-
-        // Для отладки - проверяем, загрузился ли ключ
-        var apiKey = config.GetSection("ApiSettings")["WeatherApiKey"];
-        System.Diagnostics.Debug.WriteLine($"🔑 API Key загружен: {(string.IsNullOrEmpty(apiKey) ? "❌ НЕТ" : "✅ ДА")}");
-        System.Diagnostics.Debug.WriteLine($"📁 BasePath: {basePath}");
-
-        // 2. Регистрация настроек через IOptions
-        builder.Services.Configure<ApiSettings>(
-            builder.Configuration.GetSection("ApiSettings"));
-
-        builder.Services.Configure<CacheSettings>(
-            builder.Configuration.GetSection("CacheSettings"));
-
-        // 3. Регистрация DbContext
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                               ?? "Data Source=weatherapp.db";
-
+        var connectionString = "Data Source=weatherapp.db";
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(connectionString));
 
-        // 4. Регистрация HttpClient
-        builder.Services.AddHttpClient("WeatherApi", (sp, client) =>
+        builder.Services.AddHttpClient("WeatherApi", client =>
         {
-            var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
-
-            // Проверяем, что ключ загружен
-            if (string.IsNullOrEmpty(apiSettings?.WeatherApiKey))
-            {
-                System.Diagnostics.Debug.WriteLine("⚠️ ВНИМАНИЕ: WeatherApiKey не загружен!");
-            }
-
-            var baseUrl = apiSettings?.WeatherApiBaseUrl ?? "https://api.weatherapi.com/v1";
-            client.BaseAddress = new Uri(baseUrl);
+            client.BaseAddress = new Uri(ApiConstants.WeatherApiBaseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-            System.Diagnostics.Debug.WriteLine($"✅ HttpClient настроен на: {baseUrl}");
         });
 
-        // 5. Регистрация сервисов
+        builder.Services.AddHttpClient<GeolocationService>(client =>
+        {
+            client.BaseAddress = new Uri(ApiConstants.NominatimBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
+
         RegisterServices(builder.Services);
-
-        // 6. Регистрация репозиториев
         RegisterRepositories(builder.Services);
-
-        // 7. Регистрация ViewModels
         RegisterViewModels(builder.Services);
-
-        // 8. Регистрация страниц
         RegisterPages(builder.Services);
 
 #if DEBUG
@@ -98,7 +56,7 @@ public static class MauiProgram
 
         var app = builder.Build();
 
-        // Применение миграций БД
+        // Применение миграций БД (как у вас было)
         ApplyMigrations(app.Services);
 
         return app;
@@ -126,6 +84,7 @@ public static class MauiProgram
         services.AddTransient<DetailsPageViewModel>();
         services.AddTransient<FavoritesPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
+        services.AddTransient<LoginPageViewModel>();
     }
 
     private static void RegisterPages(IServiceCollection services)
@@ -136,13 +95,13 @@ public static class MauiProgram
         services.AddTransient<DetailsPage>();
         services.AddTransient<FavoritesPage>();
         services.AddTransient<SettingsPage>();
+        services.AddTransient<LoginPage>();
     }
 
     private static void ApplyMigrations(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
         try
         {
             dbContext.Database.Migrate();

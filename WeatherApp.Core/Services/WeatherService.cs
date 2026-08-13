@@ -6,23 +6,32 @@ using WeatherApp.Core.Constants;
 using WeatherApp.Core.DTOs;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Mappers;
+using Microsoft.Maui.Storage;
 
 namespace WeatherApp.Core.Services
 {
     public class WeatherService : IWeatherService
     {
         private readonly HttpClient _httpClient;
-        private readonly ApiSettings _apiSettings;
         private readonly ILogger<WeatherService> _logger;
 
         public WeatherService(
             IHttpClientFactory httpClientFactory,
-            IOptions<ApiSettings> apiSettings,
             ILogger<WeatherService> logger)
         {
             _httpClient = httpClientFactory.CreateClient("WeatherApi");
-            _apiSettings = apiSettings?.Value ?? throw new ArgumentNullException(nameof(apiSettings));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        // Вспомогательный метод для получения ключа
+        private async Task<string> GetApiKeyAsync()
+        {
+            var key = await SecureStorage.GetAsync("weather_api_key");
+            if (string.IsNullOrEmpty(key))
+            {
+                _logger.LogWarning("API Key not found in SecureStorage!");
+            }
+            return key ?? string.Empty;
         }
 
         public async Task<WeatherData?> GetCurrentWeatherAsync(
@@ -37,7 +46,10 @@ namespace WeatherApp.Core.Services
                     return null;
                 }
 
-                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={_apiSettings.WeatherApiKey}&q={Uri.EscapeDataString(cityName)}&aqi=yes";
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return null;
+
+                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<WeatherResponseDto>(
                     endpoint,
@@ -73,7 +85,11 @@ namespace WeatherApp.Core.Services
                 var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var query = $"{latStr},{lonStr}";
-                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&aqi=yes";
+
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return null;
+
+                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={apiKey}&q={query}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<WeatherResponseDto>(
                     endpoint,
@@ -113,7 +129,10 @@ namespace WeatherApp.Core.Services
                 }
 
                 days = Math.Clamp(days, 1, 14);
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return null;
+
+                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -151,7 +170,11 @@ namespace WeatherApp.Core.Services
                 var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var query = $"{latStr},{lonStr}";
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&days={days}&aqi=yes";
+
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return null;
+
+                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={query}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -178,17 +201,22 @@ namespace WeatherApp.Core.Services
         }
 
         public async Task<List<CitySuggestion>?> SearchCitiesAsync(
-            string query,
-            CancellationToken cancellationToken = default)
+    string query,
+    CancellationToken cancellationToken = default)
         {
             try
             {
+                // 1. Защита от null и пустых строк (ДОБАВИТЬ ЭТО!)
                 if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
                 {
-                    return new List<CitySuggestion>();
+                    return new List<CitySuggestion>(); // Возвращаем пустой список, а не null
                 }
 
-                var endpoint = $"{ApiConstants.SearchEndpoint}?key={_apiSettings.WeatherApiKey}&q={Uri.EscapeDataString(query)}";
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return null;
+
+                // 2. Важно: экранируем запрос в конце, чтобы убрать лишние пробелы
+                var endpoint = $"{ApiConstants.SearchEndpoint}?key={apiKey}&q={Uri.EscapeDataString(query.Trim())}";
 
                 var response = await _httpClient.GetFromJsonAsync<List<SearchResponseDto>>(
                     endpoint,
@@ -227,7 +255,10 @@ namespace WeatherApp.Core.Services
                 }
 
                 days = Math.Clamp(days, 1, 14);
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return (null, null);
+
+                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -270,7 +301,11 @@ namespace WeatherApp.Core.Services
                 var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 var query = $"{latStr},{lonStr}";
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={_apiSettings.WeatherApiKey}&q={query}&days={days}&aqi=yes";
+
+                var apiKey = await GetApiKeyAsync();
+                if (string.IsNullOrEmpty(apiKey)) return (null, null);
+
+                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={query}&days={days}&aqi=yes";
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,

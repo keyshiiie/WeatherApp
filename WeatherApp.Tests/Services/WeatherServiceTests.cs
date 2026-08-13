@@ -991,8 +991,8 @@ namespace WeatherApp.Tests.Services
                                     PrecipMm = 0.0,
                                     Cloud = 10,
                                     IsDay = 1,
-                                    ChanceOfRain = "0",
-                                    ChanceOfSnow = "0"
+                                    ChanceOfRain = 0,
+                                    ChanceOfSnow = 0
                                 }
                             }
                         },

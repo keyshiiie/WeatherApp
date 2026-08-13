@@ -15,6 +15,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     private bool _isRefreshing;
     private bool _isCurrentCityFavorite;
 
+
     public CurrentWeatherViewModel(
         IWeatherService weatherService,
         IFavoritesService favoritesService)

@@ -12,22 +12,16 @@ namespace WeatherApp.UI.Services
     public class GeolocationService : IGeolocationService
     {
         private readonly HttpClient _httpClient;
-        private readonly ApiSettings _apiSettings;
         private readonly ILogger<GeolocationService> _logger;
 
         public GeolocationService(
         HttpClient httpClient,
-        IOptions<ApiSettings> apiSettings,
         ILogger<GeolocationService> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _apiSettings = apiSettings?.Value ?? throw new ArgumentNullException(nameof(apiSettings));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            if (!string.IsNullOrEmpty(_apiSettings.NominatimBaseUrl))
-            {
-                _httpClient.BaseAddress = new Uri(_apiSettings.NominatimBaseUrl);
-            }
+            _httpClient.BaseAddress = new Uri(ApiConstants.NominatimBaseUrl);
 
             _httpClient.DefaultRequestHeaders.Add("User-Agent", ApiConstants.NominatimUserAgent);
         }
