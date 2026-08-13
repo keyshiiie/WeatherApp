@@ -1,0 +1,117 @@
+﻿using Microsoft.Maui.Graphics;
+using WeatherApp.Core.Models;
+
+namespace WeatherApp.UI.ViewModels;
+
+public class TemperatureGraphDrawable : IDrawable
+{
+    public List<HourlyForecast> Data { get; set; } = new();
+
+    public void Draw(ICanvas canvas, RectF dirtyRect)
+    {
+        if (Data == null || Data.Count < 2) return;
+
+        double minTemp = Data.Min(h => h.TemperatureC);
+        double maxTemp = Data.Max(h => h.TemperatureC);
+        double range = maxTemp - minTemp;
+        if (range == 0) range = 1;
+
+        float width = dirtyRect.Width;
+        float height = dirtyRect.Height;
+
+        // Используем константы
+        float availableHeight = height - GraphConstants.TopPadding - GraphConstants.BottomLimit;
+
+        var points = new List<PointF>();
+        for (int i = 0; i < Data.Count; i++)
+        {
+            float x = GraphConstants.TopPadding + (width - (GraphConstants.TopPadding * 2)) * (i / (float)(Data.Count - 1));
+            float normalized = (float)((Data[i].TemperatureC - minTemp) / range);
+            float y = GraphConstants.TopPadding + (availableHeight - (availableHeight * normalized));
+            points.Add(new PointF(x, y));
+        }
+
+        // Рисуем линию
+        canvas.StrokeColor = Colors.LimeGreen;
+        canvas.StrokeSize = GraphConstants.LineStrokeSize;
+
+        if (points.Count > 1)
+        {
+            var path = new PathF();
+            path.MoveTo(points[0]);
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                var current = points[i];
+                var next = points[i + 1];
+                float midX = (current.X + next.X) / 2;
+                float midY = (current.Y + next.Y) / 2;
+                path.QuadTo(current.X, current.Y, midX, midY);
+            }
+            path.LineTo(points.Last());
+            canvas.DrawPath(path);
+        }
+
+        // Рисуем кружочки и данные
+        canvas.StrokeSize = GraphConstants.PointStrokeSize;
+        for (int i = 0; i < points.Count; i++)
+        {
+            var p = points[i];
+            canvas.StrokeColor = Colors.LimeGreen;
+            canvas.DrawCircle(p.X, p.Y, 4);
+
+            DrawCard(canvas, p.X, p.Y, Data[i]);
+        }
+    }
+
+    private void DrawCard(ICanvas canvas, float x, float y, HourlyForecast data)
+    {
+        canvas.FontColor = Colors.Black;
+
+        // 1. Температура (поднимаем над точкой)
+        canvas.FontSize = GraphConstants.TemperatureFontSize;
+        canvas.DrawString($"{data.TemperatureC:0}°",
+            x - 15, y - GraphConstants.TempYOffset, 30, 20,
+            HorizontalAlignment.Center, VerticalAlignment.Center);
+
+        // 2. Иконка
+        float startY = y + GraphConstants.CardStartOffset;
+        canvas.FontSize = GraphConstants.IconFontSize;
+        canvas.DrawString("☁️", x - 15, startY, 30, 25,
+            HorizontalAlignment.Center, VerticalAlignment.Top);
+
+        // 3. Ветер
+        startY += GraphConstants.IconSpacing;
+        canvas.FontSize = GraphConstants.DetailFontSize;
+        canvas.DrawString($"{data.WindSpeedKph:0} км/ч", x - 20, startY, 40, 15,
+            HorizontalAlignment.Center, VerticalAlignment.Top);
+
+        // 4. Время
+        startY += GraphConstants.WindSpacing;
+        canvas.FontSize = GraphConstants.DetailFontSize;
+        canvas.DrawString(data.TimeDisplay, x - 20, startY, 40, 15,
+            HorizontalAlignment.Center, VerticalAlignment.Top);
+    }
+}
+
+public static class GraphConstants
+{
+    // Настройки области рисования
+    public const float TopPadding = 30f;
+    public const float BottomLimit = 90f;
+
+    // Настройки позиционирования текста
+    public const float TempYOffset = 30f;       // Насколько поднять температуру над точкой
+    public const float CardStartOffset = 20f;   // Насколько ниже точки начинать блок карточки
+
+    // Расстояния между элементами в карточке (по вертикали)
+    public const float IconSpacing = 28f;       // Отступ от температуры до иконки
+    public const float WindSpacing = 28f;       // Отступ от иконки до ветра
+    public const float TimeSpacing = 18f;       // Отступ от ветра до времени
+
+    // Размеры и шрифты
+    public const float LineStrokeSize = 3f;
+    public const float PointStrokeSize = 4f;
+    public const float TemperatureFontSize = 14f;
+    public const float IconFontSize = 18f;
+    public const float DetailFontSize = 10f;
+}

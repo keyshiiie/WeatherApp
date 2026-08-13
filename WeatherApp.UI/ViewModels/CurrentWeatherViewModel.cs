@@ -34,6 +34,20 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     #region Properties
 
+    private TemperatureGraphDrawable _temperatureGraphDrawable = new();
+    public TemperatureGraphDrawable TemperatureGraphDrawable
+    {
+        get => _temperatureGraphDrawable;
+        set => SetProperty(ref _temperatureGraphDrawable, value);
+    }
+
+    private List<HourlyForecast> _hourlyForecast = new();
+    public List<HourlyForecast> HourlyForecast
+    {
+        get => _hourlyForecast;
+        set => SetProperty(ref _hourlyForecast, value);
+    }
+
     public WeatherData? CurrentWeather
     {
         get => _currentWeather;
@@ -110,6 +124,19 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
                 CurrentWeather = current;
                 ForecastDays = forecast;
+                if (forecast != null)
+                {
+                    // Передаем ВСЕ часы (не только 24)
+                    HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
+
+                    // Передаем их в рисовальщик
+                    TemperatureGraphDrawable.Data = HourlyForecast;
+                    OnPropertyChanged(nameof(TemperatureGraphDrawable));
+                }
+                else
+                {
+                    HourlyForecast = new List<HourlyForecast>();
+                }
 
                 await CheckIsFavoriteAsync();
             }

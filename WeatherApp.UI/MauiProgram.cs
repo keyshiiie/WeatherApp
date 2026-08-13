@@ -17,7 +17,6 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
@@ -55,8 +54,6 @@ public static class MauiProgram
 #endif
 
         var app = builder.Build();
-
-        // Применение миграций БД (как у вас было)
         ApplyMigrations(app.Services);
 
         return app;

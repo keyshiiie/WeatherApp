@@ -21,7 +21,6 @@ namespace WeatherApp.Tests.Services
         private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
         private readonly Mock<ILogger<WeatherService>> _loggerMock;
-        private readonly ApiSettings _apiSettings;
         private readonly WeatherService _weatherService;
 
         public WeatherServiceTests()
@@ -41,18 +40,12 @@ namespace WeatherApp.Tests.Services
 
             _loggerMock = new Mock<ILogger<WeatherService>>();
 
-            _apiSettings = new ApiSettings
-            {
-                WeatherApiKey = "test-api-key",
-                WeatherApiBaseUrl = "https://api.weatherapi.com/v1"
-            };
 
-            var optionsMock = new Mock<IOptions<ApiSettings>>();
-            optionsMock.Setup(x => x.Value).Returns(_apiSettings);
+            //var optionsMock = new Mock<IOptions<>>();
+            //optionsMock.Setup(x => x.Value).Returns();
 
             _weatherService = new WeatherService(
-                _httpClientFactoryMock.Object,  
-                optionsMock.Object,
+                _httpClientFactoryMock.Object,
                 _loggerMock.Object);
         }
 
