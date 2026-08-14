@@ -63,7 +63,10 @@ public static class MauiProgram
     {
         services.AddSingleton<IWeatherService, WeatherService>();
         services.AddSingleton<IGeolocationService, GeolocationService>();
-        services.AddSingleton<IFavoritesService, FavoritesService>();
+        services.AddScoped<IWeatherRepository, WeatherRepository>();
+        services.AddScoped<IFavoritesRepository, FavoritesRepository>();
+        services.AddScoped<IHistoryRepository, HistoryRepository>();
+        services.AddScoped<ICityService, CityService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<WeatherAlertService>();
     }

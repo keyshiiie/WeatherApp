@@ -130,39 +130,6 @@ public class WeatherRepository : IWeatherRepository
             throw;
         }
     }
-
-    public async Task<City> UpdateCityAsync(City city, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (city == null)
-                throw new ArgumentNullException(nameof(city));
-
-            var entity = await _context.Cities
-                .FirstOrDefaultAsync(c => c.Id == city.Id, cancellationToken);
-
-            if (entity == null)
-                throw new InvalidOperationException($"City with id {city.Id} not found");
-
-            // Обновляем поля
-            entity.Name = city.Name;
-            entity.Country = city.Country;
-            entity.Latitude = city.Latitude;
-            entity.Longitude = city.Longitude;
-            entity.IsLastSelected = city.IsLastSelected;
-
-            _context.Cities.Update(entity);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return CityMapper.ToModel(entity) ?? throw new InvalidOperationException("Failed to map entity to model");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error updating city: {city?.Name}");
-            throw;
-        }
-    }
-
     public async Task<bool> RemoveCityAsync(int id, CancellationToken cancellationToken = default)
     {
         try
@@ -321,5 +288,37 @@ public class WeatherRepository : IWeatherRepository
             _logger.LogError(ex, $"Error getting weather cache for city: {cityId}");
             return null;
         }
+    }
+
+    public async Task<List<City>> GetFavoriteCitiesAsync(CancellationToken cancellationToken = default)
+    {
+        var entities = await _context.Cities
+            .Where(c => c.IsFavorite)
+            .ToListAsync(cancellationToken);
+        return entities.Select(CityMapper.ToModel).ToList();
+    }
+
+    public async Task<List<City>> GetRecentCitiesAsync(CancellationToken cancellationToken = default)
+    {
+        var entities = await _context.Cities
+            .Where(c => c.IsRecent)
+            .OrderByDescending(c => c.LastSearchedAt)
+            .Take(20) // Ограничим историю 20 записями
+            .ToListAsync(cancellationToken);
+        return entities.Select(CityMapper.ToModel).ToList();
+    }
+
+    public async Task<City> UpdateCityAsync(City city, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Cities.FindAsync(new object[] { city.Id }, cancellationToken);
+        if (entity == null) throw new KeyNotFoundException($"City with Id {city.Id} not found");
+
+        // Обновляем поля
+        entity.IsFavorite = city.IsFavorite;
+        entity.IsRecent = city.IsRecent;
+        entity.LastSearchedAt = city.LastSearchedAt;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return CityMapper.ToModel(entity);
     }
 }

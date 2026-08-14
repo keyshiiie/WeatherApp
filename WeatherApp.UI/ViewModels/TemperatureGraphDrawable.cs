@@ -19,7 +19,6 @@ public class TemperatureGraphDrawable : IDrawable
         float width = dirtyRect.Width;
         float height = dirtyRect.Height;
 
-        // Используем константы
         float availableHeight = height - GraphConstants.TopPadding - GraphConstants.BottomLimit;
 
         var points = new List<PointF>();
@@ -31,7 +30,6 @@ public class TemperatureGraphDrawable : IDrawable
             points.Add(new PointF(x, y));
         }
 
-        // Рисуем линию
         canvas.StrokeColor = Colors.LimeGreen;
         canvas.StrokeSize = GraphConstants.LineStrokeSize;
 
@@ -51,7 +49,6 @@ public class TemperatureGraphDrawable : IDrawable
             canvas.DrawPath(path);
         }
 
-        // Рисуем кружочки и данные
         canvas.StrokeSize = GraphConstants.PointStrokeSize;
         for (int i = 0; i < points.Count; i++)
         {
@@ -67,25 +64,21 @@ public class TemperatureGraphDrawable : IDrawable
     {
         canvas.FontColor = Colors.Black;
 
-        // 1. Температура (поднимаем над точкой)
         canvas.FontSize = GraphConstants.TemperatureFontSize;
         canvas.DrawString($"{data.TemperatureC:0}°",
             x - 15, y - GraphConstants.TempYOffset, 30, 20,
             HorizontalAlignment.Center, VerticalAlignment.Center);
 
-        // 2. Иконка
         float startY = y + GraphConstants.CardStartOffset;
         canvas.FontSize = GraphConstants.IconFontSize;
         canvas.DrawString("☁️", x - 15, startY, 30, 25,
             HorizontalAlignment.Center, VerticalAlignment.Top);
 
-        // 3. Ветер
         startY += GraphConstants.IconSpacing;
         canvas.FontSize = GraphConstants.DetailFontSize;
         canvas.DrawString($"{data.WindSpeedKph:0} км/ч", x - 20, startY, 40, 15,
             HorizontalAlignment.Center, VerticalAlignment.Top);
 
-        // 4. Время
         startY += GraphConstants.WindSpacing;
         canvas.FontSize = GraphConstants.DetailFontSize;
         canvas.DrawString(data.TimeDisplay, x - 20, startY, 40, 15,

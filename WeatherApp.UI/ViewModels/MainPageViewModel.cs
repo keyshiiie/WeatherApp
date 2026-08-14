@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
 
@@ -9,7 +10,7 @@ public partial class MainPageViewModel : BaseViewModel
 {
     private readonly IWeatherService _weatherService;
     private readonly IGeolocationService _geolocationService;
-    private readonly IFavoritesService _favoritesService;
+    private readonly ICityService _cityService;
 
     private string _searchQuery = string.Empty;
     private List<CitySuggestion> _searchSuggestions = new();
@@ -18,18 +19,22 @@ public partial class MainPageViewModel : BaseViewModel
     public MainPageViewModel(
         IWeatherService weatherService,
         IGeolocationService geolocationService,
-        IFavoritesService favoritesService)
+        ICityService cityService)
     {
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
-        _favoritesService = favoritesService ?? throw new ArgumentNullException(nameof(favoritesService));
-
-        Title = "Поиск города";
+        _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
 
         SearchCommand = new AsyncRelayCommand(SearchCitiesAsync);
         SelectSuggestionCommand = new AsyncRelayCommand<CitySuggestion>(OnSelectSuggestionAsync);
         GetLocationCommand = new AsyncRelayCommand(GetLocationAsync);
         ClearSearchCommand = new RelayCommand(ClearSearch);
+        SelectRecentCityCommand = new AsyncRelayCommand<City>(OnSelectRecentCityAsync);
+    }
+
+    public override async Task OnAppearingAsync()
+    {
+        await LoadCityListsAsync();
     }
 
     #region Properties
@@ -54,6 +59,13 @@ public partial class MainPageViewModel : BaseViewModel
         }
     }
 
+    private List<City> _recentCities = new();
+    public List<City> RecentCities
+    {
+        get => _recentCities;
+        set => SetProperty(ref _recentCities, value);
+    }
+
     public List<CitySuggestion> SearchSuggestions
     {
         get => _searchSuggestions;
@@ -74,10 +86,22 @@ public partial class MainPageViewModel : BaseViewModel
     public IAsyncRelayCommand<CitySuggestion> SelectSuggestionCommand { get; }
     public IAsyncRelayCommand GetLocationCommand { get; }
     public IRelayCommand ClearSearchCommand { get; }
+    public IAsyncRelayCommand<City> SelectRecentCityCommand { get; }
 
     #endregion
 
     #region Private Methods
+
+    private async Task OnSelectRecentCityAsync(City? city)
+    {
+        if (city == null) return;
+        await NavigateToWeatherPage(city);
+    }
+
+    private async Task LoadCityListsAsync()
+    {
+        RecentCities = await _cityService.GetHistoryAsync();
+    }
 
     private async Task SearchCitiesAsync()
     {
@@ -111,7 +135,6 @@ public partial class MainPageViewModel : BaseViewModel
 
         await ExecuteAsync(async () =>
         {
-            // Создаем город из предложения
             var city = new City
             {
                 Name = suggestion.Name,
@@ -123,13 +146,9 @@ public partial class MainPageViewModel : BaseViewModel
                 IsLastSelected = false
             };
 
-            System.Diagnostics.Debug.WriteLine($"🏙️ Выбран город: {city.Name}, {city.Country}");
-            System.Diagnostics.Debug.WriteLine($"📍 Точные координаты: Lat={city.Latitude}, Lon={city.Longitude}");
-
-            // Переходим на страницу погоды
+            await _cityService.AddInHistoryAsync(city);
             await NavigateToWeatherPage(city);
 
-            // Очищаем поиск
             SearchQuery = string.Empty;
             SearchSuggestions.Clear();
             ShowSearchSuggestions = false;
@@ -163,8 +182,7 @@ public partial class MainPageViewModel : BaseViewModel
             location.Country ??= "Unknown";
             location.Region ??= "Unknown";
 
-            System.Diagnostics.Debug.WriteLine($"📍 Определен город: {location.DisplayName}");
-            System.Diagnostics.Debug.WriteLine($"📍 Координаты: {location.Latitude}, {location.Longitude}");
+            await _cityService.AddInHistoryAsync(location);
 
             await NavigateToWeatherPage(location);
         }, "Не удалось определить местоположение");

@@ -152,10 +152,23 @@ namespace WeatherApp.Core.Mappers
         /// <summary>
         /// Маппинг ForecastResponseDto → WeatherData (используя current)
         /// </summary>
+        /// <summary>
+        /// Маппинг ForecastResponseDto → WeatherData (используя current + первый день прогноза)
+        /// </summary>
         public static WeatherData MapToWeatherDataFromForecast(ForecastResponseDto dto)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
+
+            // Получаем первый день прогноза (сегодня), чтобы взять восход/закат и осадки
+            var todayForecast = dto.Forecast?.Forecastday?.FirstOrDefault();
+
+            // Вычисляем максимальную вероятность дождя за день из почасового прогноза
+            int maxRainChance = 0;
+            if (todayForecast?.Hour != null && todayForecast.Hour.Any())
+            {
+                maxRainChance = todayForecast.Hour.Max(h => h.ChanceOfRain);
+            }
 
             return new WeatherData
             {
@@ -206,7 +219,15 @@ namespace WeatherApp.Core.Mappers
                     ? lastUpdated
                     : DateTime.UtcNow,
 
-                IsCached = false
+                IsCached = false,
+
+                Sunrise = todayForecast?.Astro?.Sunrise,
+                Sunset = todayForecast?.Astro?.Sunset,
+
+                ChanceOfRainToday = maxRainChance,
+                ChanceOfSnowToday = 0, 
+                WillItRainToday = maxRainChance > 0,
+                WillItSnowToday = false
             };
         }
 

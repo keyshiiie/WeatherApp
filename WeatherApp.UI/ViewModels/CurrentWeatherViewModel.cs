@@ -7,7 +7,7 @@ namespace WeatherApp.UI.ViewModels;
 public partial class CurrentWeatherViewModel : BaseViewModel
 {
     private readonly IWeatherService _weatherService;
-    private readonly IFavoritesService _favoritesService;
+    private readonly ICityService _cityService;
 
     private WeatherData? _currentWeather;
     private List<ForecastDay>? _forecastDays;
@@ -18,10 +18,10 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     public CurrentWeatherViewModel(
         IWeatherService weatherService,
-        IFavoritesService favoritesService)
+        ICityService cityService)
     {
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
-        _favoritesService = favoritesService ?? throw new ArgumentNullException(nameof(favoritesService));
+        _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
 
         Title = "Погода";
 
@@ -31,7 +31,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         RemoveFromFavoritesCommand = new AsyncRelayCommand(RemoveCurrentCityFromFavoritesAsync);
         ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
     }
-
     #region Properties
 
     private TemperatureGraphDrawable _temperatureGraphDrawable = new();
@@ -94,17 +93,23 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     public override async Task OnAppearingAsync()
     {
-        if (SelectedCity != null && CurrentWeather == null)
+        if (SelectedCity != null)
         {
             await LoadWeatherForCityAsync(SelectedCity);
         }
+        else
+        {
+            await LoadBestCityAsync();
+        }
     }
+
 
     public async Task LoadWeatherForCityAsync(City city)
     {
         if (city == null)
             return;
 
+        IsCurrentCityFavorite = false;
         SelectedCity = city;
 
         await ExecuteAsync(async () =>
@@ -126,10 +131,8 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 ForecastDays = forecast;
                 if (forecast != null)
                 {
-                    // Передаем ВСЕ часы (не только 24)
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
 
-                    // Передаем их в рисовальщик
                     TemperatureGraphDrawable.Data = HourlyForecast;
                     OnPropertyChanged(nameof(TemperatureGraphDrawable));
                 }
@@ -139,6 +142,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 }
 
                 await CheckIsFavoriteAsync();
+                UpdateFavoriteToolbarItem();
             }
             else
             {
@@ -151,11 +155,30 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     {
         if (CurrentWeather != null && !string.IsNullOrEmpty(CurrentWeather.CityName))
         {
-            IsCurrentCityFavorite = await _favoritesService.IsFavoriteAsync(CurrentWeather.CityName);
+            IsCurrentCityFavorite = await _cityService.IsFavoriteAsync(CurrentWeather.CityName);
         }
         else
         {
             IsCurrentCityFavorite = false;
+        }
+    }
+
+    private void UpdateFavoriteToolbarItem()
+    {
+        var toolbarItem = Shell.Current?.CurrentPage?.FindByName<ToolbarItem>("FavoriteToolbarItem");
+
+        if (toolbarItem != null)
+        {
+            if (IsCurrentCityFavorite)
+            {
+                toolbarItem.Text = "Удалить";
+                toolbarItem.Command = RemoveFromFavoritesCommand;
+            }
+            else
+            {
+                toolbarItem.Text = "В избранное";
+                toolbarItem.Command = AddToFavoritesCommand;
+            }
         }
     }
 
@@ -195,14 +218,18 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             {
                 Name = CurrentWeather.CityName,
                 Country = CurrentWeather.Country,
+                Region = CurrentWeather.Region,
                 Latitude = CurrentWeather.Latitude,
                 Longitude = CurrentWeather.Longitude,
                 AddedAt = DateTime.UtcNow,
-                IsLastSelected = false
+                IsLastSelected = false,
+                IsFavorite = true,
+                IsRecent = false 
             };
 
-            await _favoritesService.AddFavoriteAsync(city);
+            await _cityService.AddFavoriteAsync(city);
             await CheckIsFavoriteAsync();
+            UpdateFavoriteToolbarItem();
         }, "Не удалось добавить в избранное");
     }
 
@@ -213,8 +240,11 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
         await ExecuteAsync(async () =>
         {
-            await _favoritesService.RemoveFavoriteByNameAsync(CurrentWeather.CityName);
+            await _cityService.RemoveFavoriteByNameAsync(CurrentWeather.CityName);
+
             await CheckIsFavoriteAsync();
+
+            UpdateFavoriteToolbarItem();
         }, "Не удалось удалить из избранного");
     }
 
@@ -226,5 +256,38 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             await AddCurrentCityToFavoritesAsync();
     }
 
+    private async Task LoadBestCityAsync()
+    {
+        try
+        {
+            var bestCity = await _cityService.GetBestCityAsync();
+
+            if (bestCity != null)
+            {
+                await LoadWeatherForCityAsync(bestCity);
+            }
+            else
+            {
+                var defaultCity = new City
+                {
+                    Name = "Москва",
+                    Country = "Россия",
+                    Region = "Московская область",
+                    Latitude = 55.7558,
+                    Longitude = 37.6176,
+                    AddedAt = DateTime.UtcNow,
+                    IsLastSelected = false,
+                    IsFavorite = false,
+                    IsRecent = false
+                };
+
+                await LoadWeatherForCityAsync(defaultCity);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetError($"Не удалось загрузить начальный город: {ex.Message}");
+        }
+    }
     #endregion
 }

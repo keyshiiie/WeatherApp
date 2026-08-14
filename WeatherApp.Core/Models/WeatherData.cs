@@ -44,7 +44,13 @@ public class WeatherData
     public bool IsCached { get; set; }
 
     public string? Region { get; set; }
+    public string? Sunrise { get; set; }
+    public string? Sunset { get; set; }
 
+    public int ChanceOfRainToday { get; set; }
+    public int ChanceOfSnowToday { get; set; }
+    public bool WillItRainToday { get; set; }
+    public bool WillItSnowToday { get; set; }
     public string DisplayName
     {
         get

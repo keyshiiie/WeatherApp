@@ -18,7 +18,10 @@ public static class CityMapper
             Latitude = model.Latitude,
             Longitude = model.Longitude,
             AddedAt = model.AddedAt,
-            IsLastSelected = model.IsLastSelected
+            IsLastSelected = model.IsLastSelected,
+            IsFavorite = model.IsFavorite,
+            IsRecent = model.IsRecent,
+            LastSearchedAt = model.LastSearchedAt
         };
     }
 
@@ -35,7 +38,10 @@ public static class CityMapper
             Latitude = entity.Latitude,
             Longitude = entity.Longitude,
             AddedAt = entity.AddedAt,
-            IsLastSelected = entity.IsLastSelected
+            IsLastSelected = entity.IsLastSelected,
+            IsFavorite = entity.IsFavorite,
+            IsRecent = entity.IsRecent,
+            LastSearchedAt = entity.LastSearchedAt
         };
     }
 }

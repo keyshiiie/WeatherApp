@@ -14,4 +14,8 @@
     <ShellContent Title="Погода" 
                   Route="CurrentWeatherPage" 
                   ContentTemplate="{DataTemplate local:CurrentWeatherPage}" />
+
+    <ShellContent Title="Избранное" 
+              Route="FavoritesPage" 
+              ContentTemplate="{DataTemplate local:FavoritesPage}" />
 </Shell>

@@ -48,4 +48,23 @@ public class ForecastDay
 
     // Для отображения в UI
     public string MoonIlluminationDisplay => $"{MoonIllumination}%";
+
+    public string DayLabel
+    {
+        get
+        {
+            var today = DateTime.Today;
+            var day = Date.Date;
+
+            if (day.Year == today.Year && day.Month == today.Month && day.Day == today.Day)
+                return "Сегодня";
+
+            var tomorrow = today.AddDays(1);
+            if (day.Year == tomorrow.Year && day.Month == tomorrow.Month && day.Day == tomorrow.Day)
+                return "Завтра";
+
+
+            return Date.ToString("ddd");
+        }
+    }
 }

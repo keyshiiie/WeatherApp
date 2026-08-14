@@ -21,5 +21,7 @@ namespace WeatherApp.Core.Repositories
         Task ClearWeatherCacheAsync(int cityId, CancellationToken cancellationToken = default);
         Task SaveWeatherCacheAsync(int cityId, WeatherData weatherData, CancellationToken cancellationToken = default);
         Task<WeatherData?> GetWeatherCacheAsync(int cityId, CancellationToken cancellationToken = default);
+        Task<List<City>> GetFavoriteCitiesAsync(CancellationToken cancellationToken = default);
+        Task<List<City>> GetRecentCitiesAsync(CancellationToken cancellationToken = default);
     }
 }

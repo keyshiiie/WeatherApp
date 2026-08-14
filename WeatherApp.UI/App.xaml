@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary>
                 <toolkit:BoolToObjectConverter x:Key="BoolToObjectConverter" />
+                <toolkit:IntToBoolConverter x:Key="IntToBool" />
                 <converters:MultiplyBy70Converter x:Key="MultiplyBy70" />
             </ResourceDictionary>
         </ResourceDictionary>

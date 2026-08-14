@@ -24,12 +24,10 @@ public class CityEntity
 
     [Required]
     public double Longitude { get; set; }
-
     public DateTime AddedAt { get; set; }
-
-    /// Флаг активного (последнего выбранного) города
     public bool IsLastSelected { get; set; }
-
-    // Навигационное свойство для кэша
+    public bool IsFavorite { get; set; }
+    public bool IsRecent { get; set; }
+    public DateTime LastSearchedAt { get; set; }
     public virtual WeatherCacheEntity? WeatherCache { get; set; }
 }

@@ -11,6 +11,9 @@ public class City
     public double Longitude { get; set; }
     public DateTime AddedAt { get; set; }
     public bool IsLastSelected { get; set; }
+    public bool IsFavorite { get; set; }
+    public bool IsRecent { get; set; }       
+    public DateTime LastSearchedAt { get; set; }
 
     public string DisplayName => string.IsNullOrEmpty(Region)
         ? $"{Name}, {Country}"

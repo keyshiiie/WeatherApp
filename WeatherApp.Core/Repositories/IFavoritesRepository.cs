@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using WeatherApp.Core.Models;
 
-namespace WeatherApp.Core.Services
+namespace WeatherApp.Core.Repositories
 {
-    public interface IFavoritesService
+    public interface IFavoritesRepository
     {
         Task<List<City>> GetFavoritesAsync(CancellationToken cancellationToken = default);
         Task<City> AddFavoriteAsync(City city, CancellationToken cancellationToken = default);
