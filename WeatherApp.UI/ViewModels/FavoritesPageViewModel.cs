@@ -31,7 +31,6 @@ public partial class FavoritesPageViewModel : BaseViewModel
         {
             var freshList = await _cityService.GetFavoritesAsync() ?? new List<City>();
 
-            // Обновляем существующую коллекцию, а не создаем новую
             FavoriteCities.Clear();
             foreach (var city in freshList)
             {
@@ -67,7 +66,6 @@ public partial class FavoritesPageViewModel : BaseViewModel
         {
             await _cityService.RemoveFavoriteByNameAsync(city.Name!);
 
-            // Удаляем город из коллекции напрямую
             var cityToRemove = FavoriteCities.FirstOrDefault(c => c.Name == city.Name);
             if (cityToRemove != null)
             {

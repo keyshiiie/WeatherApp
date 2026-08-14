@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using WeatherApp.Core.DTOs;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Translator;
 
 namespace WeatherApp.Core.Mappers
 {
@@ -149,12 +150,6 @@ namespace WeatherApp.Core.Mappers
             return forecastDays;
         }
 
-        /// <summary>
-        /// Маппинг ForecastResponseDto → WeatherData (используя current)
-        /// </summary>
-        /// <summary>
-        /// Маппинг ForecastResponseDto → WeatherData (используя current + первый день прогноза)
-        /// </summary>
         public static WeatherData MapToWeatherDataFromForecast(ForecastResponseDto dto)
         {
             if (dto == null)
@@ -236,15 +231,18 @@ namespace WeatherApp.Core.Mappers
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
 
+            // Переводим регион
+            var translatedRegion = RegionTranslator.Translate(dto.Region ?? string.Empty);
+
             return new CitySuggestion
             {
                 Id = dto.Id,
-                Name = dto.Name,
-                Region = dto.Region,
-                Country = dto.Country,
+                Name = dto.Name ?? string.Empty,
+                Region = translatedRegion,
+                Country = dto.Country ?? string.Empty,
                 Latitude = dto.Lat,
                 Longitude = dto.Lon,
-                Url = dto.Url
+                Url = dto.Url ?? string.Empty
             };
         }
 

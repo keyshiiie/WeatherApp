@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Maui.Storage;
 using System.Net.Http.Json;
-using WeatherApp.Core.Configuration;
 using WeatherApp.Core.Constants;
 using WeatherApp.Core.DTOs;
-using WeatherApp.Core.Models;
 using WeatherApp.Core.Mappers;
-using Microsoft.Maui.Storage;
+using WeatherApp.Core.Models;
 
 namespace WeatherApp.Core.Services
 {
@@ -14,6 +12,7 @@ namespace WeatherApp.Core.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<WeatherService> _logger;
+        private string _language;
 
         public WeatherService(
             IHttpClientFactory httpClientFactory,
@@ -21,9 +20,20 @@ namespace WeatherApp.Core.Services
         {
             _httpClient = httpClientFactory.CreateClient("WeatherApi");
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _language = ApiConstants.DefaultLanguage;
         }
 
-        // Вспомогательный метод для получения ключа
+        public WeatherService(
+            IHttpClientFactory httpClientFactory,
+            ILogger<WeatherService> logger,
+            string language = ApiConstants.DefaultLanguage)
+        {
+            _httpClient = httpClientFactory.CreateClient("WeatherApi");
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _language = string.IsNullOrEmpty(language) ? ApiConstants.DefaultLanguage : language;
+        }
+
         private async Task<string> GetApiKeyAsync()
         {
             var key = await SecureStorage.GetAsync("weather_api_key");
@@ -32,6 +42,11 @@ namespace WeatherApp.Core.Services
                 _logger.LogWarning("API Key not found in SecureStorage!");
             }
             return key ?? string.Empty;
+        }
+
+        private string BuildUrl(string endpoint, string query, string apiKey, string additionalParams = "")
+        {
+            return $"{endpoint}?key={apiKey}&q={Uri.EscapeDataString(query)}&lang={_language}{additionalParams}";
         }
 
         public async Task<WeatherData?> GetCurrentWeatherAsync(
@@ -49,7 +64,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return null;
 
-                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.CurrentWeatherEndpoint,
+                    cityName,
+                    apiKey,
+                    "&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<WeatherResponseDto>(
                     endpoint,
@@ -89,7 +108,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return null;
 
-                var endpoint = $"{ApiConstants.CurrentWeatherEndpoint}?key={apiKey}&q={query}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.CurrentWeatherEndpoint,
+                    query,
+                    apiKey,
+                    "&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<WeatherResponseDto>(
                     endpoint,
@@ -132,7 +155,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return null;
 
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.ForecastEndpoint,
+                    cityName,
+                    apiKey,
+                    $"&days={days}&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -174,7 +201,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return null;
 
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={query}&days={days}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.ForecastEndpoint,
+                    query,
+                    apiKey,
+                    $"&days={days}&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -201,21 +232,19 @@ namespace WeatherApp.Core.Services
         }
 
         public async Task<List<CitySuggestion>?> SearchCitiesAsync(
-    string query,
-    CancellationToken cancellationToken = default)
+            string query,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                // 1. Защита от null и пустых строк (ДОБАВИТЬ ЭТО!)
                 if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
                 {
-                    return new List<CitySuggestion>(); // Возвращаем пустой список, а не null
+                    return new List<CitySuggestion>();
                 }
 
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return null;
 
-                // 2. Важно: экранируем запрос в конце, чтобы убрать лишние пробелы
                 var endpoint = $"{ApiConstants.SearchEndpoint}?key={apiKey}&q={Uri.EscapeDataString(query.Trim())}";
 
                 var response = await _httpClient.GetFromJsonAsync<List<SearchResponseDto>>(
@@ -258,7 +287,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return (null, null);
 
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={Uri.EscapeDataString(cityName)}&days={days}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.ForecastEndpoint,
+                    cityName,
+                    apiKey,
+                    $"&days={days}&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -305,7 +338,11 @@ namespace WeatherApp.Core.Services
                 var apiKey = await GetApiKeyAsync();
                 if (string.IsNullOrEmpty(apiKey)) return (null, null);
 
-                var endpoint = $"{ApiConstants.ForecastEndpoint}?key={apiKey}&q={query}&days={days}&aqi=yes";
+                var endpoint = BuildUrl(
+                    ApiConstants.ForecastEndpoint,
+                    query,
+                    apiKey,
+                    $"&days={days}&aqi=yes");
 
                 var response = await _httpClient.GetFromJsonAsync<ForecastResponseDto>(
                     endpoint,
@@ -334,6 +371,13 @@ namespace WeatherApp.Core.Services
                 _logger.LogError(ex, $"Unexpected error while fetching weather and forecast for coordinates: {latitude}, {longitude}");
                 return (null, null);
             }
+        }
+
+        public void SetLanguage(string languageCode)
+        {
+            if (string.IsNullOrEmpty(languageCode)) return;
+            _language = languageCode;
+            _logger.LogInformation($"Language changed to: {languageCode}");
         }
     }
 }

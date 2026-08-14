@@ -11,12 +11,24 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Entry Grid.Row="0"
-               x:Name="SearchEntry"
-               Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
-               Placeholder="Введите название города..."
-               FontSize="14"
-               HeightRequest="44"/>
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+
+        <Border StrokeShape="RoundRectangle 25" 
+                StrokeThickness="1"
+                Stroke="LightGray"
+                BackgroundColor="#F0F0F0"
+                HeightRequest="50"
+                Padding="15,10">
+            <Entry Grid.Row="0"
+                   x:Name="SearchEntry"
+                   Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
+                   Placeholder="Введите название города..."
+                   FontSize="14"
+                   Background="Transparent"
+                   TextColor="Black"
+                   HeightRequest="44"/>
+        </Border>
 
         <CollectionView Grid.Row="1"
                         x:Name="SearchResultsList"
@@ -46,10 +58,7 @@
                                HorizontalOptions="Start" 
                                VerticalOptions="Start"
                                Spacing="10">
-
-            <!--<ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-
-            <Label Text="{Binding ErrorMessage}"
+            <!--<Label Text="{Binding ErrorMessage}"
                    IsVisible="{Binding HasError}"
                    TextColor="Red"
                    HorizontalOptions="Center"

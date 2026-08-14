@@ -22,6 +22,7 @@ namespace WeatherApp.Core.Services
         double longitude,
         int days = 5,
         CancellationToken cancellationToken = default);
+        void SetLanguage(string languageCode);
 
     }
 }

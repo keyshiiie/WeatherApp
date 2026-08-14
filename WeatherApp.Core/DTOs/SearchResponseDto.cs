@@ -24,8 +24,15 @@ public class SearchResponseDto
 
     [JsonPropertyName("url")]
     public string? Url { get; set; }
-    public string FullDisplayName => string.IsNullOrEmpty(Region)
+
+    [JsonIgnore]
+    public string? TranslatedRegion { get; set; }
+
+    [JsonIgnore]
+    public string FullDisplayName => string.IsNullOrEmpty(TranslatedRegion)
         ? $"{Name}, {Country}"
-        : $"{Name}, {Region}, {Country}";
+        : $"{Name}, {TranslatedRegion}, {Country}";
+
+    [JsonIgnore]
     public string ShortDisplayName => $"{Name}, {Country}";
 }
