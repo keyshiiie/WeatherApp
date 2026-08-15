@@ -9,6 +9,18 @@ namespace WeatherApp.Core.Mappers
 {
     public class WeatherDtoMapper
     {
+        // Вспомогательный метод для обработки иконок
+        private static string? FixIconUrl(string? icon)
+        {
+            if (string.IsNullOrEmpty(icon))
+                return null;
+
+            if (icon.StartsWith("//"))
+                return "https:" + icon;
+
+            return icon;
+        }
+
         public static WeatherData MapToWeatherData(WeatherResponseDto dto)
         {
             if (dto == null)
@@ -28,7 +40,7 @@ namespace WeatherApp.Core.Mappers
                 FeelsLikeF = dto.Current?.FeelslikeF ?? 0,
 
                 ConditionText = dto.Current?.Condition?.Text,
-                ConditionIcon = dto.Current?.Condition?.Icon,
+                ConditionIcon = FixIconUrl(dto.Current?.Condition?.Icon),
                 ConditionCode = dto.Current?.Condition?.Code ?? 0,
                 IsDay = dto.Current?.IsDay == 1,
 
@@ -91,7 +103,7 @@ namespace WeatherApp.Core.Mappers
                     AvgTempF = dayDto.Day?.AvgtempF ?? 0,
 
                     ConditionText = dayDto.Day?.Condition?.Text,
-                    ConditionIcon = dayDto.Day?.Condition?.Icon,
+                    ConditionIcon = FixIconUrl(dayDto.Day?.Condition?.Icon),
                     ConditionCode = dayDto.Day?.Condition?.Code ?? 0,
 
                     MaxWindKph = dayDto.Day?.MaxwindKph ?? 0,
@@ -123,7 +135,7 @@ namespace WeatherApp.Core.Mappers
                             FeelsLikeF = hourDto.FeelslikeF,
 
                             ConditionText = hourDto.Condition?.Text,
-                            ConditionIcon = hourDto.Condition?.Icon,
+                            ConditionIcon = FixIconUrl(hourDto.Condition?.Icon),
                             ConditionCode = hourDto.Condition?.Code ?? 0,
                             IsDay = hourDto.IsDay == 1,
 
@@ -180,7 +192,7 @@ namespace WeatherApp.Core.Mappers
                 FeelsLikeF = dto.Current?.FeelslikeF ?? 0,
 
                 ConditionText = dto.Current?.Condition?.Text,
-                ConditionIcon = dto.Current?.Condition?.Icon,
+                ConditionIcon = FixIconUrl(dto.Current?.Condition?.Icon),
                 ConditionCode = dto.Current?.Condition?.Code ?? 0,
                 IsDay = dto.Current?.IsDay == 1,
 
@@ -221,7 +233,7 @@ namespace WeatherApp.Core.Mappers
                 Sunset = todayForecast?.Astro?.Sunset,
 
                 ChanceOfRainToday = maxRainChance,
-                ChanceOfSnowToday = 0, 
+                ChanceOfSnowToday = 0,
                 WillItRainToday = maxRainChance > 0,
                 WillItSnowToday = false
             };

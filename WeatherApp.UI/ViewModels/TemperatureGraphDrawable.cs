@@ -58,7 +58,7 @@ public class TemperatureGraphDrawable : IDrawable
             points.Add(new PointF(x, y));
         }
 
-        canvas.StrokeColor = Colors.LimeGreen;
+        canvas.StrokeColor = Colors.Blue;
         canvas.StrokeSize = GraphConstants.LineStrokeSize;
 
         if (points.Count > 1)
@@ -81,7 +81,7 @@ public class TemperatureGraphDrawable : IDrawable
         for (int i = 0; i < points.Count; i++)
         {
             var p = points[i];
-            canvas.StrokeColor = Colors.LimeGreen;
+            canvas.StrokeColor = Colors.Blue;
             canvas.DrawCircle(p.X, p.Y, 4);
 
             DrawCard(canvas, p.X, p.Y, Data[i]);
@@ -90,7 +90,7 @@ public class TemperatureGraphDrawable : IDrawable
 
     private void DrawCard(ICanvas canvas, float x, float y, HourlyForecast data)
     {
-        canvas.FontColor = Colors.Black;
+        canvas.FontColor = Colors.White;
 
         // Температура с правильной единицей измерения
         canvas.FontSize = GraphConstants.TemperatureFontSize;

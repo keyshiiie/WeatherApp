@@ -8,16 +8,17 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml"/>
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml"/> 
             </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary>
-                <toolkit:BoolToObjectConverter x:Key="BoolToObject" />
-                <toolkit:IntToBoolConverter x:Key="IntToBool" />
-                <converters:MultiplyBy70Converter x:Key="MultiplyBy70" />
-                <converters:StringToBoolConverter x:Key="StringToBool" />
-                <converters:EnumDisplayConverter x:Key="EnumDisplay" />
-                <converters:TemperatureDisplayConverter x:Key="TemperatureDisplay" />
+                <toolkit:BoolToObjectConverter x:Key="BoolToObject"/>
+                <toolkit:IntToBoolConverter x:Key="IntToBool"/>
+                <converters:MultiplyBy70Converter x:Key="MultiplyBy70"/>
+                <converters:StringToBoolConverter x:Key="StringToBool"/>
+                <converters:EnumDisplayConverter x:Key="EnumDisplay"/>
+                <converters:TemperatureDisplayConverter x:Key="TemperatureDisplay"/>
+                <converters:WeatherBackgroundConverter x:Key="WeatherBackground"/>
             </ResourceDictionary>
         </ResourceDictionary>
     </Application.Resources>
