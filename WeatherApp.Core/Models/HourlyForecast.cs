@@ -21,6 +21,7 @@ public class HourlyForecast
     // Детали
     public int Humidity { get; set; }
     public double WindSpeedKph { get; set; }
+    public double WindSpeedMph { get; set; }
     public double PressureMb { get; set; }
     public double PrecipitationMm { get; set; }
     public int CloudCover { get; set; }

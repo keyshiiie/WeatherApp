@@ -4,18 +4,23 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:WeatherApp.UI.Views"
-    Title="WeatherApp.UI">
+    Title="WeatherApp">
 
-    <ShellContent
-        Title="Поиск"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!-- Включаем Flyout (бургер-меню) -->
+    <Shell.FlyoutBehavior>
+        Flyout
+    </Shell.FlyoutBehavior>
 
-    <ShellContent Title="Погода" 
-                  Route="CurrentWeatherPage" 
-                  ContentTemplate="{DataTemplate local:CurrentWeatherPage}" />
+    <ShellItem Title="Погода" Route="main">
+        <ShellContent ContentTemplate="{DataTemplate local:MainPage}" />
+    </ShellItem>
 
-    <ShellContent Title="Избранное" 
-              Route="FavoritesPage" 
-              ContentTemplate="{DataTemplate local:FavoritesPage}" />
+    <ShellItem Title="Избранное" Route="favorites">
+        <ShellContent ContentTemplate="{DataTemplate local:FavoritesPage}" />
+    </ShellItem>
+
+    <ShellItem Title="Настройки" Route="settings">
+        <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" />
+    </ShellItem>
+
 </Shell>

@@ -69,6 +69,7 @@ public static class MauiProgram
         services.AddScoped<ICityService, CityService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<WeatherAlertService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)
@@ -83,6 +84,7 @@ public static class MauiProgram
         services.AddTransient<ForecastPageViewModel>();
         services.AddTransient<DetailsPageViewModel>();
         services.AddTransient<FavoritesPageViewModel>();
+        services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<LoginPageViewModel>();
     }

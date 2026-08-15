@@ -129,6 +129,7 @@ namespace WeatherApp.Core.Mappers
 
                             Humidity = hourDto.Humidity,
                             WindSpeedKph = hourDto.WindKph,
+                            WindSpeedMph = hourDto.WindMph,
                             PressureMb = hourDto.PressureMb,
                             PrecipitationMm = hourDto.PrecipMm,
                             CloudCover = hourDto.Cloud,

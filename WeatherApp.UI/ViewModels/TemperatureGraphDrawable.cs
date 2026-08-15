@@ -7,12 +7,34 @@ public class TemperatureGraphDrawable : IDrawable
 {
     public List<HourlyForecast> Data { get; set; } = new();
 
+    // Добавляем свойство для единиц измерения
+    private TemperatureUnit _temperatureUnit = TemperatureUnit.Celsius;
+    private SpeedUnit _speedUnit = SpeedUnit.KilometersPerHour;
+
+    // Метод для обновления настроек
+    public void UpdateSettings(TemperatureUnit temperatureUnit, SpeedUnit speedUnit)
+    {
+        _temperatureUnit = temperatureUnit;
+        _speedUnit = speedUnit;
+    }
+
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         if (Data == null || Data.Count < 2) return;
 
-        double minTemp = Data.Min(h => h.TemperatureC);
-        double maxTemp = Data.Max(h => h.TemperatureC);
+        // Используем текущую единицу измерения для расчета графика
+        double minTemp, maxTemp;
+        if (_temperatureUnit == TemperatureUnit.Celsius)
+        {
+            minTemp = Data.Min(h => h.TemperatureC);
+            maxTemp = Data.Max(h => h.TemperatureC);
+        }
+        else
+        {
+            minTemp = Data.Min(h => h.TemperatureF);
+            maxTemp = Data.Max(h => h.TemperatureF);
+        }
+
         double range = maxTemp - minTemp;
         if (range == 0) range = 1;
 
@@ -25,7 +47,13 @@ public class TemperatureGraphDrawable : IDrawable
         for (int i = 0; i < Data.Count; i++)
         {
             float x = GraphConstants.TopPadding + (width - (GraphConstants.TopPadding * 2)) * (i / (float)(Data.Count - 1));
-            float normalized = (float)((Data[i].TemperatureC - minTemp) / range);
+
+            // Используем правильную температуру для расчета Y
+            float tempValue = (float)(_temperatureUnit == TemperatureUnit.Celsius
+                ? Data[i].TemperatureC
+                : Data[i].TemperatureF);
+
+            float normalized = (tempValue - (float)minTemp) / (float)range;
             float y = GraphConstants.TopPadding + (availableHeight - (availableHeight * normalized));
             points.Add(new PointF(x, y));
         }
@@ -64,9 +92,14 @@ public class TemperatureGraphDrawable : IDrawable
     {
         canvas.FontColor = Colors.Black;
 
+        // Температура с правильной единицей измерения
         canvas.FontSize = GraphConstants.TemperatureFontSize;
-        canvas.DrawString($"{data.TemperatureC:0}°",
-            x - 15, y - GraphConstants.TempYOffset, 30, 20,
+        string tempText = _temperatureUnit == TemperatureUnit.Celsius
+            ? $"{data.TemperatureC:F0}°C"
+            : $"{data.TemperatureF:F0}°F";
+
+        canvas.DrawString(tempText,
+            x - 20, y - GraphConstants.TempYOffset, 40, 20,
             HorizontalAlignment.Center, VerticalAlignment.Center);
 
         float startY = y + GraphConstants.CardStartOffset;
@@ -74,9 +107,14 @@ public class TemperatureGraphDrawable : IDrawable
         canvas.DrawString("☁️", x - 15, startY, 30, 25,
             HorizontalAlignment.Center, VerticalAlignment.Top);
 
+        // Скорость ветра с правильной единицей измерения
         startY += GraphConstants.IconSpacing;
         canvas.FontSize = GraphConstants.DetailFontSize;
-        canvas.DrawString($"{data.WindSpeedKph:0} км/ч", x - 20, startY, 40, 15,
+        string windText = _speedUnit == SpeedUnit.KilometersPerHour
+            ? $"{data.WindSpeedKph:F0} км/ч"
+            : $"{data.WindSpeedMph:F0} миль/ч";
+
+        canvas.DrawString(windText, x - 25, startY, 50, 15,
             HorizontalAlignment.Center, VerticalAlignment.Top);
 
         startY += GraphConstants.WindSpacing;
