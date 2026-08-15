@@ -12,9 +12,10 @@
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary>
-                <toolkit:BoolToObjectConverter x:Key="BoolToObjectConverter" />
+                <toolkit:BoolToObjectConverter x:Key="BoolToObject" />
                 <toolkit:IntToBoolConverter x:Key="IntToBool" />
                 <converters:MultiplyBy70Converter x:Key="MultiplyBy70" />
+                <converters:StringToBoolConverter x:Key="StringToBool" />
             </ResourceDictionary>
         </ResourceDictionary>
     </Application.Resources>

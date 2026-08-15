@@ -1,6 +1,7 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using WeatherApp.Core.Models;
-using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
 
@@ -12,8 +13,16 @@ public partial class MainPageViewModel : BaseViewModel
     private readonly IGeolocationService _geolocationService;
     private readonly ICityService _cityService;
 
+    [ObservableProperty]
     private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<City> _recentCities = new();
+
+    [ObservableProperty]
     private List<CitySuggestion> _searchSuggestions = new();
+
+    [ObservableProperty]
     private bool _showSearchSuggestions;
 
     public MainPageViewModel(
@@ -24,12 +33,6 @@ public partial class MainPageViewModel : BaseViewModel
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
-
-        SearchCommand = new AsyncRelayCommand(SearchCitiesAsync);
-        SelectSuggestionCommand = new AsyncRelayCommand<CitySuggestion>(OnSelectSuggestionAsync);
-        GetLocationCommand = new AsyncRelayCommand(GetLocationAsync);
-        ClearSearchCommand = new RelayCommand(ClearSearch);
-        SelectRecentCityCommand = new AsyncRelayCommand<City>(OnSelectRecentCityAsync);
     }
 
     public override async Task OnAppearingAsync()
@@ -37,72 +40,22 @@ public partial class MainPageViewModel : BaseViewModel
         await LoadCityListsAsync();
     }
 
-    #region Properties
-
-    public string SearchQuery
+    partial void OnSearchQueryChanged(string value)
     {
-        get => _searchQuery;
-        set
+        if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
         {
-            if (SetProperty(ref _searchQuery, value))
-            {
-                if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
-                {
-                    SearchCommand.Execute(null);
-                }
-                else
-                {
-                    SearchSuggestions.Clear();
-                    ShowSearchSuggestions = false;
-                }
-            }
+            SearchCitiesCommand.Execute(null);
+        }
+        else
+        {
+            SearchSuggestions.Clear();
+            ShowSearchSuggestions = false;
         }
     }
 
-    private List<City> _recentCities = new();
-    public List<City> RecentCities
-    {
-        get => _recentCities;
-        set => SetProperty(ref _recentCities, value);
-    }
-
-    public List<CitySuggestion> SearchSuggestions
-    {
-        get => _searchSuggestions;
-        set => SetProperty(ref _searchSuggestions, value);
-    }
-
-    public bool ShowSearchSuggestions
-    {
-        get => _showSearchSuggestions;
-        set => SetProperty(ref _showSearchSuggestions, value);
-    }
-
-    #endregion
-
     #region Commands
 
-    public IAsyncRelayCommand SearchCommand { get; }
-    public IAsyncRelayCommand<CitySuggestion> SelectSuggestionCommand { get; }
-    public IAsyncRelayCommand GetLocationCommand { get; }
-    public IRelayCommand ClearSearchCommand { get; }
-    public IAsyncRelayCommand<City> SelectRecentCityCommand { get; }
-
-    #endregion
-
-    #region Private Methods
-
-    private async Task OnSelectRecentCityAsync(City? city)
-    {
-        if (city == null) return;
-        await NavigateToWeatherPage(city);
-    }
-
-    private async Task LoadCityListsAsync()
-    {
-        RecentCities = await _cityService.GetHistoryAsync();
-    }
-
+    [RelayCommand]
     private async Task SearchCitiesAsync()
     {
         if (string.IsNullOrWhiteSpace(SearchQuery) || SearchQuery.Length < 2)
@@ -128,7 +81,8 @@ public partial class MainPageViewModel : BaseViewModel
         }, "Ошибка поиска городов");
     }
 
-    private async Task OnSelectSuggestionAsync(CitySuggestion? suggestion)
+    [RelayCommand]
+    private async Task SelectSuggestionAsync(CitySuggestion? suggestion)
     {
         if (suggestion == null)
             return;
@@ -140,7 +94,7 @@ public partial class MainPageViewModel : BaseViewModel
                 Name = suggestion.Name,
                 Country = suggestion.Country,
                 Region = suggestion.Region,
-                Latitude = suggestion.Latitude, 
+                Latitude = suggestion.Latitude,
                 Longitude = suggestion.Longitude,
                 AddedAt = DateTime.UtcNow,
                 IsLastSelected = false
@@ -152,9 +106,12 @@ public partial class MainPageViewModel : BaseViewModel
             SearchQuery = string.Empty;
             SearchSuggestions.Clear();
             ShowSearchSuggestions = false;
+
+            await LoadCityListsAsync();
         }, "Не удалось открыть погоду");
     }
 
+    [RelayCommand]
     private async Task GetLocationAsync()
     {
         await ExecuteAsync(async () =>
@@ -183,9 +140,57 @@ public partial class MainPageViewModel : BaseViewModel
             location.Region ??= "Unknown";
 
             await _cityService.AddInHistoryAsync(location);
-
             await NavigateToWeatherPage(location);
+
+            await LoadCityListsAsync();
         }, "Не удалось определить местоположение");
+    }
+
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchQuery = string.Empty;
+        SearchSuggestions.Clear();
+        ShowSearchSuggestions = false;
+    }
+
+    [RelayCommand]
+    private async Task SelectRecentCityAsync(City? city)
+    {
+        if (city == null) return;
+        await NavigateToWeatherPage(city);
+    }
+
+    [RelayCommand]
+    private async Task RemoveRecentCityAsync(City? city)
+    {
+        if (city == null || string.IsNullOrWhiteSpace(city.Name)) return;
+
+        await ExecuteAsync(async () =>
+        {
+            await _cityService.RemoveFromHistoryByNameAsync(city.Name!);
+
+            var cityToRemove = RecentCities.FirstOrDefault(c => c.Name == city.Name);
+            if (cityToRemove != null)
+            {
+                RecentCities.Remove(cityToRemove);
+            }
+        }, "Не удалось удалить город");
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private async Task LoadCityListsAsync()
+    {
+        var history = await _cityService.GetHistoryAsync() ?? new List<City>();
+
+        RecentCities.Clear();
+        foreach (var city in history)
+        {
+            RecentCities.Add(city);
+        }
     }
 
     private async Task NavigateToWeatherPage(City city)
@@ -193,9 +198,7 @@ public partial class MainPageViewModel : BaseViewModel
         try
         {
             var cityJson = System.Text.Json.JsonSerializer.Serialize(city);
-
             var uri = $"{nameof(CurrentWeatherPage)}?city={Uri.EscapeDataString(cityJson)}";
-
             await Shell.Current.GoToAsync(uri);
         }
         catch (Exception ex)
@@ -203,13 +206,6 @@ public partial class MainPageViewModel : BaseViewModel
             System.Diagnostics.Debug.WriteLine($"Ошибка навигации: {ex.Message}");
             SetError($"Не удалось открыть страницу погоды: {ex.Message}");
         }
-    }
-
-    private void ClearSearch()
-    {
-        SearchQuery = string.Empty;
-        SearchSuggestions.Clear();
-        ShowSearchSuggestions = false;
     }
 
     #endregion

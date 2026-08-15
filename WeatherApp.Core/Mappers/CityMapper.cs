@@ -14,6 +14,7 @@ public static class CityMapper
         {
             Id = model.Id,
             Name = model.Name,
+            Region = model.Region,
             Country = model.Country,
             Latitude = model.Latitude,
             Longitude = model.Longitude,
@@ -34,6 +35,7 @@ public static class CityMapper
         {
             Id = entity.Id,
             Name = entity.Name,
+            Region = entity.Region,
             Country = entity.Country,
             Latitude = entity.Latitude,
             Longitude = entity.Longitude,

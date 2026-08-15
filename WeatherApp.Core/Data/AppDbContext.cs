@@ -40,6 +40,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Region).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Country).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Latitude).IsRequired();
             entity.Property(e => e.Longitude).IsRequired();

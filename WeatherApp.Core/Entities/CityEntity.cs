@@ -16,6 +16,10 @@ public class CityEntity
     public string? Name { get; set; }
 
     [Required]
+    [MaxLength(200)]
+    public string? Region { get; set; }
+
+    [Required]
     [MaxLength(50)]
     public string? Country { get; set; }
 

@@ -37,102 +37,148 @@
                        FontAttributes="Bold"
                        Grid.Column="0"
                        VerticalOptions="Center" />
-                <Button Text="Подробнее ->"
-                        BackgroundColor="Transparent"
+                <Button Text="Подробнее"
+                        Grid.Column="1"
+                        Background="#F0F0F0"
                         TextColor="Black"
-                        CornerRadius="8"
-                        Grid.Column="1"/>
+                        BorderColor="LightGray"
+                        BorderWidth="1"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        HorizontalOptions="Start"/>
             </Grid>
 
             <CollectionView ItemsSource="{Binding ForecastDays}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="10" Margin="0, 15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="100" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <HorizontalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Center">
-                                <Label Text="{Binding DayLabel}" TextColor="Black"/>
-                            </HorizontalStackLayout>
-                            <Label Grid.Column="1" Text="{Binding ConditionText}" VerticalOptions="Center" />
-                            <Label Grid.Column="2" Text="{Binding MaxTempC, StringFormat='{0}'}" TextColor="Black" VerticalOptions="Center" />
-                            <Label Grid.Column="3" Text="/" TextColor="Black" VerticalOptions="Center" Margin="5,0"/>
-                            <Label Grid.Column="4" Text="{Binding MinTempC, StringFormat='{0}'}" TextColor="Black" VerticalOptions="Center" />
-                        </Grid>
+                        <Border StrokeShape="RoundRectangle 25" 
+                                StrokeThickness="1"
+                                Stroke="LightGray"
+                                BackgroundColor="#F0F0F0"
+                                Padding="15,5"
+                                Margin="0,15">
+                            <Grid Padding="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <HorizontalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding DayLabel}" TextColor="Black"/>
+                                </HorizontalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding ConditionText}" VerticalOptions="Center" />
+                                <Label Grid.Column="2" Text="{Binding MaxTempC, StringFormat='{0}'}" TextColor="Black" VerticalOptions="Center" />
+                                <Label Grid.Column="3" Text="/" TextColor="Black" VerticalOptions="Center" Margin="5,0"/>
+                                <Label Grid.Column="4" Text="{Binding MinTempC, StringFormat='{0}'}" TextColor="Black" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
             <Label Text="Прогноз на 24 ч" FontSize="18" FontAttributes="Bold" Margin="0,20,0,5" />
-            
-            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always" HeightRequest="230">
-                <GraphicsView HeightRequest="230" 
-      WidthRequest="{Binding HourlyForecast.Count, Converter={StaticResource MultiplyBy70}}"
-      HorizontalOptions="Start"
-      Drawable="{Binding TemperatureGraphDrawable}" />
-            </ScrollView>
 
-            <!-- Детальная информация о погоде -->
-            <Grid RowDefinitions="Auto, Auto, Auto, Auto" 
-      ColumnDefinitions="*, *, *" 
-      Padding="0" RowSpacing="8" ColumnSpacing="8" Margin="0,15,0,15">
+            <Border StrokeShape="RoundRectangle 25" 
+                    StrokeThickness="1"
+                    Stroke="LightGray"
+                    BackgroundColor="#F0F0F0"
+                    Padding="15,5"
+                    Margin="0,15">
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always" HeightRequest="250">
+                    <GraphicsView HeightRequest="230" 
+                              WidthRequest="{Binding HourlyForecast.Count, Converter={StaticResource MultiplyBy70}}"
+                              HorizontalOptions="Start"
+                              Drawable="{Binding TemperatureGraphDrawable}" />
+                </ScrollView>
+            </Border>
 
-                <!-- Строка 0: Заголовки -->
-                <Label Grid.Row="0" Grid.Column="0" Text="💨 Ветер" FontSize="14" TextColor="Gray" />
-                <Label Grid.Row="0" Grid.Column="1" Text="🌡️ Ощущается" FontSize="14" TextColor="Gray" />
-                <Label Grid.Row="0" Grid.Column="2" Text="☀️ УФ-индекс" FontSize="14" TextColor="Gray" />
+            <Grid RowDefinitions="*, *" 
+                  ColumnDefinitions="*, *" 
+                  Padding="0" RowSpacing="8" ColumnSpacing="8" Margin="0,15,0,15">
 
-                <!-- Строка 1: Значения -->
-                <!-- Для ветра сделаем два Label: направление и скорость -->
-                <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="4" HorizontalOptions="Start">
-                    <Label Text="{Binding CurrentWeather.WindDirection, TargetNullValue='-'}" FontSize="15" FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentWeather.WindSpeedKph, StringFormat='{0} км/ч', TargetNullValue='-'}" FontSize="15" />
-                </HorizontalStackLayout>
+                <Border Grid.Column="0" 
+                        Grid.Row="0"
+                        StrokeShape="RoundRectangle 25" 
+                        StrokeThickness="1"
+                        Stroke="LightGray"
+                        BackgroundColor="#F0F0F0"
+                        Padding="15">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding CurrentWeather.WindDirection, TargetNullValue='-'}" FontSize="15" FontAttributes="Bold" />
+                        <Label Text="{Binding CurrentWeather.WindSpeedKph, StringFormat='{0} км/ч', TargetNullValue='-'}" FontSize="15" />
+                    </VerticalStackLayout>
+                </Border>
 
-                <Label Grid.Row="1" Grid.Column="1" Text="{Binding CurrentWeather.FeelsLikeC, StringFormat='{0}°C'}" FontSize="15" FontAttributes="Bold" />
-                <Label Grid.Row="1" Grid.Column="2" Text="{Binding CurrentWeather.UVIndex, StringFormat='{0}'}" FontSize="15" FontAttributes="Bold" />
+                <Border Grid.Column="0" 
+                        Grid.Row="1"
+                        StrokeShape="RoundRectangle 25" 
+                        StrokeThickness="1"
+                        Stroke="LightGray"
+                        BackgroundColor="#F0F0F0"
+                        Padding="15">
+                    <VerticalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Grid.Row="3" Grid.Column="0" Text="{Binding CurrentWeather.Sunrise, TargetNullValue='-'}" FontSize="14" FontAttributes="Bold" />
+                            <Label Text="Восход" FontSize="14" TextColor="Gray" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Grid.Row="3" Grid.Column="1" Text="{Binding CurrentWeather.Sunset, TargetNullValue='-'}" FontSize="14" FontAttributes="Bold" />
+                            <Label Text="Закат" FontSize="14" TextColor="Gray" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
 
-                <!-- Строка 2: Заголовки -->
-                <Label Grid.Row="2" Grid.Column="0" Text="🌅 Рассвет" FontSize="14" TextColor="Gray" />
-                <Label Grid.Row="2" Grid.Column="1" Text="🌇 Закат" FontSize="14" TextColor="Gray" />
-                <Label Grid.Row="2" Grid.Column="2" Text="💧 Влажность" FontSize="14" TextColor="Gray" />
-
-                <!-- Строка 3: Значения -->
-                <Label Grid.Row="3" Grid.Column="0" Text="{Binding CurrentWeather.Sunrise, TargetNullValue='-'}" FontSize="15" FontAttributes="Bold" />
-                <Label Grid.Row="3" Grid.Column="1" Text="{Binding CurrentWeather.Sunset, TargetNullValue='-'}" FontSize="15" FontAttributes="Bold" />
-                <Label Grid.Row="3" Grid.Column="2" Text="{Binding CurrentWeather.Humidity, StringFormat='{0}%'}" FontSize="15" FontAttributes="Bold" />
-            </Grid>
-
-            <!-- Отдельный блок: Давление и осадки (в две колонки) -->
-            <Grid ColumnDefinitions="*, *" ColumnSpacing="16" Margin="0,0,0,15">
-                <VerticalStackLayout Spacing="2" HorizontalOptions="Start">
-                    <Label Text="📊 Давление" FontSize="14" TextColor="Gray" />
-                    <Label Text="{Binding CurrentWeather.PressureMb, StringFormat='{0} мб'}" FontSize="16" FontAttributes="Bold" />
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Spacing="2" HorizontalOptions="Start" Grid.Column="1">
-                    <Label Text="🌧️ Вероятность дождя" FontSize="14" TextColor="Gray" />
-                    <Label Text="{Binding CurrentWeather.ChanceOfRainToday, StringFormat='{0}%'}" FontSize="16" FontAttributes="Bold" />
-                </VerticalStackLayout>
+                <Border Grid.Column="1" 
+                        Grid.RowSpan="2"
+                        StrokeShape="RoundRectangle 25" 
+                        StrokeThickness="1"
+                        Stroke="LightGray"
+                        BackgroundColor="#F0F0F0"
+                        Padding="15">
+                    <VerticalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Влажность" FontSize="14" TextColor="Gray" />
+                            <Label Grid.Row="3" Grid.Column="2" Text="{Binding CurrentWeather.Humidity, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Ощущается" FontSize="14" TextColor="Gray" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding CurrentWeather.FeelsLikeC, StringFormat='{0}°C'}" FontSize="14" FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Давление" FontSize="14" TextColor="Gray" />
+                            <Label Text="{Binding CurrentWeather.PressureMb, StringFormat='{0} мб'}" FontSize="14" FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="УФ" FontSize="14" TextColor="Gray" />
+                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding CurrentWeather.UVIndex, StringFormat='{0}'}" FontSize="14" FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Вероятность осадков" FontSize="14" TextColor="Gray" />
+                            <Label Text="{Binding CurrentWeather.ChanceOfRainToday, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
             </Grid>
 
             <Button Text="Обновить"
                     Command="{Binding RefreshCommand}"
-                    BackgroundColor="Blue"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="48" />
+                    Background="#F0F0F0"
+                    TextColor="Black"
+                    BorderColor="LightGray"
+                    BorderWidth="1"
+                    CornerRadius="25"
+                    HeightRequest="50"/>
 
             <Button Text="← Назад к поиску"
                     Command="{Binding GoBackCommand}"
-                    BackgroundColor="Gray"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="48" />
+                    Background="#F0F0F0"
+                    TextColor="Black"
+                    BorderColor="LightGray"
+                    BorderWidth="1"
+                    CornerRadius="25"
+                    HeightRequest="50"/>
 
         </StackLayout>
     </ScrollView>
