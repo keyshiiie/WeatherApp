@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
+using static ToastService;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -30,6 +32,7 @@ public partial class MainPageViewModel : BaseViewModel
         IGeolocationService geolocationService,
         ICityService cityService)
     {
+        Title = "Поиск";
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
@@ -65,9 +68,10 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
-        await ExecuteAsync(async () =>
+        try
         {
             var results = await _weatherService.SearchCitiesAsync(SearchQuery);
+
             if (results != null && results.Any())
             {
                 SearchSuggestions = results.Take(10).ToList();
@@ -77,8 +81,24 @@ public partial class MainPageViewModel : BaseViewModel
             {
                 SearchSuggestions.Clear();
                 ShowSearchSuggestions = false;
+
+                await ToastService.ShowStatusToastAsync(
+                    "Города не найдены. Попробуйте изменить запрос",
+                    ToastType.Info
+                );
             }
-        }, "Ошибка поиска городов");
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowStatusToastAsync(
+                "Ошибка поиска городов. Проверьте подключение к интернету",
+                ToastType.Error
+            );
+            Debug.WriteLine($"Search error: {ex.Message}");
+
+            SearchSuggestions.Clear();
+            ShowSearchSuggestions = false;
+        }
     }
 
     [RelayCommand]
@@ -87,7 +107,7 @@ public partial class MainPageViewModel : BaseViewModel
         if (suggestion == null)
             return;
 
-        await ExecuteAsync(async () =>
+        try
         {
             var city = new City
             {
@@ -108,31 +128,53 @@ public partial class MainPageViewModel : BaseViewModel
             ShowSearchSuggestions = false;
 
             await LoadCityListsAsync();
-        }, "Не удалось открыть погоду");
+
+            await ToastService.ShowStatusToastAsync(
+                $"Город {city.Name} добавлен в историю",
+                ToastType.Success
+            );
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowStatusToastAsync(
+                "Не удалось открыть погоду для выбранного города",
+                ToastType.Error
+            );
+            Debug.WriteLine($"Select suggestion error: {ex.Message}");
+        }
     }
 
     [RelayCommand]
     private async Task GetLocationAsync()
     {
-        await ExecuteAsync(async () =>
+        try
         {
             var hasPermission = await _geolocationService.RequestLocationPermissionAsync();
             if (!hasPermission)
             {
-                SetError("Не удалось получить разрешение на определение местоположения.");
+                await ToastService.ShowStatusToastAsync(
+                    "Разрешение на определение местоположения не получено",
+                    ToastType.Error
+                );
                 return;
             }
 
             var location = await _geolocationService.GetCurrentLocationAsync();
             if (location == null)
             {
-                SetError("Не удалось определить местоположение.");
+                await ToastService.ShowStatusToastAsync(
+                    "Не удалось определить местоположение",
+                    ToastType.Error
+                );
                 return;
             }
 
             if (string.IsNullOrEmpty(location.Name))
             {
-                SetError("Не удалось определить название города.");
+                await ToastService.ShowStatusToastAsync(
+                    "Не удалось определить название города",
+                    ToastType.Error
+                );
                 return;
             }
 
@@ -143,7 +185,20 @@ public partial class MainPageViewModel : BaseViewModel
             await NavigateToWeatherPage(location);
 
             await LoadCityListsAsync();
-        }, "Не удалось определить местоположение");
+
+            await ToastService.ShowStatusToastAsync(
+                $"Погода в {location.Name}",
+                ToastType.Success
+            );
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowStatusToastAsync(
+                "Не удалось определить местоположение",
+                ToastType.Error
+            );
+            Debug.WriteLine($"Location error: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -158,7 +213,19 @@ public partial class MainPageViewModel : BaseViewModel
     private async Task SelectRecentCityAsync(City? city)
     {
         if (city == null) return;
-        await NavigateToWeatherPage(city);
+
+        try
+        {
+            await NavigateToWeatherPage(city);
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowStatusToastAsync(
+                "Не удалось открыть погоду",
+                ToastType.Error
+            );
+            Debug.WriteLine($"Select recent city error: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -166,7 +233,7 @@ public partial class MainPageViewModel : BaseViewModel
     {
         if (city == null || string.IsNullOrWhiteSpace(city.Name)) return;
 
-        await ExecuteAsync(async () =>
+        try
         {
             await _cityService.RemoveFromHistoryByNameAsync(city.Name!);
 
@@ -174,8 +241,21 @@ public partial class MainPageViewModel : BaseViewModel
             if (cityToRemove != null)
             {
                 RecentCities.Remove(cityToRemove);
+
+                await ToastService.ShowStatusToastAsync(
+                    $"Город {city.Name} удалён из истории",
+                    ToastType.Info
+                );
             }
-        }, "Не удалось удалить город");
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowStatusToastAsync(
+                $"Не удалось удалить город {city.Name}",
+                ToastType.Error
+            );
+            Debug.WriteLine($"Remove city error: {ex.Message}");
+        }
     }
 
     #endregion
@@ -184,12 +264,19 @@ public partial class MainPageViewModel : BaseViewModel
 
     private async Task LoadCityListsAsync()
     {
-        var history = await _cityService.GetHistoryAsync() ?? new List<City>();
-
-        RecentCities.Clear();
-        foreach (var city in history)
+        try
         {
-            RecentCities.Add(city);
+            var history = await _cityService.GetHistoryAsync() ?? new List<City>();
+
+            RecentCities.Clear();
+            foreach (var city in history)
+            {
+                RecentCities.Add(city);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Load history error: {ex.Message}");
         }
     }
 
@@ -203,8 +290,8 @@ public partial class MainPageViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка навигации: {ex.Message}");
-            SetError($"Не удалось открыть страницу погоды: {ex.Message}");
+            Debug.WriteLine($"Navigation error: {ex.Message}");
+            throw;
         }
     }
 

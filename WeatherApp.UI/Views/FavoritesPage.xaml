@@ -5,50 +5,53 @@
              x:Class="WeatherApp.UI.Views.FavoritesPage"
              Title="{Binding Title}">
 
-    <Grid RowDefinitions="Auto, *" Margin="16">
+    <Grid>
+        <Grid RowDefinitions="Auto, *" Padding="20,0,20,20">
+            <Label Grid.Row="0" Text="{Binding ErrorMessage}" 
+                   IsVisible="{Binding HasError}" TextColor="Red" 
+                   HorizontalOptions="Center" />
+            <CollectionView Grid.Row="1" ItemsSource="{Binding FavoriteCities}"
+                            SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="У вас пока нет избранных городов" 
+                           TextColor="Gray" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <Grid ColumnDefinitions="*, Auto" Padding="15,0">
+                                <VerticalStackLayout Grid.Column="0" 
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayName}"/>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" 
+                                    Text="✕" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="Black"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
+                                    CommandParameter="{Binding .}" />
 
-        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Margin="0,20" />
-
-        <Label Grid.Row="0" Text="{Binding ErrorMessage}" 
-               IsVisible="{Binding HasError}" TextColor="Red" 
-               HorizontalOptions="Center" />
-
-        <CollectionView Grid.Row="1" ItemsSource="{Binding FavoriteCities}"
-                        SelectionMode="None">
-            <CollectionView.EmptyView>
-                <Label Text="У вас пока нет избранных городов" 
-                       TextColor="Gray" HorizontalOptions="Center" VerticalOptions="Center" />
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border StrokeShape="RoundRectangle 25" 
-                            StrokeThickness="1"
-                            Stroke="LightGray"
-                            BackgroundColor="#F0F0F0"
-                            HeightRequest="50"
-                            Padding="15,5"
-                            Margin="0,0,8,8">
-                        <Grid Padding="10" Margin="0,0" ColumnDefinitions="*, Auto" HeightRequest="60">
-                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                                <Label Text="{Binding DisplayName}" FontSize="16" />
-                            </VerticalStackLayout>
-
-                            <Button Grid.Column="1" 
-                                Text="✕" 
-                                BackgroundColor="Transparent" 
-                                TextColor="Gray" 
-                                FontSize="16"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
-                                CommandParameter="{Binding .}" />
-
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
-                                                  CommandParameter="{Binding .}" />
-                            </Grid.GestureRecognizers>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
+                                                          CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+        <Grid 
+            IsVisible="{Binding IsBusy}"
+            BackgroundColor="#40000000"
+            InputTransparent="False">
+            <ActivityIndicator 
+                IsRunning="{Binding IsBusy}" 
+                Color="White"
+                VerticalOptions="Center"
+                HorizontalOptions="Center" />
+        </Grid>
     </Grid>
 </ContentPage>

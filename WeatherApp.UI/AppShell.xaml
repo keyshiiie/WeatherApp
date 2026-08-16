@@ -6,7 +6,6 @@
     xmlns:local="clr-namespace:WeatherApp.UI.Views"
     Title="WeatherApp">
 
-    <!-- Включаем Flyout (бургер-меню) -->
     <Shell.FlyoutBehavior>
         Flyout
     </Shell.FlyoutBehavior>

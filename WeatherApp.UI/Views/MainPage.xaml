@@ -2,138 +2,103 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:WeatherApp.UI.ViewModels"
-             x:Class="WeatherApp.UI.Views.MainPage">
-
-    <Grid Margin="20" RowSpacing="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Grid.RowSpan="3" />
-
-        <!-- Поиск -->
-        <Border StrokeShape="RoundRectangle 25" 
-                StrokeThickness="1"
-                Stroke="LightGray"
-                BackgroundColor="#F0F0F0"
-                HeightRequest="50"
-                Padding="0">
-            <Grid ColumnDefinitions="*, Auto">
-                <Entry Grid.Column="0"
-                       x:Name="SearchEntry"
-                       Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
-                       Placeholder="Введите название города..."
-                       FontSize="14"
-                       Background="Transparent"
-                       TextColor="Black"
-                       VerticalOptions="Center"
-                       Margin="0" />
-
-                <!-- Кнопка очистки -->
-                <Button Grid.Column="1"
-                        Text="✕"
-                        BackgroundColor="Transparent"
-                        TextColor="Gray"
-                        FontSize="16"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        VerticalOptions="Center"
-                        Command="{Binding ClearSearchCommand}"
-                        IsVisible="{Binding SearchQuery, Converter={StaticResource StringToBool}}" />
-            </Grid>
-        </Border>
-
-        <!-- Результаты поиска -->
-        <CollectionView Grid.Row="1"
-                        x:Name="SearchResultsList"
-                        ItemsSource="{Binding SearchSuggestions}"
-                        IsVisible="{Binding ShowSearchSuggestions}"
-                        HeightRequest="200"
-                        Margin="0"
-                        SelectionMode="None">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="12,8" BackgroundColor="Transparent" Margin="0,3">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer 
-                                Command="{Binding BindingContext.SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                CommandParameter="{Binding}" />
-                        </Grid.GestureRecognizers>
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="Black" />
-                            <Label Text="{Binding FullDisplayText}" FontSize="12" TextColor="Gray" />
-                        </VerticalStackLayout>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-        <!-- Основной контент -->
-        <VerticalStackLayout Grid.Row="2" Spacing="10">
-            <!-- Кнопка определения местоположения -->
-            <Button Text="Определить местоположение"
-                    Command="{Binding GetLocationCommand}"
-                    Background="#F0F0F0"
-                    TextColor="Black"
-                    BorderColor="LightGray"
-                    BorderWidth="1"
-                    CornerRadius="25"
-                    HorizontalOptions="Start"/>
-
-            <!-- Недавние города -->
-            <StackLayout IsVisible="{Binding RecentCities.Count, Converter={StaticResource IntToBool}}" 
-                         Margin="0,10,0,0" 
-                         Spacing="8">
-
-                <Label Text="Недавние поиски:"
-                       TextColor="Gray" 
-                       Margin="0,0,0,4" />
-
-                <FlexLayout BindableLayout.ItemsSource="{Binding RecentCities}"
-                            Wrap="Wrap"
-                            Direction="Row"
-                            AlignItems="Center"
-                            JustifyContent="Start">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Padding="0" Margin="0,0,8,8">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=SelectRecentCityCommand}" 
-                                                          CommandParameter="{Binding .}" />
-                                </Grid.GestureRecognizers>
-
-                                <Border StrokeShape="RoundRectangle 25" 
-                                        StrokeThickness="1"
-                                        Stroke="LightGray"
-                                        BackgroundColor="#F0F0F0"
-                                        Padding="15,0">
-                                    <Grid ColumnDefinitions="Auto, Auto">
-                                        <!-- Название города -->
-                                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                            <Label Text="{Binding DisplayName}"
-                                                   TextColor="Black" 
-                                                   VerticalOptions="Center" />
-                                        </VerticalStackLayout>
-
-                                        <!-- Кнопка удаления -->
-                                        <Button Grid.Column="1" 
-                                                Text="✕" 
-                                                BackgroundColor="Transparent" 
-                                                TextColor="Gray" 
-                                                FontSize="14"
-                                                VerticalOptions="Center"
-                                                HorizontalOptions="End"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=RemoveRecentCityCommand}" 
-                                                CommandParameter="{Binding .}" />
-                                    </Grid>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </FlexLayout>
-            </StackLayout>
-        </VerticalStackLayout>
+             x:Class="WeatherApp.UI.Views.MainPage"
+             Title="{Binding Title}">
+    <Grid>
+        <Grid Padding="20,0,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border>
+                <Grid ColumnDefinitions="*, Auto">
+                    <Entry Grid.Column="0"
+                           x:Name="SearchEntry"
+                           Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
+                           Placeholder="Введите название города..."/>
+                    <Button Grid.Column="1"
+                            Text="✕"
+                            Command="{Binding ClearSearchCommand}"
+                            IsVisible="{Binding SearchQuery, Converter={StaticResource StringToBool}}" />
+                </Grid>
+            </Border>
+            <CollectionView Grid.Row="1"
+                            x:Name="SearchResultsList"
+                            ItemsSource="{Binding SearchSuggestions}"
+                            IsVisible="{Binding ShowSearchSuggestions}"
+                            MaximumHeightRequest="200"
+                            Margin="0"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="12,8" BackgroundColor="Transparent" Margin="0,3">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding BindingContext.SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                    CommandParameter="{Binding}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                <Label Text="{Binding FullDisplayText}" FontSize="12" TextColor="Gray" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <VerticalStackLayout Grid.Row="2" Spacing="10">
+                <Button Text="Определить местоположение"
+                        Command="{Binding GetLocationCommand}"
+                        Margin="0,10,0,0"
+                        HorizontalOptions="Start"/>
+                <StackLayout IsVisible="{Binding RecentCities.Count, Converter={StaticResource IntToBool}}" 
+                             Margin="0,10,0,0" 
+                             Spacing="8">
+                    <FlexLayout BindableLayout.ItemsSource="{Binding RecentCities}"
+                                Wrap="Wrap"
+                                Direction="Row"
+                                AlignItems="Center"
+                                JustifyContent="Start">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="0" Margin="0,0,8,8">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=SelectRecentCityCommand}" 
+                                                              CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                    <Border StrokeShape="RoundRectangle 10"
+                                            Padding="15,0">
+                                        <Grid ColumnDefinitions="Auto, Auto">
+                                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                                                <Label Text="{Binding DisplayName}"
+                                                       VerticalOptions="Center" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" 
+                                                    Text="✕" 
+                                                    BackgroundColor="Transparent" 
+                                                    TextColor="Black"
+                                                    VerticalOptions="Center"
+                                                    HorizontalOptions="End"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=RemoveRecentCityCommand}" 
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </StackLayout>
+            </VerticalStackLayout>
+        </Grid>
+        <Grid 
+            IsVisible="{Binding IsBusy}"
+            BackgroundColor="#40000000"
+            InputTransparent="False">
+            <ActivityIndicator 
+                IsRunning="{Binding IsBusy}" 
+                Color="White"
+                VerticalOptions="Center"
+                HorizontalOptions="Center" />
+        </Grid>
     </Grid>
 </ContentPage>

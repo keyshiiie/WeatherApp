@@ -5,27 +5,18 @@
              xmlns:converters="clr-namespace:WeatherApp.UI.Converters"
              x:Class="WeatherApp.UI.Views.SettingsPage"
              Title="Настройки">
-
-    <ContentPage.Resources>
-        <converters:EnumDisplayConverter x:Key="EnumDisplay" />
-    </ContentPage.Resources>
-
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
-
-            <Label Text="Единицы измерения" 
-                   FontSize="22" 
-                   FontAttributes="Bold"
-                   TextColor="Black" />
-
-            <!-- Температура -->
-            <Border Padding="16" BackgroundColor="White">
-                <VerticalStackLayout Spacing="10">
+        <VerticalStackLayout Padding="20" Spacing="5">
+            <Label Text="Единицы измерения"
+                   TextTransform="Uppercase"
+                   Margin="0,0,0,5"/>
+            <Border Padding="10,0">
+                <Grid ColumnDefinitions="*,Auto">
                     <Label Text="Температура" 
-                           FontSize="16" 
-                           FontAttributes="Bold" />
-
-                    <Picker Title="Выберите единицы измерения температуры"
+                           Grid.Column="0"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center"/>
+                    <Picker Grid.Column="1"
                             ItemsSource="{Binding TemperatureUnits}"
                             SelectedItem="{Binding SelectedTemperatureUnit}">
                         <Picker.ItemDisplayBinding>
@@ -36,17 +27,14 @@
                             </Binding>
                         </Picker.ItemDisplayBinding>
                     </Picker>
-                </VerticalStackLayout>
+                </Grid>
             </Border>
-
-            <!-- Давление -->
-            <Border Padding="16" BackgroundColor="White">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Давление" 
-                           FontSize="16" 
-                           FontAttributes="Bold" />
-
-                    <Picker Title="Выберите единицы измерения давления"
+            <Border Padding="10,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Единицы измерения атмосферного давления"
+                           FontAttributes="Bold" 
+                           VerticalOptions="Center"/>
+                    <Picker Grid.Column="1"
                             ItemsSource="{Binding PressureUnits}"
                             SelectedItem="{Binding SelectedPressureUnit}">
                         <Picker.ItemDisplayBinding>
@@ -57,19 +45,16 @@
                             </Binding>
                         </Picker.ItemDisplayBinding>
                     </Picker>
-                </VerticalStackLayout>
+                </Grid>
             </Border>
-
-            <!-- Скорость ветра -->
-            <Border Padding="16" BackgroundColor="White">
-                <VerticalStackLayout Spacing="10">
+            <Border Padding="10,0">
+                <Grid ColumnDefinitions="*,Auto">
                     <Label Text="Скорость ветра" 
-                           FontSize="16" 
-                           FontAttributes="Bold" />
-
-                    <Picker Title="Выберите единицы измерения скорости ветра"
-                            ItemsSource="{Binding SpeedUnits}"
-                            SelectedItem="{Binding SelectedSpeedUnit}">
+                               FontAttributes="Bold" 
+                               VerticalOptions="Center"/>
+                    <Picker Grid.Column="1"
+                                ItemsSource="{Binding SpeedUnits}"
+                                SelectedItem="{Binding SelectedSpeedUnit}">
                         <Picker.ItemDisplayBinding>
                             <Binding Path=".">
                                 <Binding.Converter>
@@ -78,42 +63,8 @@
                             </Binding>
                         </Picker.ItemDisplayBinding>
                     </Picker>
-                </VerticalStackLayout>
+                </Grid>
             </Border>
-
-            <!-- Текущие настройки -->
-            <Border Padding="16" BackgroundColor="#F8F8F8">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Текущие настройки:" 
-                           FontSize="14" 
-                           FontAttributes="Bold" />
-                    <Label FontSize="14" TextColor="Gray">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="Температура: " />
-                                <Span Text="{Binding SelectedTemperatureUnit, Converter={StaticResource EnumDisplay}}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-                    <Label FontSize="14" TextColor="Gray">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="Давление: " />
-                                <Span Text="{Binding SelectedPressureUnit, Converter={StaticResource EnumDisplay}}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-                    <Label FontSize="14" TextColor="Gray">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="Скорость ветра: " />
-                                <Span Text="{Binding SelectedSpeedUnit, Converter={StaticResource EnumDisplay}}" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-                </VerticalStackLayout>
-            </Border>
-
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
