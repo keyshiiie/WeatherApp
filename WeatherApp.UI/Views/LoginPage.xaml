@@ -6,13 +6,16 @@
              x:DataType="vm:LoginPageViewModel"
              Title="Вход в приложение">
 
-    <Grid Padding="20" RowDefinitions="Auto, Auto, Auto, Auto, *">
+    <VerticalStackLayout Margin="20,0,20,60"
+                         VerticalOptions="Center">
         <Label Text="Добро пожаловать!" 
-               FontSize="32" FontAttributes="Bold" 
-               HorizontalOptions="Center" Margin="0,40,0,20"/>
+               FontSize="32" 
+               FontAttributes="Bold" 
+               Margin="0,0,0,20"/>
 
         <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
-               FontSize="16" HorizontalOptions="Center" Margin="0,0,0,30"
+               FontSize="16"
+               Margin="0,0,0,30"
                Grid.Row="1"/>
 
         <VerticalStackLayout Grid.Row="2" Spacing="10">
@@ -37,5 +40,5 @@
 
         <Button Text="Войти" Grid.Row="3" Command="{Binding LoginCommand}" 
                 HeightRequest="50" CornerRadius="8" Margin="0,20,0,0"/>
-    </Grid>
+    </VerticalStackLayout>
 </ContentPage>

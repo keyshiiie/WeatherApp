@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.Logging;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -10,6 +11,14 @@ public abstract partial class BaseViewModel : ObservableObject
     private bool _isBusy;
     private string _errorMessage = string.Empty;
     private bool _hasError;
+
+    // Добавляем логгер
+    protected ILogger Logger { get; }
+
+    protected BaseViewModel(ILogger logger)
+    {
+        Logger = logger;
+    }
 
     public string Title
     {
@@ -34,6 +43,7 @@ public abstract partial class BaseViewModel : ObservableObject
         get => _hasError;
         set => SetProperty(ref _hasError, value);
     }
+
     public virtual Task OnAppearingAsync()
     {
         return Task.CompletedTask;
@@ -65,12 +75,14 @@ public abstract partial class BaseViewModel : ObservableObject
         {
             IsBusy = true;
             ClearError();
+            Logger.LogInformation($"Executing: {action.Method.Name}");
             await action();
+            Logger.LogInformation($"Completed: {action.Method.Name}");
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
             SetError($"{errorMessage}: {ex.Message}");
-            // Здесь можно добавить логирование
         }
         finally
         {
@@ -87,10 +99,14 @@ public abstract partial class BaseViewModel : ObservableObject
         {
             IsBusy = true;
             ClearError();
-            return await action();
+            Logger.LogInformation($"Executing: {action.Method.Name}");
+            var result = await action();
+            Logger.LogInformation($"Completed: {action.Method.Name}");
+            return result;
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
             SetError($"{errorMessage}: {ex.Message}");
             return default!;
         }

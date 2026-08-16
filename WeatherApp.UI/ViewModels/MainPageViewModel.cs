@@ -1,11 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
-using static ToastService;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -30,7 +32,9 @@ public partial class MainPageViewModel : BaseViewModel
     public MainPageViewModel(
         IWeatherService weatherService,
         IGeolocationService geolocationService,
-        ICityService cityService)
+        ICityService cityService,
+        ILogger<MainPageViewModel> logger) // Добавляем логгер
+        : base(logger) // Передаем в базовый класс
     {
         Title = "Поиск";
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
@@ -40,11 +44,14 @@ public partial class MainPageViewModel : BaseViewModel
 
     public override async Task OnAppearingAsync()
     {
+        Logger.LogInformation("MainPage appearing");
         await LoadCityListsAsync();
     }
 
     partial void OnSearchQueryChanged(string value)
     {
+        Logger.LogDebug($"Search query changed: {value}");
+
         if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
         {
             SearchCitiesCommand.Execute(null);
@@ -68,33 +75,31 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
+        Logger.LogInformation($"Searching cities: {SearchQuery}");
+
         try
         {
             var results = await _weatherService.SearchCitiesAsync(SearchQuery);
 
             if (results != null && results.Any())
             {
+                Logger.LogInformation($"Found {results.Count()} cities for '{SearchQuery}'");
                 SearchSuggestions = results.Take(10).ToList();
                 ShowSearchSuggestions = SearchSuggestions.Any();
             }
             else
             {
+                Logger.LogWarning($"No cities found for '{SearchQuery}'");
                 SearchSuggestions.Clear();
                 ShowSearchSuggestions = false;
 
-                await ToastService.ShowStatusToastAsync(
-                    "Города не найдены. Попробуйте изменить запрос",
-                    ToastType.Info
-                );
+                await Toast.Make("Города не найдены. Попробуйте изменить запрос", ToastDuration.Long).Show();
             }
         }
         catch (Exception ex)
         {
-            await ToastService.ShowStatusToastAsync(
-                "Ошибка поиска городов. Проверьте подключение к интернету",
-                ToastType.Error
-            );
-            Debug.WriteLine($"Search error: {ex.Message}");
+            Logger.LogError(ex, $"Error searching cities: {SearchQuery}");
+            await Toast.Make("Ошибка поиска городов. Проверьте подключение к интернету", ToastDuration.Long).Show();
 
             SearchSuggestions.Clear();
             ShowSearchSuggestions = false;
@@ -105,7 +110,12 @@ public partial class MainPageViewModel : BaseViewModel
     private async Task SelectSuggestionAsync(CitySuggestion? suggestion)
     {
         if (suggestion == null)
+        {
+            Logger.LogWarning("Suggestion is null");
             return;
+        }
+
+        Logger.LogInformation($"Selecting city: {suggestion.Name}, {suggestion.Country}");
 
         try
         {
@@ -121,6 +131,8 @@ public partial class MainPageViewModel : BaseViewModel
             };
 
             await _cityService.AddInHistoryAsync(city);
+            Logger.LogInformation($"City added to history: {city.Name}");
+
             await NavigateToWeatherPage(city);
 
             SearchQuery = string.Empty;
@@ -128,82 +140,66 @@ public partial class MainPageViewModel : BaseViewModel
             ShowSearchSuggestions = false;
 
             await LoadCityListsAsync();
-
-            await ToastService.ShowStatusToastAsync(
-                $"Город {city.Name} добавлен в историю",
-                ToastType.Success
-            );
         }
         catch (Exception ex)
         {
-            await ToastService.ShowStatusToastAsync(
-                "Не удалось открыть погоду для выбранного города",
-                ToastType.Error
-            );
-            Debug.WriteLine($"Select suggestion error: {ex.Message}");
+            Logger.LogError(ex, $"Error selecting city: {suggestion.Name}");
+            await Toast.Make("Не удалось открыть погоду для выбранного города", ToastDuration.Long).Show();
         }
     }
 
     [RelayCommand]
     private async Task GetLocationAsync()
     {
+        Logger.LogInformation("Getting current location");
+
         try
         {
             var hasPermission = await _geolocationService.RequestLocationPermissionAsync();
             if (!hasPermission)
             {
-                await ToastService.ShowStatusToastAsync(
-                    "Разрешение на определение местоположения не получено",
-                    ToastType.Error
-                );
+                Logger.LogWarning("Location permission denied");
+                await Toast.Make("Разрешение на определение местоположения не получено", ToastDuration.Long).Show();
                 return;
             }
 
             var location = await _geolocationService.GetCurrentLocationAsync();
             if (location == null)
             {
-                await ToastService.ShowStatusToastAsync(
-                    "Не удалось определить местоположение",
-                    ToastType.Error
-                );
+                Logger.LogWarning("Location is null");
+                await Toast.Make("Не удалось определить местоположение", ToastDuration.Long).Show();
                 return;
             }
 
             if (string.IsNullOrEmpty(location.Name))
             {
-                await ToastService.ShowStatusToastAsync(
-                    "Не удалось определить название города",
-                    ToastType.Error
-                );
+                Logger.LogWarning("Location name is empty");
+                await Toast.Make("Не удалось определить название города", ToastDuration.Long).Show();
                 return;
             }
+
+            Logger.LogInformation($"Location found: {location.Name}, {location.Country}");
 
             location.Country ??= "Unknown";
             location.Region ??= "Unknown";
 
             await _cityService.AddInHistoryAsync(location);
+            Logger.LogInformation($"Location added to history: {location.Name}");
+
             await NavigateToWeatherPage(location);
-
             await LoadCityListsAsync();
-
-            await ToastService.ShowStatusToastAsync(
-                $"Погода в {location.Name}",
-                ToastType.Success
-            );
         }
         catch (Exception ex)
         {
-            await ToastService.ShowStatusToastAsync(
-                "Не удалось определить местоположение",
-                ToastType.Error
-            );
-            Debug.WriteLine($"Location error: {ex.Message}");
+            Logger.LogError(ex, "Error getting location");
+            await Toast.Make("Не удалось определить местоположение", ToastDuration.Long).Show();
         }
     }
 
     [RelayCommand]
     private void ClearSearch()
     {
+        Logger.LogDebug("Clearing search");
         SearchQuery = string.Empty;
         SearchSuggestions.Clear();
         ShowSearchSuggestions = false;
@@ -212,7 +208,13 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private async Task SelectRecentCityAsync(City? city)
     {
-        if (city == null) return;
+        if (city == null)
+        {
+            Logger.LogWarning("Recent city is null");
+            return;
+        }
+
+        Logger.LogInformation($"Selecting recent city: {city.Name}");
 
         try
         {
@@ -220,18 +222,21 @@ public partial class MainPageViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await ToastService.ShowStatusToastAsync(
-                "Не удалось открыть погоду",
-                ToastType.Error
-            );
-            Debug.WriteLine($"Select recent city error: {ex.Message}");
+            Logger.LogError(ex, $"Error selecting recent city: {city.Name}");
+            await Toast.Make("Не удалось открыть погоду", ToastDuration.Long).Show();
         }
     }
 
     [RelayCommand]
     private async Task RemoveRecentCityAsync(City? city)
     {
-        if (city == null || string.IsNullOrWhiteSpace(city.Name)) return;
+        if (city == null || string.IsNullOrWhiteSpace(city.Name))
+        {
+            Logger.LogWarning("Cannot remove city: null or empty name");
+            return;
+        }
+
+        Logger.LogInformation($"Removing city from history: {city.Name}");
 
         try
         {
@@ -241,20 +246,13 @@ public partial class MainPageViewModel : BaseViewModel
             if (cityToRemove != null)
             {
                 RecentCities.Remove(cityToRemove);
-
-                await ToastService.ShowStatusToastAsync(
-                    $"Город {city.Name} удалён из истории",
-                    ToastType.Info
-                );
+                Logger.LogInformation($"City removed from history: {city.Name}");
             }
         }
         catch (Exception ex)
         {
-            await ToastService.ShowStatusToastAsync(
-                $"Не удалось удалить город {city.Name}",
-                ToastType.Error
-            );
-            Debug.WriteLine($"Remove city error: {ex.Message}");
+            Logger.LogError(ex, $"Error removing city from history: {city.Name}");
+            await Toast.Make($"Не удалось удалить город {city.Name}", ToastDuration.Long).Show();
         }
     }
 
@@ -264,9 +262,13 @@ public partial class MainPageViewModel : BaseViewModel
 
     private async Task LoadCityListsAsync()
     {
+        Logger.LogInformation("Loading city lists");
+
         try
         {
             var history = await _cityService.GetHistoryAsync() ?? new List<City>();
+
+            Logger.LogInformation($"Loaded {history.Count} cities from history");
 
             RecentCities.Clear();
             foreach (var city in history)
@@ -276,7 +278,7 @@ public partial class MainPageViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Load history error: {ex.Message}");
+            Logger.LogError(ex, "Error loading city lists");
         }
     }
 
@@ -284,13 +286,15 @@ public partial class MainPageViewModel : BaseViewModel
     {
         try
         {
+            Logger.LogInformation($"Navigating to weather page for: {city.Name}");
+
             var cityJson = System.Text.Json.JsonSerializer.Serialize(city);
             var uri = $"{nameof(CurrentWeatherPage)}?city={Uri.EscapeDataString(cityJson)}";
             await Shell.Current.GoToAsync(uri);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Navigation error: {ex.Message}");
+            Logger.LogError(ex, $"Navigation error for city: {city.Name}");
             throw;
         }
     }

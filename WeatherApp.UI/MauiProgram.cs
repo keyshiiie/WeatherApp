@@ -26,7 +26,25 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        var connectionString = "Data Source=weatherapp.db";
+        // Настройка логирования для MAUI
+#if DEBUG
+        builder.Logging.AddDebug(); // Только для Debug
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+#else
+        builder.Logging.SetMinimumLevel(LogLevel.Warning);
+#endif
+
+        var dbPath = Path.Combine(FileSystem.AppDataDirectory, "weatherapp.db");
+        var connectionString = $"Data Source={dbPath}";
+
+        System.Diagnostics.Debug.WriteLine($"Database path: {dbPath}");
+
+        var directory = Path.GetDirectoryName(dbPath);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(connectionString));
 
@@ -49,12 +67,8 @@ public static class MauiProgram
         RegisterViewModels(builder.Services);
         RegisterPages(builder.Services);
 
-#if DEBUG
-        builder.Logging.AddDebug();
-#endif
-
         var app = builder.Build();
-        ApplyMigrations(app.Services);
+        InitializeDatabase(app.Services);
 
         return app;
     }
@@ -85,7 +99,6 @@ public static class MauiProgram
         services.AddTransient<DetailsPageViewModel>();
         services.AddTransient<FavoritesPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
-        services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<LoginPageViewModel>();
     }
 
@@ -100,17 +113,32 @@ public static class MauiProgram
         services.AddTransient<LoginPage>();
     }
 
-    private static void ApplyMigrations(IServiceProvider services)
+    private static void InitializeDatabase(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<AppDbContext>>();
+
         try
         {
-            dbContext.Database.Migrate();
+            logger.LogInformation("Initializing database...");
+            var created = dbContext.Database.EnsureCreated();
+
+            if (created)
+            {
+                logger.LogInformation("✅ Database created successfully");
+            }
+            else
+            {
+                logger.LogInformation("✅ Database already exists");
+            }
+
+            logger.LogInformation("📁 Database location: {DbPath}",
+                Path.Combine(FileSystem.AppDataDirectory, "weatherapp.db"));
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка миграции БД: {ex.Message}");
+            logger.LogError(ex, "❌ Database initialization error");
         }
     }
 }

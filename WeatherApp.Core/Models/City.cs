@@ -15,7 +15,9 @@ public class City
     public bool IsRecent { get; set; }       
     public DateTime LastSearchedAt { get; set; }
 
-    public string DisplayName => string.IsNullOrEmpty(Region)
-        ? $"{Name}, {Country}"
-        : $"{Name}, {Region}, {Country}";
+    //public string DisplayName => string.IsNullOrEmpty(Region)
+    //    ? $"{Name}, {Country}"
+    //    : $"{Name}, {Region}, {Country}";
+
+    public string DisplayName => $"{Name}";
 }

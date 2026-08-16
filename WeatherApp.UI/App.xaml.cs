@@ -23,12 +23,10 @@ public partial class App : Application
     {
         base.OnStart();
 
-        // Проверяем наличие ключа (без блокировки UI)
         var apiKey = await SecureStorage.GetAsync("weather_api_key");
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            // Если ключа нет -> отправляем на страницу логина через Shell!
             await Shell.Current.GoToAsync(nameof(LoginPage));
         }
 
