@@ -1,10 +1,10 @@
 ﻿using System;
 
 namespace WeatherApp.Core.Models;
+
 public class HourlyForecast
 {
     public DateTime Time { get; set; }
-    public string TimeDisplay => Time.ToString("HH:mm");
 
     // Температура
     public double TemperatureC { get; set; }
@@ -23,6 +23,7 @@ public class HourlyForecast
     public double WindSpeedKph { get; set; }
     public double WindSpeedMph { get; set; }
     public double PressureMb { get; set; }
+    public double PressureIn { get; set; } 
     public double PrecipitationMm { get; set; }
     public int CloudCover { get; set; }
     public double VisibilityKm { get; set; }
@@ -34,4 +35,10 @@ public class HourlyForecast
     public bool WillItSnow { get; set; }
 
     public bool HasPrecipitation => PrecipitationMm > 0 || ChanceOfRain > 0;
+
+    public string TimeDisplay => Time.ToString("HH:mm");
+
+    public string TemperatureDisplay { get; set; } = "--";
+    public string WindSpeedDisplay { get; set; } = "--";
+    public string PressureDisplay { get; set; } = "--";
 }

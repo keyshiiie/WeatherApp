@@ -67,4 +67,7 @@ public class ForecastDay
             return Date.ToString("ddd");
         }
     }
+
+    public string MaxTempDisplay { get; set; } = "--";
+    public string MinTempDisplay { get; set; } = "--";
 }

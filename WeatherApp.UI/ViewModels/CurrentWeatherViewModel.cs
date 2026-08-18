@@ -66,6 +66,12 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         OnPropertyChanged(nameof(WindSpeedDisplay));
         OnPropertyChanged(nameof(MinTempDisplay));
         OnPropertyChanged(nameof(MaxTempDisplay));
+
+        UpdateForecastDaysDisplay();
+        UpdateHourlyForecastDisplay();
+
+        OnPropertyChanged(nameof(ForecastDays));
+        OnPropertyChanged(nameof(HourlyForecast));
     }
 
     #region Display Properties
@@ -254,6 +260,42 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         }
     }
 
+    private void UpdateForecastDaysDisplay()
+    {
+        if (ForecastDays == null || !ForecastDays.Any()) return;
+
+        foreach (var day in ForecastDays)
+        {
+            day.MaxTempDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
+                ? $"{day.MaxTempC:F0}°C"
+                : $"{day.MaxTempF:F0}°F";
+
+            day.MinTempDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
+                ? $"{day.MinTempC:F0}°C"
+                : $"{day.MinTempF:F0}°F";
+        }
+    }
+
+    private void UpdateHourlyForecastDisplay()
+    {
+        if (HourlyForecast == null || !HourlyForecast.Any()) return;
+
+        foreach (var hour in HourlyForecast)
+        {
+            hour.TemperatureDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
+                ? $"{hour.TemperatureC:F0}°C"
+                : $"{hour.TemperatureF:F0}°F";
+
+            hour.WindSpeedDisplay = Settings.SpeedUnit == SpeedUnit.KilometersPerHour
+                ? $"{hour.WindSpeedKph:F0} км/ч"
+                : $"{hour.WindSpeedMph:F0} миль/ч";
+
+            hour.PressureDisplay = Settings.PressureUnit == PressureUnit.Millibars
+                ? $"{hour.PressureMb:F0} мбар"
+                : $"{hour.PressureIn:F2} inHg";
+        }
+    }
+
     public async Task LoadWeatherForCityAsync(City city)
     {
         if (city == null)
@@ -288,6 +330,9 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 if (forecast != null)
                 {
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
+
+                    UpdateForecastDaysDisplay();
+                    UpdateHourlyForecastDisplay();
 
                     TemperatureGraphDrawable.UpdateSettings(Settings.TemperatureUnit, Settings.SpeedUnit);
                     TemperatureGraphDrawable.Data = HourlyForecast;

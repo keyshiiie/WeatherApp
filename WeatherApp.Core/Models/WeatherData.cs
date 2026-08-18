@@ -51,6 +51,36 @@ public class WeatherData
     public int ChanceOfSnowToday { get; set; }
     public bool WillItRainToday { get; set; }
     public bool WillItSnowToday { get; set; }
+
+    public string SunriseDisplay => ConvertTo24HourFormat(Sunrise);
+    public string SunsetDisplay => ConvertTo24HourFormat(Sunset);
+
+    private string ConvertTo24HourFormat(string? time12h)
+    {
+        if (string.IsNullOrEmpty(time12h)) return "--";
+
+        try
+        {
+            if (DateTime.TryParseExact(time12h, "hh:mm tt",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out DateTime time))
+            {
+                return time.ToString("HH:mm");
+            }
+
+            if (DateTime.TryParse(time12h, out DateTime time2))
+            {
+                return time2.ToString("HH:mm");
+            }
+
+            return time12h;
+        }
+        catch
+        {
+            return time12h;
+        }
+    }
     public string DisplayName
     {
         get

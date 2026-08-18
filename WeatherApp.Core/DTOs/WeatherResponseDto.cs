@@ -2,9 +2,6 @@
 
 namespace WeatherApp.Core.DTOs;
 
-/// <summary>
-/// DTO для ответа текущей погоды от WeatherAPI
-/// </summary>
 public class WeatherResponseDto
 {
     [JsonPropertyName("location")]

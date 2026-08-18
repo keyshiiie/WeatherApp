@@ -17,7 +17,6 @@
                 <converters:MultiplyBy70Converter x:Key="MultiplyBy70"/>
                 <converters:StringToBoolConverter x:Key="StringToBool"/>
                 <converters:EnumDisplayConverter x:Key="EnumDisplay"/>
-                <converters:TemperatureDisplayConverter x:Key="TemperatureDisplay"/>
                 <converters:WeatherBackgroundConverter x:Key="WeatherBackground"/>
                 <converters:WeatherIconMultiConverter x:Key="WeatherIconMulti"/>
             </ResourceDictionary>
