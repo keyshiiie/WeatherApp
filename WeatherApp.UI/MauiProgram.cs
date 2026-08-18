@@ -24,6 +24,12 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("Inter-Light.otf", "InterLight");
+                fonts.AddFont("Inter-Regular.otf", "InterRegular");
+                fonts.AddFont("Inter-Medium.otf", "InterMedium");
+                fonts.AddFont("Inter-SemiBold.otf", "InterSemiBold");
+                fonts.AddFont("Inter-Bold.otf", "InterBold");
+                fonts.AddFont("Inter-ExtraBold.otf", "InterExtraBold");
             });
 
         // Настройка логирования для MAUI

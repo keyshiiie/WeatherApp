@@ -342,13 +342,11 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             {
                 if (IsCurrentCityFavorite)
                 {
-                    toolbarItem.Text = "Удалить";
-                    toolbarItem.Command = RemoveFromFavoritesCommand;
+                    toolbarItem.IconImageSource = "appic_heart_filled.png";
                 }
                 else
                 {
-                    toolbarItem.Text = "В избранное";
-                    toolbarItem.Command = AddToFavoritesCommand;
+                    toolbarItem.IconImageSource = "appic_heart_outline.png";
                 }
             }
         }

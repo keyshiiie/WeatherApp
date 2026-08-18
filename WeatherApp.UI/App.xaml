@@ -19,6 +19,7 @@
                 <converters:EnumDisplayConverter x:Key="EnumDisplay"/>
                 <converters:TemperatureDisplayConverter x:Key="TemperatureDisplay"/>
                 <converters:WeatherBackgroundConverter x:Key="WeatherBackground"/>
+                <converters:WeatherIconMultiConverter x:Key="WeatherIconMulti"/>
             </ResourceDictionary>
         </ResourceDictionary>
     </Application.Resources>

@@ -7,11 +7,9 @@ public class TemperatureGraphDrawable : IDrawable
 {
     public List<HourlyForecast> Data { get; set; } = new();
 
-    // Добавляем свойство для единиц измерения
     private TemperatureUnit _temperatureUnit = TemperatureUnit.Celsius;
     private SpeedUnit _speedUnit = SpeedUnit.KilometersPerHour;
 
-    // Метод для обновления настроек
     public void UpdateSettings(TemperatureUnit temperatureUnit, SpeedUnit speedUnit)
     {
         _temperatureUnit = temperatureUnit;
@@ -22,7 +20,7 @@ public class TemperatureGraphDrawable : IDrawable
     {
         if (Data == null || Data.Count < 2) return;
 
-        // Используем текущую единицу измерения для расчета графика
+        // Расчет температур с учетом единиц измерения
         double minTemp, maxTemp;
         if (_temperatureUnit == TemperatureUnit.Celsius)
         {
@@ -48,7 +46,6 @@ public class TemperatureGraphDrawable : IDrawable
         {
             float x = GraphConstants.TopPadding + (width - (GraphConstants.TopPadding * 2)) * (i / (float)(Data.Count - 1));
 
-            // Используем правильную температуру для расчета Y
             float tempValue = (float)(_temperatureUnit == TemperatureUnit.Celsius
                 ? Data[i].TemperatureC
                 : Data[i].TemperatureF);
@@ -58,7 +55,8 @@ public class TemperatureGraphDrawable : IDrawable
             points.Add(new PointF(x, y));
         }
 
-        canvas.StrokeColor = Colors.Black;
+        // --- Рисуем линию графика ---
+        canvas.StrokeColor = GraphColors.LineColor;
         canvas.StrokeSize = GraphConstants.LineStrokeSize;
 
         if (points.Count > 1)
@@ -77,11 +75,12 @@ public class TemperatureGraphDrawable : IDrawable
             canvas.DrawPath(path);
         }
 
+        // --- Рисуем точки и карточки ---
         canvas.StrokeSize = GraphConstants.PointStrokeSize;
         for (int i = 0; i < points.Count; i++)
         {
             var p = points[i];
-            canvas.StrokeColor = Colors.Black;
+            canvas.StrokeColor = GraphColors.PointColor;
             canvas.DrawCircle(p.X, p.Y, 4);
 
             DrawCard(canvas, p.X, p.Y, Data[i]);
@@ -90,26 +89,30 @@ public class TemperatureGraphDrawable : IDrawable
 
     private void DrawCard(ICanvas canvas, float x, float y, HourlyForecast data)
     {
-        canvas.FontColor = Colors.Black;
+        canvas.FontColor = GraphColors.TextColor;
 
-        // Температура с правильной единицей измерения
+        // Температура
         canvas.FontSize = GraphConstants.TemperatureFontSize;
         string tempText = _temperatureUnit == TemperatureUnit.Celsius
             ? $"{data.TemperatureC:F0}°C"
             : $"{data.TemperatureF:F0}°F";
 
+        // Применяем отдельный цвет для температуры (основной)
+        canvas.FontColor = GraphColors.TemperatureColor;
         canvas.DrawString(tempText,
             x - 20, y - GraphConstants.TempYOffset, 40, 20,
             HorizontalAlignment.Center, VerticalAlignment.Center);
 
         float startY = y + GraphConstants.CardStartOffset;
-        canvas.FontSize = GraphConstants.IconFontSize;
-        canvas.DrawString("☁️", x - 15, startY, 30, 25,
-            HorizontalAlignment.Center, VerticalAlignment.Top);
 
-        // Скорость ветра с правильной единицей измерения
+        // Рисуем иконку погоды (текстом/эмодзи как fallback)
+        DrawWeatherFallback(canvas, x, startY, data.ConditionIcon);
+
+        // Скорость ветра
         startY += GraphConstants.IconSpacing;
         canvas.FontSize = GraphConstants.DetailFontSize;
+        // Применяем отдельный цвет для деталей (вторичный)
+        canvas.FontColor = GraphColors.DetailColor;
         string windText = _speedUnit == SpeedUnit.KilometersPerHour
             ? $"{data.WindSpeedKph:F0} км/ч"
             : $"{data.WindSpeedMph:F0} миль/ч";
@@ -117,32 +120,55 @@ public class TemperatureGraphDrawable : IDrawable
         canvas.DrawString(windText, x - 25, startY, 50, 15,
             HorizontalAlignment.Center, VerticalAlignment.Top);
 
+        // Время
         startY += GraphConstants.WindSpacing;
         canvas.FontSize = GraphConstants.DetailFontSize;
         canvas.DrawString(data.TimeDisplay, x - 20, startY, 40, 15,
+            HorizontalAlignment.Center, VerticalAlignment.Top);
+    }
+
+    // Метод только для отрисовки текстового смайлика (как временное решение для иконки)
+    private void DrawWeatherFallback(ICanvas canvas, float x, float y, string? iconUrl)
+    {
+        // Устанавливаем цвет для эмодзи/иконки
+        canvas.FontColor = GraphColors.TextColor;
+        canvas.FontSize = GraphConstants.IconFontSize;
+
+        // В идеале здесь надо использовать маппинг (например, Sunny -> ☀️)
+        // Но если у вас нет доступа к ConditionCode, рисуем стандартный смайлик
+        canvas.DrawString("☁️", x - 15, y, 30, 25,
             HorizontalAlignment.Center, VerticalAlignment.Top);
     }
 }
 
 public static class GraphConstants
 {
-    // Настройки области рисования
     public const float TopPadding = 30f;
     public const float BottomLimit = 90f;
 
-    // Настройки позиционирования текста
-    public const float TempYOffset = 30f;       // Насколько поднять температуру над точкой
-    public const float CardStartOffset = 20f;   // Насколько ниже точки начинать блок карточки
+    public const float TempYOffset = 30f;
+    public const float CardStartOffset = 20f;
 
-    // Расстояния между элементами в карточке (по вертикали)
-    public const float IconSpacing = 28f;       // Отступ от температуры до иконки
-    public const float WindSpacing = 28f;       // Отступ от иконки до ветра
-    public const float TimeSpacing = 18f;       // Отступ от ветра до времени
+    public const float IconSpacing = 32f;
+    public const float WindSpacing = 22f;
+    public const float TimeSpacing = 18f;
 
-    // Размеры и шрифты
     public const float LineStrokeSize = 3f;
     public const float PointStrokeSize = 4f;
     public const float TemperatureFontSize = 14f;
-    public const float IconFontSize = 20f;
+    public const float IconFontSize = 28f;
     public const float DetailFontSize = 10f;
+}
+
+public static class GraphColors
+{
+    // Основные цвета
+    public static Color LineColor { get; } = Color.FromArgb("#222021");
+    public static Color PointColor { get; } = Color.FromArgb("#222021");
+    public static Color TextColor { get; } = Color.FromArgb("#222021");
+    public static Color CardBackgroundColor { get; } = Color.FromArgb("#F7F7F7"); // Фон для карточек (если будете рисовать)
+
+    // Если хотите отдельные цвета для текста
+    public static Color TemperatureColor { get; } = Color.FromArgb("#222021");
+    public static Color DetailColor { get; } = Color.FromArgb("#999999"); // Цвет для ветра и времени
 }
