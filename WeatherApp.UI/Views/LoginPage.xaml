@@ -3,42 +3,53 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:WeatherApp.UI.ViewModels"
              x:Class="WeatherApp.UI.Views.LoginPage"
-             x:DataType="vm:LoginPageViewModel"
-             Title="Вход в приложение">
+             x:DataType="vm:LoginPageViewModel">
 
-    <VerticalStackLayout Margin="20,0,20,60"
-                         VerticalOptions="Center">
-        <Label Text="Добро пожаловать!" 
-               FontSize="32" 
-               FontAttributes="Bold" 
-               Margin="0,0,0,20"/>
+    <Grid Style="{StaticResource LoginPageContainer}">
+        <VerticalStackLayout Padding="20"
+                             VerticalOptions="Center">
 
-        <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
-               FontSize="16"
-               Margin="0,0,0,30"
-               Grid.Row="1"/>
+            <Label Text="Добро пожаловать!" 
+                   Style="{StaticResource LoginTitle}" />
 
-        <VerticalStackLayout Grid.Row="2" Spacing="10">
-            <Label Text="Ваш API ключ:" />
+            <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
+                   Style="{StaticResource LoginSubtitle}" />
 
-            <Entry x:Name="ApiKeyEntry" 
-           Text="{Binding ApiKey, Mode=TwoWay}" 
-           Placeholder="Введите ключ..." 
-           IsPassword="True" />
+            <VerticalStackLayout Spacing="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Ваш API ключ:"
+                           Style="{StaticResource LoginLabel}" />
 
-            <Label TextColor="Blue" TextDecorations="Underline" Margin="0,5,0,15">
-                <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding OpenLinkCommand}" />
-                </Label.GestureRecognizers>
-                <Label.FormattedText>
-                    <FormattedString>
-                        <Span Text="Не знаете где взять? Получить ключ на сайте" />
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+                    <Border Style="{StaticResource LoginEntryBorder}">
+                        <Entry x:Name="ApiKeyEntry" 
+                               Text="{Binding ApiKey, Mode=TwoWay}" 
+                               Placeholder="Введите ключ..." 
+                               Style="{StaticResource LoginEntry}" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="8">
+                    <Button Command="{Binding LoginCommand}"
+                            Style="{StaticResource LoginButton}" />
+
+                    <HorizontalStackLayout Spacing="5"
+                                           HorizontalOptions="Center">
+                        <Label Text="Не знаете где взять? "
+                               Style="{StaticResource LoginLinkText}" />
+
+                        <Label Style="{StaticResource LoginLinkUnderline}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenLinkCommand}" />
+                            </Label.GestureRecognizers>
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Получить ключ на сайте" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
         </VerticalStackLayout>
-
-        <Button Text="Войти" Grid.Row="3" Command="{Binding LoginCommand}" 
-                HeightRequest="50" CornerRadius="8" Margin="0,20,0,0"/>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

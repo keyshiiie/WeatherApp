@@ -3,19 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="WeatherApp.UI.Resources.Styles.WeatherStyles">
 
+    <!--   Стили для CurrentWeatherPage   -->
+
     <Style x:Key="WeatherCardBorder" TargetType="Border">
         <Setter Property="StrokeShape" Value="RoundRectangle 25" />
         <Setter Property="Stroke" Value="Transparent" />
-        <Setter Property="BackgroundColor" Value="{StaticResource WeatherWhite60}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WeatherCardBackground}" />
     </Style>
 
     <Style x:Key="WeatherSectionTitle" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource WeatherWhite70}" />
+        <Setter Property="TextColor" Value="{StaticResource WeatherTextSecondary}" />
         <Setter Property="TextTransform" Value="Uppercase" />
     </Style>
 
     <Style x:Key="WeatherWhiteLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource WeatherWhite}" />
+        <Setter Property="TextColor" Value="{StaticResource WeatherText}" />
     </Style>
 
     <Style x:Key="WeatherWhiteLabelSemiBold" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabel}">
@@ -27,7 +29,7 @@
     </Style>
 
     <Style x:Key="WeatherWhite70Label" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource WeatherWhite70}" />
+        <Setter Property="TextColor" Value="{StaticResource WeatherTextSecondary}" />
     </Style>
 
     <Style x:Key="WeatherWhite70LabelMedium" TargetType="Label" BasedOn="{StaticResource WeatherWhite70Label}">
@@ -78,37 +80,33 @@
 
     <!-- Стиль для индикатора загрузки -->
     <Style x:Key="WeatherLoadingOverlay" TargetType="Grid">
-        <Setter Property="BackgroundColor" Value="{StaticResource WeatherWhite40}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WeatherOverlay}" />
         <Setter Property="InputTransparent" Value="False" />
     </Style>
 
     <Style x:Key="WeatherActivityIndicator" TargetType="ActivityIndicator">
-        <Setter Property="Color" Value="{StaticResource WeatherWhite}" />
+        <Setter Property="Color" Value="{StaticResource WeatherText}" />
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="HorizontalOptions" Value="Center" />
     </Style>
 
+    <!--   Стили для MainPage   -->
+
     <Style x:Key="MainPageBackground" TargetType="Grid">
-        <Setter Property="BackgroundColor" Value="{StaticResource MainPageBackground}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource BackgroundPrimary}" />
     </Style>
 
     <Style x:Key="MainSearchBorder" TargetType="Border">
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource BackgroundWhite}" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="StrokeShape" Value="RoundRectangle 25,25,25,25" />
     </Style>
 
-    <Style x:Key="MainSearchGrid" TargetType="Grid">
-        <Setter Property="Padding" Value="16,10" />
-        <Setter Property="RowSpacing" Value="8" />
-        <Setter Property="ColumnSpacing" Value="8" />
-    </Style>
-
     <Style x:Key="MainSearchEntry" TargetType="Entry">
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource SearchPlaceholder}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextPlaceholder}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="Margin" Value="8,0,0,0" />
@@ -124,7 +122,7 @@
     <Style x:Key="MainClearButton" TargetType="Button">
         <Setter Property="Text" Value="✕" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{StaticResource CloseButton}" />
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="WidthRequest" Value="30" />
         <Setter Property="HeightRequest" Value="30" />
@@ -135,7 +133,7 @@
 
     <Style x:Key="MainSearchSeparator" TargetType="BoxView">
         <Setter Property="HeightRequest" Value="1" />
-        <Setter Property="BackgroundColor" Value="{StaticResource SearchBorder}" />
+        <Setter Property="BackgroundColor" Value="#F0F0F0" />
     </Style>
 
     <Style x:Key="MainSuggestionItem" TargetType="Grid">
@@ -146,18 +144,18 @@
     <Style x:Key="MainSuggestionTitle" TargetType="Label">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style x:Key="MainSuggestionSubtitle" TargetType="Label">
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextColor" Value="{StaticResource CloseButton}" />
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
     </Style>
 
     <Style x:Key="MainLocationButton" TargetType="Button">
         <Setter Property="Text" Value="Определить местоположение" />
-        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource BackgroundWhite}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="CornerRadius" Value="25" />
         <Setter Property="Padding" Value="15,10" />
         <Setter Property="FontSize" Value="14" />
@@ -167,30 +165,32 @@
     </Style>
 
     <Style x:Key="MainRecentLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource RecentText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
         <Setter Property="TextTransform" Value="Uppercase" />
     </Style>
 
     <Style x:Key="MainRecentCityBorder" TargetType="Border">
         <Setter Property="StrokeShape" Value="RoundRectangle 25" />
         <Setter Property="Stroke" Value="Transparent" />
-        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource BackgroundWhite}" />
         <Setter Property="Padding" Value="15,0" />
     </Style>
 
     <Style x:Key="MainRecentCityName" TargetType="Label">
         <Setter Property="FontFamily" Value="InterMedium" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style x:Key="MainRecentRemoveButton" TargetType="Button">
         <Setter Property="Text" Value="✕" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
+    <!--   Стили для FavoritesPage   -->
+
     <Style x:Key="FavoritesEmptyViewLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="FontSize" Value="16" />
@@ -216,10 +216,10 @@
         <Setter Property="HorizontalOptions" Value="Center" />
     </Style>
 
+    <!--   Стили для SettingsPage   -->
 
     <Style x:Key="SettingsSectionTitle" TargetType="Label" 
-           BasedOn="{StaticResource MainRecentLabel}">
-    </Style>
+           BasedOn="{StaticResource MainRecentLabel}" />
 
     <Style x:Key="SettingsItemBorder" TargetType="Border" 
            BasedOn="{StaticResource MainRecentCityBorder}">
@@ -229,15 +229,77 @@
 
     <Style x:Key="SettingsItemLabel" TargetType="Label">
         <Setter Property="FontFamily" Value="InterRegular" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="VerticalOptions" Value="Center" />
     </Style>
 
     <Style x:Key="SettingsPicker" TargetType="Picker">
         <Setter Property="FontFamily" Value="InterBold" />
-        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="HorizontalOptions" Value="End" />
         <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>
+
+    <!--   Стили для LoginPage   -->
+
+    <Style x:Key="LoginPageContainer" TargetType="Grid">
+        <Setter Property="Style" Value="{StaticResource MainPageBackground}" />
+    </Style>
+
+    <Style x:Key="LoginTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="32" />
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="LoginSubtitle" TargetType="Label">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
+        <Setter Property="Margin" Value="0,0,0,60" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="LoginLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="InterRegular" />
+    </Style>
+
+    <Style x:Key="LoginEntryBorder" TargetType="Border" 
+           BasedOn="{StaticResource MainSearchBorder}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style x:Key="LoginEntry" TargetType="Entry" 
+           BasedOn="{StaticResource MainSearchEntry}">
+        <Setter Property="IsPassword" Value="True" />
+        <Setter Property="Margin" Value="8,0,0,0" />
+    </Style>
+
+    <Style x:Key="LoginButton" TargetType="Button">
+        <Setter Property="Text" Value="Войти" />
+        <Setter Property="CornerRadius" Value="25" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TextSecondary}" />
+        <Setter Property="TextColor" Value="{StaticResource BackgroundWhite}" />
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style x:Key="LoginLinkText" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource TextTertiary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="InterRegular" />
+    </Style>
+
+    <Style x:Key="LoginLinkUnderline" TargetType="Label" 
+           BasedOn="{StaticResource LoginLinkText}">
+        <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+
 </ResourceDictionary>
