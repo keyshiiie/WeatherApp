@@ -2,9 +2,7 @@
 
 namespace WeatherApp.UI.DisplayModels;
 
-/// <summary>
 /// Модель для отображения дня прогноза
-/// </summary>
 public class ForecastDayDisplay : WeatherDisplay
 {
     private readonly ForecastDay _day;
@@ -15,7 +13,6 @@ public class ForecastDayDisplay : WeatherDisplay
         _day = day ?? throw new ArgumentNullException(nameof(day));
     }
 
-    // Свойства для отображения
     public string DayLabel => GetDayLabel();
     public string DayOfWeek => _day.Date.ToString("ddd");
     public string FormattedDate => _day.Date.ToString("dd MMM");

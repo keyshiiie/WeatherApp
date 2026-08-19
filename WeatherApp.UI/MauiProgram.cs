@@ -103,8 +103,6 @@ public static class MauiProgram
     {
         services.AddTransient<MainPageViewModel>();
         services.AddTransient<CurrentWeatherViewModel>();
-        services.AddTransient<ForecastPageViewModel>();
-        services.AddTransient<DetailsPageViewModel>();
         services.AddTransient<FavoritesPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<LoginPageViewModel>();
@@ -114,8 +112,6 @@ public static class MauiProgram
     {
         services.AddTransient<MainPage>();
         services.AddTransient<CurrentWeatherPage>();
-        services.AddTransient<ForecastPage>();
-        services.AddTransient<DetailsPage>();
         services.AddTransient<FavoritesPage>();
         services.AddTransient<SettingsPage>();
         services.AddTransient<LoginPage>();

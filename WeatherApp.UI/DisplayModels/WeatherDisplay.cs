@@ -2,9 +2,7 @@
 
 namespace WeatherApp.UI.DisplayModels;
 
-/// <summary>
 /// Базовая модель для отображения погодных данных с форматированием
-/// </summary>
 public class WeatherDisplay
 {
     protected readonly UserSettings _settings;
@@ -14,7 +12,6 @@ public class WeatherDisplay
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
     }
 
-    // Методы форматирования
     protected string FormatTemperature(double celsius, double fahrenheit)
     {
         return _settings.TemperatureUnit == TemperatureUnit.Celsius
