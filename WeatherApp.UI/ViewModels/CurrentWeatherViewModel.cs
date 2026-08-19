@@ -31,17 +31,21 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     private UserSettings _settings = new();
 
     [ObservableProperty]
-    private TemperatureGraphDrawable _temperatureGraphDrawable = new();
+    private List<HourlyForecast> _hourlyForecast = new();
+
+    // ✅ НОВЫЕ СВОЙСТВА: Display-модели для привязки в XAML
+    [ObservableProperty]
+    private List<ForecastDayDisplay>? _forecastDaysDisplay;
 
     [ObservableProperty]
-    private List<HourlyForecast> _hourlyForecast = new();
+    private List<HourlyForecastDisplay>? _hourlyForecastDisplay;
 
     public CurrentWeatherViewModel(
         IWeatherService weatherService,
         ICityService cityService,
         ISettingsService settingsService,
-        ILogger<CurrentWeatherViewModel> logger) // Добавляем логгер
-        : base(logger) // Передаем в базовый класс
+        ILogger<CurrentWeatherViewModel> logger)
+        : base(logger)
     {
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
@@ -57,24 +61,19 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     {
         Settings = settings;
 
-        TemperatureGraphDrawable.UpdateSettings(Settings.TemperatureUnit, Settings.SpeedUnit);
-        OnPropertyChanged(nameof(TemperatureGraphDrawable));
+        // Обновляем Display-модели
+        UpdateDisplayModels();
 
+        // Обновляем остальные свойства
         OnPropertyChanged(nameof(TemperatureDisplay));
         OnPropertyChanged(nameof(FeelsLikeDisplay));
         OnPropertyChanged(nameof(PressureDisplay));
         OnPropertyChanged(nameof(WindSpeedDisplay));
         OnPropertyChanged(nameof(MinTempDisplay));
         OnPropertyChanged(nameof(MaxTempDisplay));
-
-        UpdateForecastDaysDisplay();
-        UpdateHourlyForecastDisplay();
-
-        OnPropertyChanged(nameof(ForecastDays));
-        OnPropertyChanged(nameof(HourlyForecast));
     }
 
-    #region Display Properties
+    #region Display Properties (для текущей погоды)
 
     public string TemperatureDisplay
     {
@@ -260,42 +259,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         }
     }
 
-    private void UpdateForecastDaysDisplay()
-    {
-        if (ForecastDays == null || !ForecastDays.Any()) return;
-
-        foreach (var day in ForecastDays)
-        {
-            day.MaxTempDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{day.MaxTempC:F0}°C"
-                : $"{day.MaxTempF:F0}°F";
-
-            day.MinTempDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{day.MinTempC:F0}°C"
-                : $"{day.MinTempF:F0}°F";
-        }
-    }
-
-    private void UpdateHourlyForecastDisplay()
-    {
-        if (HourlyForecast == null || !HourlyForecast.Any()) return;
-
-        foreach (var hour in HourlyForecast)
-        {
-            hour.TemperatureDisplay = Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{hour.TemperatureC:F0}°C"
-                : $"{hour.TemperatureF:F0}°F";
-
-            hour.WindSpeedDisplay = Settings.SpeedUnit == SpeedUnit.KilometersPerHour
-                ? $"{hour.WindSpeedKph:F0} км/ч"
-                : $"{hour.WindSpeedMph:F0} миль/ч";
-
-            hour.PressureDisplay = Settings.PressureUnit == PressureUnit.Millibars
-                ? $"{hour.PressureMb:F0} мбар"
-                : $"{hour.PressureIn:F2} inHg";
-        }
-    }
-
     public async Task LoadWeatherForCityAsync(City city)
     {
         if (city == null)
@@ -331,18 +294,15 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 {
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
 
-                    UpdateForecastDaysDisplay();
-                    UpdateHourlyForecastDisplay();
-
-                    TemperatureGraphDrawable.UpdateSettings(Settings.TemperatureUnit, Settings.SpeedUnit);
-                    TemperatureGraphDrawable.Data = HourlyForecast;
-                    OnPropertyChanged(nameof(TemperatureGraphDrawable));
+                    UpdateDisplayModels();
 
                     Logger.LogInformation($"Loaded weather for {city.Name}: {current.TemperatureC}°C, {forecast.Count} forecast days");
                 }
                 else
                 {
                     HourlyForecast = new List<HourlyForecast>();
+                    ForecastDaysDisplay = new List<ForecastDayDisplay>();
+                    HourlyForecastDisplay = new List<HourlyForecastDisplay>();
                     Logger.LogWarning($"No forecast data for {city.Name}");
                 }
 
@@ -377,6 +337,38 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region Private Methods
+
+    private void UpdateDisplayModels()
+    {
+        if (ForecastDays != null && ForecastDays.Any())
+        {
+            ForecastDaysDisplay = ForecastDays
+                .Select(day => new ForecastDayDisplay(day, Settings))
+                .ToList();
+        }
+        else
+        {
+            ForecastDaysDisplay = new List<ForecastDayDisplay>();
+        }
+
+        if (HourlyForecast != null && HourlyForecast.Any())
+        {
+            HourlyForecastDisplay = HourlyForecast
+                .Select(hour => new HourlyForecastDisplay(hour, Settings))
+                .ToList();
+        }
+        else
+        {
+            HourlyForecastDisplay = new List<HourlyForecastDisplay>();
+        }
+
+        OnPropertyChanged(nameof(ForecastDaysDisplay));
+        OnPropertyChanged(nameof(HourlyForecastDisplay));
+    }
+
     private void UpdateFavoriteToolbarItem()
     {
         try
@@ -385,14 +377,9 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
             if (toolbarItem != null)
             {
-                if (IsCurrentCityFavorite)
-                {
-                    toolbarItem.IconImageSource = "appic_heart_filled.png";
-                }
-                else
-                {
-                    toolbarItem.IconImageSource = "appic_heart_outline.png";
-                }
+                toolbarItem.IconImageSource = IsCurrentCityFavorite
+                    ? "appic_heart_filled.png"
+                    : "appic_heart_outline.png";
             }
         }
         catch (Exception ex)
@@ -400,10 +387,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             Logger.LogError(ex, "Error updating favorite toolbar item");
         }
     }
-
-    #endregion
-
-    #region Private Methods
 
     private async Task LoadBestCityAsync()
     {

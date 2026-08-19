@@ -2,17 +2,21 @@
 
 namespace WeatherApp.Core.Models;
 
+/// <summary>
+/// Модель почасового прогноза 
+/// </summary>
 public class HourlyForecast
 {
+    // Время
     public DateTime Time { get; set; }
 
-    // Температура
+    // Температура (все единицы измерения)
     public double TemperatureC { get; set; }
     public double TemperatureF { get; set; }
     public double FeelsLikeC { get; set; }
     public double FeelsLikeF { get; set; }
 
-    // Состояние погоды
+    // Погодные условия
     public string? ConditionText { get; set; }
     public string? ConditionIcon { get; set; }
     public int ConditionCode { get; set; }
@@ -23,7 +27,7 @@ public class HourlyForecast
     public double WindSpeedKph { get; set; }
     public double WindSpeedMph { get; set; }
     public double PressureMb { get; set; }
-    public double PressureIn { get; set; } 
+    public double PressureIn { get; set; }
     public double PrecipitationMm { get; set; }
     public int CloudCover { get; set; }
     public double VisibilityKm { get; set; }
@@ -33,12 +37,4 @@ public class HourlyForecast
     public int ChanceOfSnow { get; set; }
     public bool WillItRain { get; set; }
     public bool WillItSnow { get; set; }
-
-    public bool HasPrecipitation => PrecipitationMm > 0 || ChanceOfRain > 0;
-
-    public string TimeDisplay => Time.ToString("HH:mm");
-
-    public string TemperatureDisplay { get; set; } = "--";
-    public string WindSpeedDisplay { get; set; } = "--";
-    public string PressureDisplay { get; set; } = "--";
 }

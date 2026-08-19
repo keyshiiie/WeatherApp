@@ -4,15 +4,14 @@ using System.Collections.Generic;
 namespace WeatherApp.Core.Models;
 
 /// <summary>
-/// Модель дня прогноза для отображения в UI
+/// Модель дня прогноза на n дней
 /// </summary>
 public class ForecastDay
 {
+    // Дата
     public DateTime Date { get; set; }
-    public string DayOfWeek => Date.ToString("ddd");
-    public string FormattedDate => Date.ToString("dd MMM");
 
-    // Температура
+    // Температура (все единицы измерения)
     public double MaxTempC { get; set; }
     public double MinTempC { get; set; }
     public double AvgTempC { get; set; }
@@ -20,7 +19,7 @@ public class ForecastDay
     public double MinTempF { get; set; }
     public double AvgTempF { get; set; }
 
-    // Состояние погоды
+    // Погодные условия
     public string? ConditionText { get; set; }
     public string? ConditionIcon { get; set; }
     public int ConditionCode { get; set; }
@@ -38,36 +37,8 @@ public class ForecastDay
     public string? Moonrise { get; set; }
     public string? Moonset { get; set; }
     public string? MoonPhase { get; set; }
-    public int MoonIllumination { get; set; } 
+    public int MoonIllumination { get; set; }
 
     // Почасовой прогноз
     public List<HourlyForecast> Hours { get; set; } = new();
-
-    public string TemperatureRange => $"{MinTempC}° / {MaxTempC}°";
-    public bool HasRain => TotalPrecipMm > 0;
-
-    // Для отображения в UI
-    public string MoonIlluminationDisplay => $"{MoonIllumination}%";
-
-    public string DayLabel
-    {
-        get
-        {
-            var today = DateTime.Today;
-            var day = Date.Date;
-
-            if (day.Year == today.Year && day.Month == today.Month && day.Day == today.Day)
-                return "Сегодня";
-
-            var tomorrow = today.AddDays(1);
-            if (day.Year == tomorrow.Year && day.Month == tomorrow.Month && day.Day == tomorrow.Day)
-                return "Завтра";
-
-
-            return Date.ToString("ddd");
-        }
-    }
-
-    public string MaxTempDisplay { get; set; } = "--";
-    public string MinTempDisplay { get; set; } = "--";
 }
