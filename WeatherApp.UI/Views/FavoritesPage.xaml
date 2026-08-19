@@ -5,53 +5,56 @@
              x:Class="WeatherApp.UI.Views.FavoritesPage"
              Title="{Binding Title}">
 
-    <Grid>
-        <Grid RowDefinitions="Auto, *" Padding="20,0,20,20">
-            <Label Grid.Row="0" Text="{Binding ErrorMessage}" 
-                   IsVisible="{Binding HasError}" TextColor="Red" 
-                   HorizontalOptions="Center" />
-            <CollectionView Grid.Row="1" ItemsSource="{Binding FavoriteCities}"
+    <Grid Style="{StaticResource MainPageBackground}">
+        <Grid Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" 
+                   Text="{Binding ErrorMessage}" 
+                   IsVisible="{Binding HasError}" 
+                   Style="{StaticResource WeatherErrorLabel}" />
+
+            <CollectionView Grid.Row="1" 
+                            ItemsSource="{Binding FavoriteCities}"
                             SelectionMode="None">
                 <CollectionView.EmptyView>
                     <Label Text="У вас пока нет избранных городов" 
-                           TextColor="Gray" 
-                           HorizontalOptions="Center" 
-                           VerticalOptions="Center" />
+                           Style="{StaticResource FavoritesEmptyViewLabel}" />
                 </CollectionView.EmptyView>
+
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border>
-                            <Grid ColumnDefinitions="*, Auto" Padding="15,0">
-                                <VerticalStackLayout Grid.Column="0" 
-                                                     VerticalOptions="Center">
-                                    <Label Text="{Binding DisplayName}"/>
-                                </VerticalStackLayout>
-                                <Button Grid.Column="1" 
-                                    Text="✕" 
-                                    BackgroundColor="Transparent" 
-                                    TextColor="Black"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
-                                    CommandParameter="{Binding .}" />
-
+                        <Border Style="{StaticResource FavoritesItemBorder}">
+                            <Grid ColumnDefinitions="*, Auto">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
                                                           CommandParameter="{Binding .}" />
                                 </Grid.GestureRecognizers>
+
+                                <VerticalStackLayout Grid.Column="0" 
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayName}"
+                                           Style="{StaticResource FavoritesCityName}" />
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="1" 
+                                        Style="{StaticResource FavoritesRemoveButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
+                                        CommandParameter="{Binding .}" />
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Grid>
-        <Grid 
-            IsVisible="{Binding IsBusy}"
-            BackgroundColor="#40000000"
-            InputTransparent="False">
-            <ActivityIndicator 
-                IsRunning="{Binding IsBusy}" 
-                Color="White"
-                VerticalOptions="Center"
-                HorizontalOptions="Center" />
+
+        <Grid Style="{StaticResource WeatherLoadingOverlay}"
+              IsVisible="{Binding IsBusy}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               Style="{StaticResource WeatherActivityIndicator}" />
         </Grid>
     </Grid>
 </ContentPage>

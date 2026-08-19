@@ -52,6 +52,7 @@ public class WeatherData
     public bool WillItRainToday { get; set; }
     public bool WillItSnowToday { get; set; }
 
+    // ✅ Оставляем только эти свойства, они не зависят от настроек
     public string SunriseDisplay => ConvertTo24HourFormat(Sunrise);
     public string SunsetDisplay => ConvertTo24HourFormat(Sunset);
 
@@ -81,6 +82,7 @@ public class WeatherData
             return time12h;
         }
     }
+
     public string DisplayName
     {
         get
@@ -100,6 +102,7 @@ public class WeatherData
         }
     }
 }
+
 public class AirQualityData
 {
     public double Co { get; set; }
@@ -110,5 +113,4 @@ public class AirQualityData
     public double Pm10 { get; set; }
     public int UsEpaIndex { get; set; }
     public int GbDefraIndex { get; set; }
-
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
+using WeatherApp.UI.DisplayModels;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -15,6 +16,9 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     [ObservableProperty]
     private WeatherData? _currentWeather;
+
+    [ObservableProperty]
+    private CurrentWeatherDisplay? _currentWeatherDisplay;
 
     [ObservableProperty]
     private List<ForecastDay>? _forecastDays;
@@ -34,7 +38,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     [ObservableProperty]
     private List<HourlyForecast> _hourlyForecast = new();
 
-    // ✅ НОВЫЕ СВОЙСТВА: Display-модели для привязки в XAML
     [ObservableProperty]
     private List<ForecastDayDisplay>? _forecastDaysDisplay;
 
@@ -61,92 +64,8 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     private void OnSettingsChanged(object? sender, UserSettings settings)
     {
         Settings = settings;
-
-        // Обновляем Display-модели
         UpdateDisplayModels();
-
-        // Обновляем остальные свойства
-        OnPropertyChanged(nameof(TemperatureDisplay));
-        OnPropertyChanged(nameof(FeelsLikeDisplay));
-        OnPropertyChanged(nameof(PressureDisplay));
-        OnPropertyChanged(nameof(WindSpeedDisplay));
-        OnPropertyChanged(nameof(MinTempDisplay));
-        OnPropertyChanged(nameof(MaxTempDisplay));
     }
-
-    #region Display Properties (для текущей погоды)
-
-    public string TemperatureDisplay
-    {
-        get
-        {
-            if (CurrentWeather == null) return "--";
-            return Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{CurrentWeather.TemperatureC:F0}°C"
-                : $"{CurrentWeather.TemperatureF:F0}°F";
-        }
-    }
-
-    public string FeelsLikeDisplay
-    {
-        get
-        {
-            if (CurrentWeather == null) return "--";
-            return Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{CurrentWeather.FeelsLikeC:F0}°C"
-                : $"{CurrentWeather.FeelsLikeF:F0}°F";
-        }
-    }
-
-    public string PressureDisplay
-    {
-        get
-        {
-            if (CurrentWeather == null) return "--";
-            return Settings.PressureUnit == PressureUnit.Millibars
-                ? $"{CurrentWeather.PressureMb:F0} мбар"
-                : $"{CurrentWeather.PressureIn:F2} inHg";
-        }
-    }
-
-    public string WindSpeedDisplay
-    {
-        get
-        {
-            if (CurrentWeather == null) return "--";
-            return Settings.SpeedUnit == SpeedUnit.KilometersPerHour
-                ? $"{CurrentWeather.WindSpeedKph:F0} км/ч"
-                : $"{CurrentWeather.WindSpeedMph:F0} миль/ч";
-        }
-    }
-
-    public string MinTempDisplay
-    {
-        get
-        {
-            if (ForecastDays == null || !ForecastDays.Any()) return "--";
-            var today = ForecastDays.FirstOrDefault();
-            if (today == null) return "--";
-            return Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{today.MinTempC:F0}°C"
-                : $"{today.MinTempF:F0}°F";
-        }
-    }
-
-    public string MaxTempDisplay
-    {
-        get
-        {
-            if (ForecastDays == null || !ForecastDays.Any()) return "--";
-            var today = ForecastDays.FirstOrDefault();
-            if (today == null) return "--";
-            return Settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{today.MaxTempC:F0}°C"
-                : $"{today.MaxTempF:F0}°F";
-        }
-    }
-
-    #endregion
 
     #region Commands
 
@@ -286,16 +205,28 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 current.Country = city.Country;
                 current.Region = city.Region;
 
-                Title = $"Погода в {city.DisplayName}";
+                Title = city.DisplayName;
 
+                // Просто создаем Display модели
                 CurrentWeather = current;
+                CurrentWeatherDisplay = new CurrentWeatherDisplay(current, Settings);
                 ForecastDays = forecast;
 
-                if (forecast != null)
+                if (forecast != null && forecast.Any())
                 {
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
 
-                    UpdateDisplayModels();
+                    // Создаем списки Display моделей
+                    ForecastDaysDisplay = forecast
+                        .Select(day => new ForecastDayDisplay(day, Settings))
+                        .ToList();
+
+                    HourlyForecastDisplay = HourlyForecast
+                        .Select(hour => new HourlyForecastDisplay(hour, Settings))
+                        .ToList();
+
+                    // Вызываем событие для графика
+                    HourlyDataUpdated?.Invoke(this, HourlyForecastDisplay);
 
                     Logger.LogInformation($"Loaded weather for {city.Name}: {current.TemperatureC}°C, {forecast.Count} forecast days");
                 }
@@ -307,12 +238,13 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                     Logger.LogWarning($"No forecast data for {city.Name}");
                 }
 
-                OnPropertyChanged(nameof(TemperatureDisplay));
-                OnPropertyChanged(nameof(FeelsLikeDisplay));
-                OnPropertyChanged(nameof(PressureDisplay));
-                OnPropertyChanged(nameof(WindSpeedDisplay));
-                OnPropertyChanged(nameof(MinTempDisplay));
-                OnPropertyChanged(nameof(MaxTempDisplay));
+                // Уведомляем об обновлении
+                OnPropertyChanged(nameof(CurrentWeather));
+                OnPropertyChanged(nameof(CurrentWeatherDisplay));
+                OnPropertyChanged(nameof(ForecastDays));
+                OnPropertyChanged(nameof(ForecastDaysDisplay));
+                OnPropertyChanged(nameof(HourlyForecast));
+                OnPropertyChanged(nameof(HourlyForecastDisplay));
 
                 await CheckIsFavoriteAsync();
                 UpdateFavoriteToolbarItem();
@@ -344,6 +276,12 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     private void UpdateDisplayModels()
     {
+        // Обновляем все Display модели при изменении настроек
+        if (CurrentWeather != null)
+        {
+            CurrentWeatherDisplay = new CurrentWeatherDisplay(CurrentWeather, Settings);
+        }
+
         if (ForecastDays != null && ForecastDays.Any())
         {
             ForecastDaysDisplay = ForecastDays
@@ -361,7 +299,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 .Select(hour => new HourlyForecastDisplay(hour, Settings))
                 .ToList();
 
-            // ✅ ВЫЗЫВАЕМ СОБЫТИЕ ДЛЯ ОБНОВЛЕНИЯ ГРАФИКА
             HourlyDataUpdated?.Invoke(this, HourlyForecastDisplay);
         }
         else
@@ -369,6 +306,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             HourlyForecastDisplay = new List<HourlyForecastDisplay>();
         }
 
+        OnPropertyChanged(nameof(CurrentWeatherDisplay));
         OnPropertyChanged(nameof(ForecastDaysDisplay));
         OnPropertyChanged(nameof(HourlyForecastDisplay));
     }

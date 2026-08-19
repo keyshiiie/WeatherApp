@@ -1,19 +1,18 @@
 ﻿using WeatherApp.Core.Models;
 
-namespace WeatherApp.UI.ViewModels;
+namespace WeatherApp.UI.DisplayModels;
 
 /// <summary>
 /// Модель для отображения дня прогноза
 /// </summary>
-public class ForecastDayDisplay
+public class ForecastDayDisplay : WeatherDisplay
 {
     private readonly ForecastDay _day;
-    private readonly UserSettings _settings;
 
     public ForecastDayDisplay(ForecastDay day, UserSettings settings)
+        : base(settings)
     {
         _day = day ?? throw new ArgumentNullException(nameof(day));
-        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
     }
 
     // Свойства для отображения
@@ -30,14 +29,6 @@ public class ForecastDayDisplay
 
     public bool HasRain => _day.TotalPrecipMm > 0;
     public string PrecipitationDisplay => _day.TotalPrecipMm > 0 ? $"{_day.TotalPrecipMm:F1} мм" : "Без осадков";
-
-    // Приватные методы форматирования
-    private string FormatTemperature(double celsius, double fahrenheit)
-    {
-        return _settings.TemperatureUnit == TemperatureUnit.Celsius
-            ? $"{celsius:F0}°C"
-            : $"{fahrenheit:F0}°F";
-    }
 
     private string GetDayLabel()
     {

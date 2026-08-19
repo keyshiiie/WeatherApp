@@ -25,6 +25,22 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <!-- Цвета для погоды -->
+    <Color x:Key="WeatherWhite">#FFFFFF</Color>
+    <Color x:Key="WeatherWhite70">#70FFFFFF</Color>
+    <Color x:Key="WeatherWhite60">#60FFFFFF</Color>
+    <Color x:Key="WeatherWhite40">#40000000</Color>
+    <Color x:Key="WeatherWhite15">#15FFFFFF</Color>
+    <Color x:Key="WeatherWhite30">#30FFFFFF</Color>
+
+    <!-- Цвета для MainPage -->
+    <Color x:Key="MainPageBackground">#EAEAEA</Color>
+    <Color x:Key="SearchPlaceholder">#D7D7D7</Color>
+    <Color x:Key="SearchText">#222021</Color>
+    <Color x:Key="SearchBorder">#F0F0F0</Color>
+    <Color x:Key="RecentText">#979797</Color>
+    <Color x:Key="CloseButton">#999999</Color>
+
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>

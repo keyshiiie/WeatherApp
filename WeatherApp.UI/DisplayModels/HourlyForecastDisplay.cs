@@ -1,20 +1,19 @@
 ﻿using System;
 using WeatherApp.Core.Models;
 
-namespace WeatherApp.UI.ViewModels
+namespace WeatherApp.UI.DisplayModels
 {
     /// <summary>
     /// Модель для отображения почасового прогноза
     /// </summary>
-    public class HourlyForecastDisplay
+    public class HourlyForecastDisplay : WeatherDisplay
     {
         private readonly HourlyForecast _hour;
-        private readonly UserSettings _settings;
 
         public HourlyForecastDisplay(HourlyForecast hour, UserSettings settings)
+            : base(settings)
         {
             _hour = hour ?? throw new ArgumentNullException(nameof(hour));
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
         // Свойства для отображения
@@ -32,36 +31,6 @@ namespace WeatherApp.UI.ViewModels
         public string ChanceOfRainDisplay => _hour.ChanceOfRain > 0 ? $"{_hour.ChanceOfRain}%" : "—";
 
         // Свойство для графика
-        public float TemperatureValue
-        {
-            get
-            {
-                return _settings.TemperatureUnit == TemperatureUnit.Celsius
-                    ? (float)_hour.TemperatureC
-                    : (float)_hour.TemperatureF;
-            }
-        }
-
-        // Приватные методы форматирования
-        private string FormatTemperature(double celsius, double fahrenheit)
-        {
-            return _settings.TemperatureUnit == TemperatureUnit.Celsius
-                ? $"{celsius:F0}°C"
-                : $"{fahrenheit:F0}°F";
-        }
-
-        private string FormatSpeed(double kph, double mph)
-        {
-            return _settings.SpeedUnit == SpeedUnit.KilometersPerHour
-                ? $"{kph:F0} км/ч"
-                : $"{mph:F0} миль/ч";
-        }
-
-        private string FormatPressure(double mb, double inhg)
-        {
-            return _settings.PressureUnit == PressureUnit.Millibars
-                ? $"{mb:F0} мбар"
-                : $"{inhg:F2} inHg";
-        }
+        public float TemperatureValue => GetTemperatureValue(_hour.TemperatureC, _hour.TemperatureF);
     }
 }

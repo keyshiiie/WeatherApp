@@ -36,7 +36,7 @@ public static class MauiProgram
 
         // Настройка логирования для MAUI
 #if DEBUG
-        builder.Logging.AddDebug(); // Только для Debug
+        builder.Logging.AddDebug();
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
 #else
         builder.Logging.SetMinimumLevel(LogLevel.Warning);

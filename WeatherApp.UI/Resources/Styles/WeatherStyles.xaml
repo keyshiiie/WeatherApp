@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="WeatherApp.UI.Resources.Styles.WeatherStyles">
+
+    <Style x:Key="WeatherCardBorder" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 25" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WeatherWhite60}" />
+    </Style>
+
+    <Style x:Key="WeatherSectionTitle" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource WeatherWhite70}" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+    </Style>
+
+    <Style x:Key="WeatherWhiteLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource WeatherWhite}" />
+    </Style>
+
+    <Style x:Key="WeatherWhiteLabelSemiBold" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabel}">
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+    </Style>
+
+    <Style x:Key="WeatherWhiteLabelMedium" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabel}">
+        <Setter Property="FontFamily" Value="InterMedium" />
+    </Style>
+
+    <Style x:Key="WeatherWhite70Label" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource WeatherWhite70}" />
+    </Style>
+
+    <Style x:Key="WeatherWhite70LabelMedium" TargetType="Label" BasedOn="{StaticResource WeatherWhite70Label}">
+        <Setter Property="FontFamily" Value="InterMedium" />
+    </Style>
+
+    <Style x:Key="WeatherErrorLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="Red" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Margin" Value="0,10" />
+    </Style>
+
+    <Style x:Key="WeatherTemperatureLabel" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabelSemiBold}">
+        <Setter Property="FontSize" Value="48" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="WeatherConditionLabel" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabelSemiBold}">
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="WeatherIconImage" TargetType="Image">
+        <Setter Property="HeightRequest" Value="70" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="Margin" Value="0,5" />
+    </Style>
+
+    <Style x:Key="WeatherSmallIcon" TargetType="Image">
+        <Setter Property="WidthRequest" Value="25" />
+        <Setter Property="HeightRequest" Value="25" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+
+    <!-- Стили для детальной информации -->
+    <Style x:Key="WeatherDetailLabel" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabelSemiBold}">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="WeatherDetailTitle" TargetType="Label" BasedOn="{StaticResource WeatherWhite70Label}">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="WeatherDetailValue" TargetType="Label" BasedOn="{StaticResource WeatherWhiteLabelSemiBold}">
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
+    <!-- Стиль для индикатора загрузки -->
+    <Style x:Key="WeatherLoadingOverlay" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="{StaticResource WeatherWhite40}" />
+        <Setter Property="InputTransparent" Value="False" />
+    </Style>
+
+    <Style x:Key="WeatherActivityIndicator" TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{StaticResource WeatherWhite}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="MainPageBackground" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="{StaticResource MainPageBackground}" />
+    </Style>
+
+    <Style x:Key="MainSearchBorder" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 25,25,25,25" />
+    </Style>
+
+    <Style x:Key="MainSearchGrid" TargetType="Grid">
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="RowSpacing" Value="8" />
+        <Setter Property="ColumnSpacing" Value="8" />
+    </Style>
+
+    <Style x:Key="MainSearchEntry" TargetType="Entry">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource SearchPlaceholder}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Margin" Value="8,0,0,0" />
+    </Style>
+
+    <Style x:Key="MainSearchIcon" TargetType="Image">
+        <Setter Property="WidthRequest" Value="18" />
+        <Setter Property="HeightRequest" Value="18" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="MainClearButton" TargetType="Button">
+        <Setter Property="Text" Value="✕" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource CloseButton}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="WidthRequest" Value="30" />
+        <Setter Property="HeightRequest" Value="30" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="Margin" Value="0,0,12,0" />
+    </Style>
+
+    <Style x:Key="MainSearchSeparator" TargetType="BoxView">
+        <Setter Property="HeightRequest" Value="1" />
+        <Setter Property="BackgroundColor" Value="{StaticResource SearchBorder}" />
+    </Style>
+
+    <Style x:Key="MainSuggestionItem" TargetType="Grid">
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="MainSuggestionTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+    </Style>
+
+    <Style x:Key="MainSuggestionSubtitle" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource CloseButton}" />
+    </Style>
+
+    <Style x:Key="MainLocationButton" TargetType="Button">
+        <Setter Property="Text" Value="Определить местоположение" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="CornerRadius" Value="25" />
+        <Setter Property="Padding" Value="15,10" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="InterMedium" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="Margin" Value="0,15,0,0" />
+    </Style>
+
+    <Style x:Key="MainRecentLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource RecentText}" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+    </Style>
+
+    <Style x:Key="MainRecentCityBorder" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 25" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="Padding" Value="15,0" />
+    </Style>
+
+    <Style x:Key="MainRecentCityName" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterMedium" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+    </Style>
+
+    <Style x:Key="MainRecentRemoveButton" TargetType="Button">
+        <Setter Property="Text" Value="✕" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+    </Style>
+
+    <Style x:Key="FavoritesEmptyViewLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
+    <Style x:Key="FavoritesItemBorder" TargetType="Border" 
+           BasedOn="{StaticResource MainRecentCityBorder}">
+        <Setter Property="Padding" Value="15,0" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <Style x:Key="FavoritesCityName" TargetType="Label" 
+           BasedOn="{StaticResource MainRecentCityName}">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="FavoritesRemoveButton" TargetType="Button" 
+           BasedOn="{StaticResource MainRecentRemoveButton}">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="WidthRequest" Value="30" />
+        <Setter Property="HeightRequest" Value="30" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+
+    <Style x:Key="SettingsSectionTitle" TargetType="Label" 
+           BasedOn="{StaticResource MainRecentLabel}">
+    </Style>
+
+    <Style x:Key="SettingsItemBorder" TargetType="Border" 
+           BasedOn="{StaticResource MainRecentCityBorder}">
+        <Setter Property="Padding" Value="15,0" />
+        <Setter Property="Margin" Value="0,0,0,0" />
+    </Style>
+
+    <Style x:Key="SettingsItemLabel" TargetType="Label">
+        <Setter Property="FontFamily" Value="InterRegular" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="SettingsPicker" TargetType="Picker">
+        <Setter Property="FontFamily" Value="InterBold" />
+        <Setter Property="TextColor" Value="{StaticResource SearchText}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+</ResourceDictionary>

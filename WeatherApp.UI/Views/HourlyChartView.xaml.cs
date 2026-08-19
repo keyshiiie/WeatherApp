@@ -1,7 +1,7 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
-using WeatherApp.UI.ViewModels;
 using WeatherApp.Core.Models;
+using WeatherApp.UI.DisplayModels;
 
 namespace WeatherApp.UI.Views;
 

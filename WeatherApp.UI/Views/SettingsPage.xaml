@@ -5,66 +5,118 @@
              xmlns:converters="clr-namespace:WeatherApp.UI.Converters"
              x:Class="WeatherApp.UI.Views.SettingsPage"
              Title="Настройки">
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="5">
-            <Label Text="Единицы измерения"
-                   TextTransform="Uppercase"
-                   Margin="0,0,0,5"/>
-            <Border Padding="10,0">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="Температура" 
-                           Grid.Column="0"
-                           FontAttributes="Bold"
-                           VerticalOptions="Center"/>
-                    <Picker Grid.Column="1"
-                            ItemsSource="{Binding TemperatureUnits}"
-                            SelectedItem="{Binding SelectedTemperatureUnit}">
-                        <Picker.ItemDisplayBinding>
-                            <Binding Path=".">
-                                <Binding.Converter>
-                                    <converters:EnumDisplayConverter />
-                                </Binding.Converter>
-                            </Binding>
-                        </Picker.ItemDisplayBinding>
-                    </Picker>
-                </Grid>
-            </Border>
-            <Border Padding="10,0">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="Единицы измерения атмосферного давления"
-                           FontAttributes="Bold" 
-                           VerticalOptions="Center"/>
-                    <Picker Grid.Column="1"
-                            ItemsSource="{Binding PressureUnits}"
-                            SelectedItem="{Binding SelectedPressureUnit}">
-                        <Picker.ItemDisplayBinding>
-                            <Binding Path=".">
-                                <Binding.Converter>
-                                    <converters:EnumDisplayConverter />
-                                </Binding.Converter>
-                            </Binding>
-                        </Picker.ItemDisplayBinding>
-                    </Picker>
-                </Grid>
-            </Border>
-            <Border Padding="10,0">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="Скорость ветра" 
-                               FontAttributes="Bold" 
-                               VerticalOptions="Center"/>
-                    <Picker Grid.Column="1"
-                                ItemsSource="{Binding SpeedUnits}"
-                                SelectedItem="{Binding SelectedSpeedUnit}">
-                        <Picker.ItemDisplayBinding>
-                            <Binding Path=".">
-                                <Binding.Converter>
-                                    <converters:EnumDisplayConverter />
-                                </Binding.Converter>
-                            </Binding>
-                        </Picker.ItemDisplayBinding>
-                    </Picker>
-                </Grid>
-            </Border>
-        </VerticalStackLayout>
-    </ScrollView>
+
+    <Grid Style="{StaticResource MainPageBackground}"
+          Padding="20">
+        <ScrollView>
+            <VerticalStackLayout Spacing="20">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Единицы измерения"
+                           Style="{StaticResource SettingsSectionTitle}" />
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Температура" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding TemperatureUnits}"
+                                    Style="{StaticResource SettingsPicker}"
+                                    SelectedItem="{Binding SelectedTemperatureUnit}">
+                                <Picker.ItemDisplayBinding>
+                                    <Binding Path=".">
+                                        <Binding.Converter>
+                                            <converters:EnumDisplayConverter />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </Picker.ItemDisplayBinding>
+                            </Picker>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Атмосферное давление" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding PressureUnits}"
+                                    Style="{StaticResource SettingsPicker}"
+                                    SelectedItem="{Binding SelectedPressureUnit}">
+                                <Picker.ItemDisplayBinding>
+                                    <Binding Path=".">
+                                        <Binding.Converter>
+                                            <converters:EnumDisplayConverter />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </Picker.ItemDisplayBinding>
+                            </Picker>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Скорость ветра" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding SpeedUnits}"
+                                    Style="{StaticResource SettingsPicker}"
+                                    SelectedItem="{Binding SelectedSpeedUnit}">
+                                <Picker.ItemDisplayBinding>
+                                    <Binding Path=".">
+                                        <Binding.Converter>
+                                            <converters:EnumDisplayConverter />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </Picker.ItemDisplayBinding>
+                            </Picker>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="API-ключ"
+                           Style="{StaticResource SettingsSectionTitle}" />
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Получить ключ" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Button ImageSource="appic_arrow_right_dark.png"
+                                    BackgroundColor="Transparent"
+                                    Grid.Column="1"
+                                    HorizontalOptions="Start"/>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Изменить ключ" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Button ImageSource="appic_arrow_right_dark.png"
+                                    BackgroundColor="Transparent"
+                                    Grid.Column="1"
+                                    HorizontalOptions="Start"/>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="О приложении"
+                           Style="{StaticResource SettingsSectionTitle}" />
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Обратная связь" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Button ImageSource="appic_arrow_right_dark.png"
+                                    BackgroundColor="Transparent"
+                                    Grid.Column="1"
+                                    HorizontalOptions="Start"/>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource SettingsItemBorder}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Политика конфиденциальности" 
+                                   Style="{StaticResource SettingsItemLabel}" />
+                            <Button ImageSource="appic_arrow_right_dark.png"
+                                    BackgroundColor="Transparent"
+                                    Grid.Column="1"
+                                    HorizontalOptions="Start"/>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>
