@@ -115,16 +115,16 @@
                     </Border>
 
                     <Label Text="Почасовой прогноз" 
-       TextColor="#70FFFFFF"
-       TextTransform="Uppercase"
-       Margin="0,20,0,15"/>
+                           TextColor="#70FFFFFF"
+                           TextTransform="Uppercase"
+                           Margin="0,20,0,15"/>
 
                     <Border StrokeShape="RoundRectangle 25"
-        Stroke="Transparent"
-        BackgroundColor="#60FFFFFF"
-        Padding="10,15">
+                            Stroke="Transparent"
+                            BackgroundColor="#60FFFFFF"
+                            Padding="-15,10">
                         <local:HourlyChartView x:Name="HourlyChartView"
-                           HeightRequest="350" />
+                            />
                     </Border>
 
                     <!-- Детальная информация -->

@@ -11,13 +11,16 @@ public partial class HourlyChartView : ContentView
     private float _minTemp;
     private float _maxTemp;
     private ChartDrawable? _chartDrawable;
-    private const float ChartPadding = 20f; // Константа для отступа
-    private const float PointSpacing = 100f; // Расстояние между точками
+
+    // Настройки
+    private const float ChartPadding = 0f;
+    private const float PointSpacing = 100f;
+    private const float DataBlockWidth = PointSpacing;
+    private const float RightPadding = PointSpacing / 2;
 
     public HourlyChartView()
     {
         InitializeComponent();
-
         Loaded += OnLoaded;
     }
 
@@ -61,25 +64,21 @@ public partial class HourlyChartView : ContentView
         _minTemp -= padding;
         _maxTemp += padding;
 
-        // Вычисляем общую ширину
-        var totalWidth = ChartPadding * 2 + (_dataPoints.Count - 1) * PointSpacing + 20;
+        // Вычисляем общую ширину с учетом правого отступа
+        // Для последней точки нужен отступ, чтобы она не обрезалась
+        var totalWidth = ChartPadding + (_dataPoints.Count - 1) * PointSpacing + PointSpacing; // + PointSpacing для последней точки
 
-        // Обновляем ширину контейнеров
+        // Обновляем ширину графика
         if (ChartGraphicsView != null)
         {
             ChartGraphicsView.WidthRequest = totalWidth;
-        }
-
-        if (DataStack != null)
-        {
-            DataStack.WidthRequest = totalWidth - ChartPadding * 2;
         }
 
         // Обновляем график
         if (_chartDrawable == null)
             _chartDrawable = new ChartDrawable();
 
-        _chartDrawable.SetData(_dataPoints, _minTemp, _maxTemp);
+        _chartDrawable.SetData(_dataPoints, _minTemp, _maxTemp, ChartPadding, PointSpacing);
 
         if (ChartGraphicsView != null)
         {
@@ -98,17 +97,28 @@ public partial class HourlyChartView : ContentView
 
         DataStack.Children.Clear();
 
-        // Устанавливаем отступы для каждого элемента, чтобы он был точно под точкой
+        // Добавляем отступ слева
+        if (_dataPoints.Any())
+        {
+            var spacer = new BoxView
+            {
+                WidthRequest = ChartPadding,
+                HeightRequest = 1,
+                Color = Colors.Transparent
+            };
+            DataStack.Children.Add(spacer);
+        }
+
+        // Создаем блоки данных
         for (int i = 0; i < _dataPoints.Count; i++)
         {
             var hour = _dataPoints[i];
-            
-            // Создаем контейнер для каждого часа
+
             var container = new StackLayout
             {
                 Spacing = 4,
                 HorizontalOptions = LayoutOptions.Center,
-                WidthRequest = 85,
+                WidthRequest = DataBlockWidth,
                 Padding = new Thickness(0, 5)
             };
 
@@ -132,7 +142,6 @@ public partial class HourlyChartView : ContentView
                 HorizontalOptions = LayoutOptions.Center
             };
 
-            // Используем ваш конвертер для иконок
             try
             {
                 var multiBinding = new MultiBinding
@@ -140,29 +149,24 @@ public partial class HourlyChartView : ContentView
                     Converter = Application.Current.Resources["WeatherIconMulti"] as IMultiValueConverter
                 };
 
-                var conditionBinding = new Binding
+                multiBinding.Bindings.Add(new Binding
                 {
                     Source = hour,
                     Path = "ConditionCode"
-                };
-
-                var isDayBinding = new Binding
+                });
+                multiBinding.Bindings.Add(new Binding
                 {
                     Source = hour,
                     Path = "IsDay"
-                };
-
-                multiBinding.Bindings.Add(conditionBinding);
-                multiBinding.Bindings.Add(isDayBinding);
+                });
 
                 icon.SetBinding(Image.SourceProperty, multiBinding);
             }
             catch
             {
-                // Если конвертер не работает, используем заглушку
                 icon.Source = "appic_sun.png";
             }
-            
+
             container.Children.Add(icon);
 
             // Температура
@@ -189,21 +193,19 @@ public partial class HourlyChartView : ContentView
             };
             container.Children.Add(windLabel);
 
-            // Добавляем элемент с отступом, чтобы центрировать под точкой
-            // Ширина элемента 85px, расстояние между точками 100px
-            // Центрируем: (100 - 85) / 2 = 7.5px
-            var wrapper = new Grid
+            DataStack.Children.Add(container);
+        }
+
+        // Добавляем отступ справа (такой же как слева)
+        if (_dataPoints.Any())
+        {
+            var spacerRight = new BoxView
             {
-                WidthRequest = PointSpacing,
-                HorizontalOptions = LayoutOptions.Center
+                WidthRequest = ChartPadding,
+                HeightRequest = 1,
+                Color = Colors.Transparent
             };
-            
-            wrapper.Children.Add(container);
-            
-            // Центрируем контейнер внутри Grid
-            container.HorizontalOptions = LayoutOptions.Center;
-            
-            DataStack.Children.Add(wrapper);
+            DataStack.Children.Add(spacerRight);
         }
     }
 

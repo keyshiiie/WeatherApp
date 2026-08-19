@@ -7,8 +7,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
-        <!-- Один ScrollView для синхронизации всего -->
         <ScrollView x:Name="MainScrollView"
                     Grid.RowSpan="2"
                     Orientation="Horizontal"
@@ -18,20 +16,16 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-
-                <!-- График -->
                 <GraphicsView x:Name="ChartGraphicsView"
                               Grid.Row="0"
-                              HeightRequest="180"/>
-
-                <!-- Список почасовых данных с погодой -->
-                <Border Grid.Row="1"
-                        Stroke="Transparent"
-                        BackgroundColor="Transparent"
-                        Padding="-90,8,0,8">
-                    <HorizontalStackLayout x:Name="DataStack"
-                                          Spacing="0" />
-                </Border>
+                              HeightRequest="180"
+                              HorizontalOptions="Start"
+                              Margin="0"/>
+                <HorizontalStackLayout x:Name="DataStack"
+                                      Grid.Row="1"
+                                      Spacing="0"
+                                      HorizontalOptions="Start"
+                                      Margin="0"/>
             </Grid>
         </ScrollView>
     </Grid>
