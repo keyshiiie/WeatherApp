@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
+using WeatherApp.UI.DisplayModels;
 using WeatherApp.UI.ViewModels;
 using WeatherApp.UI.Views;
 
@@ -11,20 +13,23 @@ namespace WeatherApp.Core.ViewModels;
 public partial class FavoritesPageViewModel : BaseViewModel
 {
     private readonly ICityService _cityService;
+    private readonly IWeatherService _weatherService;
+    private readonly ISettingsService _settingsService;
 
-    private ObservableCollection<City> _favoriteCities = new();
-    public ObservableCollection<City> FavoriteCities
-    {
-        get => _favoriteCities;
-        set => SetProperty(ref _favoriteCities, value);
-    }
+    [ObservableProperty]
+    private ObservableCollection<FavoriteCityDisplay> _favoriteCities = new();
 
     public FavoritesPageViewModel(
         ICityService cityService,
-        ILogger<FavoritesPageViewModel> logger) // Добавляем логгер
-        : base(logger) // Передаем в базовый класс
+        IWeatherService weatherService,
+        ISettingsService settingsService,
+        ILogger<FavoritesPageViewModel> logger)
+        : base(logger)
     {
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
+        _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+
         Title = "Избранное";
 
         Logger.LogInformation("FavoritesPageViewModel initialized");
@@ -47,23 +52,82 @@ public partial class FavoritesPageViewModel : BaseViewModel
 
             Logger.LogInformation($"Loaded {freshList.Count} favorite cities");
 
+            var settings = _settingsService.GetSettings();
+
+            // Создаем Display модели
             FavoriteCities.Clear();
             foreach (var city in freshList)
             {
-                FavoriteCities.Add(city);
+                var display = new FavoriteCityDisplay(city, settings);
+                FavoriteCities.Add(display);
             }
+
+            // Загружаем погоду для каждого города
+            await LoadWeatherForAllCitiesAsync();
         }, "Не удалось загрузить избранное");
     }
 
-    [RelayCommand]
-    public async Task GoToWeatherAsync(City city)
+    private async Task LoadWeatherForAllCitiesAsync()
     {
-        if (city == null)
+        var tasks = FavoriteCities.Select(city => LoadWeatherForCityAsync(city));
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task LoadWeatherForCityAsync(FavoriteCityDisplay display)
+    {
+        if (display?.City == null)
+            return;
+
+        try
+        {
+            // Устанавливаем состояние загрузки
+            display.IsLoading = true;
+            display.HasError = false;
+
+            Logger.LogInformation($"Loading weather for {display.City.Name}");
+
+            var weather = await _weatherService.GetCurrentWeatherAsync(
+                display.City.Latitude,
+                display.City.Longitude);
+
+            if (weather != null)
+            {
+                // Обогащаем данные о городе
+                weather.CityName = display.City.Name;
+                weather.Country = display.City.Country;
+                weather.Region = display.City.Region;
+
+                display.Weather = weather;
+                Logger.LogInformation($"Weather loaded for {display.City.Name}: {weather.TemperatureC}°C");
+            }
+            else
+            {
+                display.HasError = true;
+                Logger.LogWarning($"Failed to load weather for {display.City.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            display.HasError = true;
+            Logger.LogError(ex, $"Error loading weather for {display.City.Name}");
+        }
+        finally
+        {
+            // Сбрасываем состояние загрузки
+            display.IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task GoToWeatherAsync(FavoriteCityDisplay display)
+    {
+        if (display?.City == null)
         {
             Logger.LogWarning("GoToWeatherAsync called with null city");
             return;
         }
 
+        var city = display.City;
         Logger.LogInformation($"Navigating to weather for favorite city: {city.Name}");
 
         try
@@ -83,21 +147,22 @@ public partial class FavoritesPageViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    public async Task RemoveFavoriteAsync(City city)
+    public async Task RemoveFavoriteAsync(FavoriteCityDisplay display)
     {
-        if (city == null || string.IsNullOrWhiteSpace(city.Name))
+        if (display?.City == null || string.IsNullOrWhiteSpace(display.City.Name))
         {
             Logger.LogWarning("RemoveFavoriteAsync called with null city or empty name");
             return;
         }
 
+        var city = display.City;
         Logger.LogInformation($"Removing {city.Name} from favorites");
 
         await ExecuteAsync(async () =>
         {
             await _cityService.RemoveFavoriteByNameAsync(city.Name!);
 
-            var cityToRemove = FavoriteCities.FirstOrDefault(c => c.Name == city.Name);
+            var cityToRemove = FavoriteCities.FirstOrDefault(c => c.City.Name == city.Name);
             if (cityToRemove != null)
             {
                 FavoriteCities.Remove(cityToRemove);
@@ -108,5 +173,12 @@ public partial class FavoritesPageViewModel : BaseViewModel
                 Logger.LogWarning($"City {city.Name} not found in favorites list");
             }
         }, "Не удалось удалить город");
+    }
+
+    [RelayCommand]
+    private async Task RefreshWeatherAsync()
+    {
+        Logger.LogInformation("Refreshing weather for favorites");
+        await LoadWeatherForAllCitiesAsync();
     }
 }

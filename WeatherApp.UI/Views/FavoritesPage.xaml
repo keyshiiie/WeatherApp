@@ -2,8 +2,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:WeatherApp.Core.ViewModels"
+             xmlns:converters="clr-namespace:WeatherApp.UI.Converters"
              x:Class="WeatherApp.UI.Views.FavoritesPage"
              Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <converters:WeatherIconMultiConverter x:Key="WeatherIconMulti" />
+    </ContentPage.Resources>
 
     <Grid Style="{StaticResource MainPageBackground}">
         <Grid Padding="20">
@@ -17,38 +22,77 @@
                    IsVisible="{Binding HasError}" 
                    Style="{StaticResource WeatherErrorLabel}" />
 
-            <CollectionView Grid.Row="1" 
-                            ItemsSource="{Binding FavoriteCities}"
-                            SelectionMode="None">
-                <CollectionView.EmptyView>
-                    <Label Text="У вас пока нет избранных городов" 
-                           Style="{StaticResource FavoritesEmptyViewLabel}" />
-                </CollectionView.EmptyView>
+            <ScrollView Grid.Row="1">
+                <StackLayout Spacing="10">
+                    <CollectionView ItemsSource="{Binding FavoriteCities}"
+                                    SelectionMode="None">
+                        <CollectionView.EmptyView>
+                            <Label Text="У вас пока нет избранных городов" 
+                                   Style="{StaticResource FavoritesEmptyViewLabel}" />
+                        </CollectionView.EmptyView>
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource FavoritesItemBorder}">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
-                                                          CommandParameter="{Binding .}" />
-                                </Grid.GestureRecognizers>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <VerticalStackLayout Spacing="0">
+                                    <Border Style="{StaticResource FavoritesItemBorder}">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
 
-                                <VerticalStackLayout Grid.Column="0" 
-                                                     VerticalOptions="Center">
-                                    <Label Text="{Binding DisplayName}"
-                                           Style="{StaticResource FavoritesCityName}" />
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Image Grid.Column="0"
+                                                   WidthRequest="40"
+                                                   HeightRequest="40"
+                                                   VerticalOptions="Center"
+                                                   Margin="0,0,15,0">
+                                                <Image.Source>
+                                                    <MultiBinding Converter="{StaticResource WeatherIconMulti}">
+                                                        <Binding Path="ConditionCode"/>
+                                                        <Binding Path="IsDay"/>
+                                                    </MultiBinding>
+                                                </Image.Source>
+                                            </Image>
+
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 VerticalOptions="Center"
+                                                                 Spacing="2">
+                                                <Label Text="{Binding DisplayName}"
+                                                       Style="{StaticResource FavoritesCityName}" />
+
+                                                <HorizontalStackLayout Spacing="8">
+                                                    <Label Text="{Binding TemperatureDisplay}"
+                                                           Style="{StaticResource FavoritesTemperatureLabel}" />
+
+                                                    <Label Text="{Binding ConditionText}"
+                                                           Style="{StaticResource FavoritesConditionLabel}" />
+
+                                                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                                                       IsVisible="{Binding IsLoading}"
+                                                                       Style="{StaticResource FavoritesActivityIndicator}" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+
+                                            <Button Grid.Column="2" 
+                                                    Style="{StaticResource FavoritesRemoveButton}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </Border>
+                                    <BoxView HeightRequest="5" 
+                                             Color="Transparent" />
                                 </VerticalStackLayout>
-
-                                <Button Grid.Column="1" 
-                                        Style="{StaticResource FavoritesRemoveButton}"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
-                                        CommandParameter="{Binding .}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </ScrollView>
         </Grid>
 
         <Grid Style="{StaticResource WeatherLoadingOverlay}"

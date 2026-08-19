@@ -1,9 +1,10 @@
-﻿using WeatherApp.Core.Models;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using WeatherApp.Core.Models;
 
 namespace WeatherApp.UI.DisplayModels;
 
 /// Базовая модель для отображения погодных данных с форматированием
-public class WeatherDisplay
+public class WeatherDisplay : ObservableObject
 {
     protected readonly UserSettings _settings;
 
