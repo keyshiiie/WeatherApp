@@ -7,6 +7,7 @@ namespace WeatherApp.UI.Views;
 public partial class CurrentWeatherPage : ContentPage
 {
     private string _cityJson = string.Empty;
+
     public string CityJson
     {
         get => _cityJson;
@@ -35,6 +36,12 @@ public partial class CurrentWeatherPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel;
+
+        // Подписываемся на обновление данных для графика
+        if (viewModel != null)
+        {
+            viewModel.HourlyDataUpdated += OnHourlyDataUpdated;
+        }
     }
 
     protected override async void OnAppearing()
@@ -43,6 +50,29 @@ public partial class CurrentWeatherPage : ContentPage
         if (BindingContext is CurrentWeatherViewModel vm)
         {
             await vm.OnAppearingAsync();
+        }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        if (BindingContext is CurrentWeatherViewModel vm)
+        {
+            vm.HourlyDataUpdated -= OnHourlyDataUpdated;
+        }
+    }
+
+    private void OnHourlyDataUpdated(object? sender, List<HourlyForecastDisplay> data)
+    {
+        // Проверяем, что элемент управления существует и данные есть
+        if (HourlyChartView != null && data != null && data.Any())
+        {
+            // Вызываем через Dispatcher для безопасности
+            Dispatcher.Dispatch(() =>
+            {
+                HourlyChartView.SetData(data);
+            });
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using WeatherApp.Core.Models;
 
 namespace WeatherApp.UI.ViewModels
@@ -32,6 +30,17 @@ namespace WeatherApp.UI.ViewModels
         public bool HasPrecipitation => _hour.PrecipitationMm > 0 || _hour.ChanceOfRain > 0;
         public string PrecipitationDisplay => _hour.PrecipitationMm > 0 ? $"{_hour.PrecipitationMm:F1} мм" : "—";
         public string ChanceOfRainDisplay => _hour.ChanceOfRain > 0 ? $"{_hour.ChanceOfRain}%" : "—";
+
+        // Свойство для графика
+        public float TemperatureValue
+        {
+            get
+            {
+                return _settings.TemperatureUnit == TemperatureUnit.Celsius
+                    ? (float)_hour.TemperatureC
+                    : (float)_hour.TemperatureF;
+            }
+        }
 
         // Приватные методы форматирования
         private string FormatTemperature(double celsius, double fahrenheit)

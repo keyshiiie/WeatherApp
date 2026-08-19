@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="WeatherApp.UI.Views.HourlyChartView">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Один ScrollView для синхронизации всего -->
+        <ScrollView x:Name="MainScrollView"
+                    Grid.RowSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalScrollBarVisibility="Never">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- График -->
+                <GraphicsView x:Name="ChartGraphicsView"
+                              Grid.Row="0"
+                              HeightRequest="180"/>
+
+                <!-- Список почасовых данных с погодой -->
+                <Border Grid.Row="1"
+                        Stroke="Transparent"
+                        BackgroundColor="Transparent"
+                        Padding="-90,8,0,8">
+                    <HorizontalStackLayout x:Name="DataStack"
+                                          Spacing="0" />
+                </Border>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentView>

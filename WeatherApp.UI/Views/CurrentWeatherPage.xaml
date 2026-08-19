@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:WeatherApp.UI.Views"
              x:Class="WeatherApp.UI.Views.CurrentWeatherPage"
              Title="{Binding Title}"
              BackgroundColor="{Binding CurrentWeather.IsDay, 
@@ -65,7 +66,6 @@
                                 HorizontalOptions="Start"/>
                     </Grid>
 
-                    <!-- ✅ ИСПОЛЬЗУЕМ ForecastDaysDisplay -->
                     <Border StrokeShape="RoundRectangle 25"
                             Stroke="Transparent"
                             BackgroundColor="#60FFFFFF"
@@ -114,75 +114,30 @@
                         </CollectionView>
                     </Border>
 
-                    <!-- Почасовой прогноз -->
                     <Label Text="Почасовой прогноз" 
-                           TextColor="#70FFFFFF"
-                           TextTransform="Uppercase"
-                           Margin="0,20,0,15"/>
+       TextColor="#70FFFFFF"
+       TextTransform="Uppercase"
+       Margin="0,20,0,15"/>
 
-                    <!-- ✅ ИСПОЛЬЗУЕМ HourlyForecastDisplay -->
                     <Border StrokeShape="RoundRectangle 25"
-                            Stroke="Transparent"
-                            BackgroundColor="#60FFFFFF"
-                            Padding="0,15">
-                        <ScrollView Orientation="Horizontal" 
-                                    HorizontalScrollBarVisibility="Never">
-                            <VerticalStackLayout>
-                                <CollectionView ItemsSource="{Binding HourlyForecastDisplay}"
-                                                HorizontalOptions="Start"
-                                                VerticalOptions="Center">
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout Orientation="Horizontal"
-                                                            ItemSpacing="15"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackLayout Spacing="4"
-                                                         HorizontalOptions="Center"
-                                                         WidthRequest="65">
-                                                <Label Text="{Binding TimeDisplay}"
-                                                       TextColor="#FFFFFF"
-                                                       FontFamily="InterMedium"
-                                                       FontSize="12"
-                                                       HorizontalOptions="Center"/>
-                                                <Image WidthRequest="30"
-                                                       HeightRequest="30"
-                                                       HorizontalOptions="Center">
-                                                    <Image.Source>
-                                                        <MultiBinding Converter="{StaticResource WeatherIconMulti}">
-                                                            <Binding Path="ConditionCode"/>
-                                                            <Binding Path="IsDay"/>
-                                                        </MultiBinding>
-                                                    </Image.Source>
-                                                </Image>
-                                                <Label Text="{Binding TemperatureDisplay}"
-                                                       TextColor="#FFFFFF"
-                                                       FontFamily="InterSemiBold"
-                                                       FontSize="16"
-                                                       HorizontalOptions="Center"/>
-                                                <Label Text="{Binding WindSpeedDisplay}"
-                                                       TextColor="#70FFFFFF"
-                                                       FontFamily="InterMedium"
-                                                       FontSize="10"
-                                                       HorizontalOptions="Center"/>
-                                            </StackLayout>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </ScrollView>
+        Stroke="Transparent"
+        BackgroundColor="#60FFFFFF"
+        Padding="10,15">
+                        <local:HourlyChartView x:Name="HourlyChartView"
+                           HeightRequest="350" />
                     </Border>
 
+                    <!-- Детальная информация -->
                     <Grid RowDefinitions="*, *" 
-                  ColumnDefinitions="*, *" 
-                  Padding="0" 
-                  RowSpacing="8" 
-                  ColumnSpacing="8" 
-                  Margin="0,8,0,8">
+                          ColumnDefinitions="*, *" 
+                          Padding="0" 
+                          RowSpacing="8" 
+                          ColumnSpacing="8" 
+                          Margin="0,8,0,8">
                         <Border StrokeShape="RoundRectangle 25"
-                        Stroke="Transparent"
-                        BackgroundColor="#60FFFFFF"
-                        Padding="15,10">
+                                Stroke="Transparent"
+                                BackgroundColor="#60FFFFFF"
+                                Padding="15,10">
                             <VerticalStackLayout Spacing="4"
                                          VerticalOptions="Center">
                                 <Label Text="{Binding CurrentWeather.WindDirection, TargetNullValue='-'}"
@@ -194,11 +149,11 @@
                         </Border>
 
                         <Border Grid.Column="0" 
-                        Grid.Row="1"
-                        StrokeShape="RoundRectangle 25"
-                        Stroke="Transparent"
-                        BackgroundColor="#60FFFFFF"
-                        Padding="15,10">
+                                Grid.Row="1"
+                                StrokeShape="RoundRectangle 25"
+                                Stroke="Transparent"
+                                BackgroundColor="#60FFFFFF"
+                                Padding="15,10">
                             <VerticalStackLayout Spacing="4" 
                                          VerticalOptions="Center">
                                 <HorizontalStackLayout Spacing="10">
@@ -219,11 +174,11 @@
                         </Border>
 
                         <Border Grid.Column="1" 
-                        Grid.RowSpan="2"
-                        StrokeShape="RoundRectangle 25"
-                        Stroke="Transparent"
-                        BackgroundColor="#60FFFFFF"
-                        Padding="15,10">
+                                Grid.RowSpan="2"
+                                StrokeShape="RoundRectangle 25"
+                                Stroke="Transparent"
+                                BackgroundColor="#60FFFFFF"
+                                Padding="15,10">
                             <VerticalStackLayout Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label Text="Влажность"

@@ -8,6 +8,7 @@ namespace WeatherApp.UI.ViewModels;
 
 public partial class CurrentWeatherViewModel : BaseViewModel
 {
+    public event EventHandler<List<HourlyForecastDisplay>>? HourlyDataUpdated;
     private readonly IWeatherService _weatherService;
     private readonly ICityService _cityService;
     private readonly ISettingsService _settingsService;
@@ -359,6 +360,9 @@ public partial class CurrentWeatherViewModel : BaseViewModel
             HourlyForecastDisplay = HourlyForecast
                 .Select(hour => new HourlyForecastDisplay(hour, Settings))
                 .ToList();
+
+            // ✅ ВЫЗЫВАЕМ СОБЫТИЕ ДЛЯ ОБНОВЛЕНИЯ ГРАФИКА
+            HourlyDataUpdated?.Invoke(this, HourlyForecastDisplay);
         }
         else
         {
