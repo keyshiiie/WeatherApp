@@ -23,7 +23,6 @@
                           ColumnDefinitions="Auto, *, Auto"
                           HeightRequest="40">
                         <Image Grid.Column="0"
-                               Source="ic_search.png"
                                Style="{StaticResource MainSearchIcon}"
                                Margin="16,0,0,0" />
 
@@ -41,7 +40,8 @@
 
                     <BoxView Grid.Row="1"
                              Style="{StaticResource MainSearchSeparator}"
-                             IsVisible="{Binding ShowSearchSuggestions}" />
+                             IsVisible="{Binding ShowSearchSuggestions}" 
+                             />
 
                     <CollectionView Grid.Row="1"
                                     x:Name="SearchResultsList"

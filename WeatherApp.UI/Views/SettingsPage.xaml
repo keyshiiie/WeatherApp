@@ -55,9 +55,9 @@
                                 <Label Text="Скорость ветра" 
                                    Style="{StaticResource SettingsItemLabel}" />
                                 <Picker Grid.Column="1"
-                                    ItemsSource="{Binding SpeedUnits}"
-                                    Style="{StaticResource SettingsPicker}"
-                                    SelectedItem="{Binding SelectedSpeedUnit}">
+                                        ItemsSource="{Binding SpeedUnits}"
+                                        Style="{StaticResource SettingsPicker}"
+                                        SelectedItem="{Binding SelectedSpeedUnit}">
                                     <Picker.ItemDisplayBinding>
                                         <Binding Path=".">
                                             <Binding.Converter>
@@ -78,20 +78,16 @@
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Получить ключ" 
                                        Style="{StaticResource SettingsItemLabel}" />
-                                <Button ImageSource="appic_arrow_right_dark.png"
-                                        BackgroundColor="Transparent"
-                                        Grid.Column="1"
-                                        HorizontalOptions="Start"/>
+                                <Button Style="{StaticResource SettingsArrowButton}"
+                                        Grid.Column="1"/>
                             </Grid>
                         </Border>
                         <Border Style="{StaticResource SettingsItemBorder}">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Изменить ключ" 
                                        Style="{StaticResource SettingsItemLabel}" />
-                                <Button ImageSource="appic_arrow_right_dark.png"
-                                        BackgroundColor="Transparent"
-                                        Grid.Column="1"
-                                        HorizontalOptions="Start"/>
+                                <Button Style="{StaticResource SettingsArrowButton}"
+                                        Grid.Column="1"/>
                             </Grid>
                         </Border>
                     </VerticalStackLayout>
@@ -104,20 +100,16 @@
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Обратная связь" 
                                    Style="{StaticResource SettingsItemLabel}" />
-                                <Button ImageSource="appic_arrow_right_dark.png"
-                                    BackgroundColor="Transparent"
-                                    Grid.Column="1"
-                                    HorizontalOptions="Start"/>
+                                <Button Style="{StaticResource SettingsArrowButton}"
+                                        Grid.Column="1"/>
                             </Grid>
                         </Border>
                         <Border Style="{StaticResource SettingsItemBorder}">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Политика конфиденциальности" 
-                                   Style="{StaticResource SettingsItemLabel}" />
-                                <Button ImageSource="appic_arrow_right_dark.png"
-                                    BackgroundColor="Transparent"
-                                    Grid.Column="1"
-                                    HorizontalOptions="Start"/>
+                                       Style="{StaticResource SettingsItemLabel}" />
+                                <Button Style="{StaticResource SettingsArrowButton}"
+                                        Grid.Column="1"/>
                             </Grid>
                         </Border>
                     </VerticalStackLayout>

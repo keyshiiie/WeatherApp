@@ -319,9 +319,19 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
             if (toolbarItem != null)
             {
-                toolbarItem.IconImageSource = IsCurrentCityFavorite
-                    ? "appic_heart_filled.png"
-                    : "appic_heart_outline.png";
+                var isDark = Application.Current?.RequestedTheme == AppTheme.Dark;
+
+                string iconName;
+                if (IsCurrentCityFavorite)
+                {
+                    iconName = isDark ? "appic_heart_filled_light.png" : "appic_heart_filled_dark.png";
+                }
+                else
+                {
+                    iconName = isDark ? "appic_heart_outline_light.png" : "appic_heart_outline_dark.png";
+                }
+
+                toolbarItem.IconImageSource = iconName;
             }
         }
         catch (Exception ex)

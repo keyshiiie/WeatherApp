@@ -42,7 +42,6 @@
                                Style="{StaticResource WeatherConditionLabel}"/>
                     </StackLayout>
 
-                    <!-- Прогноз на 3 дня -->
                     <Grid ColumnDefinitions="*, Auto">
                         <Label Text="Прогноз на 3 дня" 
                                Style="{StaticResource WeatherSectionTitle}"
@@ -103,7 +102,6 @@
                         <local:HourlyChartView x:Name="HourlyChartView" />
                     </Border>
 
-                    <!-- Детальная информация -->
                     <Grid RowDefinitions="*, *" 
                           ColumnDefinitions="*, *" 
                           Padding="0" 

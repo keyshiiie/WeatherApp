@@ -3,22 +3,36 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <Color x:Key="WeatherDayBackground">#4D70F1</Color>
-    <Color x:Key="WeatherNightBackground">#010C38</Color>
-
+    <!-- Основные цвета приложения -->
     <Color x:Key="TextPrimary">#222021</Color>
     <Color x:Key="TextSecondary">#4A4A48</Color>
     <Color x:Key="TextTertiary">#979797</Color>
     <Color x:Key="TextPlaceholder">#D7D7D7</Color>
-
     <Color x:Key="BackgroundPrimary">#EAEAEA</Color>
     <Color x:Key="BackgroundWhite">#FFFFFF</Color>
+    <Color x:Key="BackgroundDark">#4A4A48</Color>
+    <Color x:Key="BackgroundDarkWhite">#6C6C6A</Color>
 
+    <!-- Цвета для тёмной темы -->
+    <Color x:Key="DarkTextPrimary">#EAEAEA</Color>
+    <Color x:Key="DarkTextSecondary">#6C6C6A</Color>
+    <Color x:Key="DarkTextTertiary">#BDBDBD</Color>
+    <Color x:Key="DarkTextPlaceholder">#6C6C6A</Color>
+    <Color x:Key="DarkBackgroundPrimary">#4A4A48</Color>
+    <Color x:Key="DarkBackgroundWhite">#6C6C6A</Color>
+
+    <!-- Цвета для погодных карточек -->
+    <Color x:Key="WeatherCardBackground">#70FFFFFF</Color>
     <Color x:Key="WeatherText">#FFFFFF</Color>
     <Color x:Key="WeatherTextSecondary">#70FFFFFF</Color>
-    <Color x:Key="WeatherCardBackground">#70FFFFFF</Color>
     <Color x:Key="WeatherOverlay">#40000000</Color>
+    <Color x:Key="WeatherDayBackground">#4D70F1</Color>
+    <Color x:Key="WeatherNightBackground">#010C38</Color>
     <Color x:Key="WeatherGraphLine">#15FFFFFF</Color>
     <Color x:Key="WeatherGraphPoint">#30FFFFFF</Color>
+
+    <!-- Специальные цвета -->
+    <Color x:Key="ErrorColor">#FF0000</Color>
+    <Color x:Key="TransparentColor">Transparent</Color>
 
 </ResourceDictionary>

@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:WeatherApp.UI.ViewModels"
              x:Class="WeatherApp.UI.Views.LoginPage"
-             x:DataType="vm:LoginPageViewModel">
+             x:DataType="vm:LoginPageViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.TitleView="{x:Null}">
 
     <Grid Style="{StaticResource LoginPageContainer}">
         <VerticalStackLayout Padding="20"
