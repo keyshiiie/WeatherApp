@@ -6,9 +6,8 @@
              x:Class="WeatherApp.UI.Views.SettingsPage"
              Title="Настройки">
 
-    <Grid Style="{StaticResource MainPageBackground}"
-          Padding="20">
-        <ScrollView>
+    <Grid Style="{StaticResource MainPageBackground}">
+        <ScrollView Style="{StaticResource ScrollContainer}">
             <VerticalStackLayout Spacing="20">
                 <StackLayout Spacing="10">
                     <Label Text="Единицы измерения"

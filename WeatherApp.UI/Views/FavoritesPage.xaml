@@ -11,89 +11,91 @@
     </ContentPage.Resources>
 
     <Grid Style="{StaticResource MainPageBackground}">
-        <Grid Padding="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <ScrollView Style="{StaticResource ScrollContainer}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Label Grid.Row="0" 
-                   Text="{Binding ErrorMessage}" 
-                   IsVisible="{Binding HasError}" 
-                   Style="{StaticResource WeatherErrorLabel}" />
+                <Label Grid.Row="0" 
+                       Text="{Binding ErrorMessage}" 
+                       IsVisible="{Binding HasError}" 
+                       Style="{StaticResource WeatherErrorLabel}" />
 
-            <ScrollView Grid.Row="1">
-                <StackLayout Spacing="10">
-                    <CollectionView ItemsSource="{Binding FavoriteCities}"
-                                    SelectionMode="None">
-                        <CollectionView.EmptyView>
-                            <Label Text="У вас пока нет избранных городов" 
-                                   Style="{StaticResource FavoritesEmptyViewLabel}" />
-                        </CollectionView.EmptyView>
+                <ScrollView Grid.Row="1">
+                    <StackLayout Spacing="10">
+                        <CollectionView ItemsSource="{Binding FavoriteCities}"
+                                        SelectionMode="None">
+                            <CollectionView.EmptyView>
+                                <Label Text="У вас пока нет избранных городов" 
+                                       Style="{StaticResource FavoritesEmptyViewLabel}" />
+                            </CollectionView.EmptyView>
 
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <VerticalStackLayout Spacing="0">
-                                    <Border Style="{StaticResource FavoritesItemBorder}">
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
-                                                                  CommandParameter="{Binding .}" />
-                                        </Border.GestureRecognizers>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Spacing="0">
+                                        <Border Style="{StaticResource FavoritesItemBorder}">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=GoToWeatherCommand}" 
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
 
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <Image Grid.Column="0"
-                                                   WidthRequest="40"
-                                                   HeightRequest="40"
-                                                   VerticalOptions="Center"
-                                                   Margin="0,0,15,0">
-                                                <Image.Source>
-                                                    <MultiBinding Converter="{StaticResource WeatherIconMulti}">
-                                                        <Binding Path="ConditionCode"/>
-                                                        <Binding Path="IsDay"/>
-                                                    </MultiBinding>
-                                                </Image.Source>
-                                            </Image>
+                                                <Image Grid.Column="0"
+                                                       WidthRequest="40"
+                                                       HeightRequest="40"
+                                                       VerticalOptions="Center"
+                                                       Margin="0,0,15,0">
+                                                    <Image.Source>
+                                                        <MultiBinding Converter="{StaticResource WeatherIconMulti}">
+                                                            <Binding Path="ConditionCode"/>
+                                                            <Binding Path="IsDay"/>
+                                                        </MultiBinding>
+                                                    </Image.Source>
+                                                </Image>
 
-                                            <VerticalStackLayout Grid.Column="1"
-                                                                 VerticalOptions="Center"
-                                                                 Spacing="2">
-                                                <Label Text="{Binding DisplayName}"
-                                                       Style="{StaticResource FavoritesCityName}" />
+                                                <VerticalStackLayout Grid.Column="1"
+                                                                     VerticalOptions="Center"
+                                                                     Spacing="2">
+                                                    <Label Text="{Binding DisplayName}"
+                                                           Style="{StaticResource FavoritesCityName}" />
 
-                                                <HorizontalStackLayout Spacing="8">
-                                                    <Label Text="{Binding TemperatureDisplay}"
-                                                           Style="{StaticResource FavoritesTemperatureLabel}" />
+                                                    <HorizontalStackLayout Spacing="8">
+                                                        <Label Text="{Binding TemperatureDisplay}"
+                                                               Style="{StaticResource FavoritesTemperatureLabel}" />
 
-                                                    <Label Text="{Binding ConditionText}"
-                                                           Style="{StaticResource FavoritesConditionLabel}" />
+                                                        <Label Text="{Binding ConditionText}"
+                                                               Style="{StaticResource FavoritesConditionLabel}" />
 
-                                                    <ActivityIndicator IsRunning="{Binding IsLoading}"
-                                                                       IsVisible="{Binding IsLoading}"
-                                                                       Style="{StaticResource FavoritesActivityIndicator}" />
-                                                </HorizontalStackLayout>
-                                            </VerticalStackLayout>
+                                                        <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                                                           IsVisible="{Binding IsLoading}"
+                                                                           Style="{StaticResource FavoritesActivityIndicator}" />
+                                                    </HorizontalStackLayout>
+                                                </VerticalStackLayout>
 
-                                            <Button Grid.Column="2" 
-                                                    Style="{StaticResource FavoritesRemoveButton}"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
-                                                    CommandParameter="{Binding .}" />
-                                        </Grid>
-                                    </Border>
-                                    <BoxView HeightRequest="5" 
-                                             Color="Transparent" />
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </StackLayout>
-            </ScrollView>
-        </Grid>
+                                                <Button Grid.Column="2" 
+                                                        Style="{StaticResource FavoritesRemoveButton}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:FavoritesPageViewModel}}, Path=RemoveFavoriteCommand}" 
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </Border>
+                                        <BoxView HeightRequest="5" 
+                                                 Color="Transparent" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+                </ScrollView>
+            </Grid>
+        </ScrollView>
 
         <Grid Style="{StaticResource WeatherLoadingOverlay}"
               IsVisible="{Binding IsBusy}">

@@ -8,50 +8,51 @@
              Shell.TitleView="{x:Null}">
 
     <Grid Style="{StaticResource LoginPageContainer}">
-        <VerticalStackLayout Padding="20"
-                             VerticalOptions="Center">
+        <ScrollView Style="{StaticResource ScrollContainer}">
+            <VerticalStackLayout VerticalOptions="Center">
 
-            <Label Text="Добро пожаловать!" 
-                   Style="{StaticResource LoginTitle}" />
+                <Label Text="Добро пожаловать!" 
+                       Style="{StaticResource LoginTitle}" />
 
-            <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
-                   Style="{StaticResource LoginSubtitle}" />
+                <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
+                       Style="{StaticResource LoginSubtitle}" />
 
-            <VerticalStackLayout Spacing="16">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Ваш API ключ:"
-                           Style="{StaticResource LoginLabel}" />
+                <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Ваш API ключ:"
+                               Style="{StaticResource LoginLabel}" />
 
-                    <Border Style="{StaticResource LoginEntryBorder}">
-                        <Entry x:Name="ApiKeyEntry" 
-                               Text="{Binding ApiKey, Mode=TwoWay}" 
-                               Placeholder="Введите ключ..." 
-                               Style="{StaticResource LoginEntry}" />
-                    </Border>
-                </VerticalStackLayout>
+                        <Border Style="{StaticResource LoginEntryBorder}">
+                            <Entry x:Name="ApiKeyEntry" 
+                                   Text="{Binding ApiKey, Mode=TwoWay}" 
+                                   Placeholder="Введите ключ..." 
+                                   Style="{StaticResource LoginEntry}" />
+                        </Border>
+                    </VerticalStackLayout>
 
-                <VerticalStackLayout Spacing="8">
-                    <Button Command="{Binding LoginCommand}"
-                            Style="{StaticResource LoginButton}" />
+                    <VerticalStackLayout Spacing="8">
+                        <Button Command="{Binding LoginCommand}"
+                                Style="{StaticResource LoginButton}" />
 
-                    <HorizontalStackLayout Spacing="5"
-                                           HorizontalOptions="Center">
-                        <Label Text="Не знаете где взять? "
-                               Style="{StaticResource LoginLinkText}" />
+                        <HorizontalStackLayout Spacing="5"
+                                               HorizontalOptions="Center">
+                            <Label Text="Не знаете где взять? "
+                                   Style="{StaticResource LoginLinkText}" />
 
-                        <Label Style="{StaticResource LoginLinkUnderline}">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenLinkCommand}" />
-                            </Label.GestureRecognizers>
-                            <Label.FormattedText>
-                                <FormattedString>
-                                    <Span Text="Получить ключ на сайте" />
-                                </FormattedString>
-                            </Label.FormattedText>
-                        </Label>
-                    </HorizontalStackLayout>
+                            <Label Style="{StaticResource LoginLinkUnderline}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand}" />
+                                </Label.GestureRecognizers>
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Получить ключ на сайте" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>
-        </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>

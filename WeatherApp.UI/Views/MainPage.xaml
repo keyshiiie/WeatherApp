@@ -6,114 +6,115 @@
              Title="{Binding Title}">
 
     <Grid Style="{StaticResource MainPageBackground}">
-        <Grid Padding="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <ScrollView Style="{StaticResource ScrollContainer}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Border Style="{StaticResource MainSearchBorder}">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ClearFocusCommand}" />
-                </Border.GestureRecognizers>
+                <Border Style="{StaticResource MainSearchBorder}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ClearFocusCommand}" />
+                    </Border.GestureRecognizers>
 
-                <Grid RowDefinitions="Auto, Auto">
-                    <Grid Grid.Row="0" 
-                          ColumnDefinitions="Auto, *, Auto"
-                          HeightRequest="40">
-                        <Image Grid.Column="0"
-                               Style="{StaticResource MainSearchIcon}"
-                               Margin="16,0,0,0" />
+                    <Grid RowDefinitions="Auto, Auto">
+                        <Grid Grid.Row="0" 
+                              ColumnDefinitions="Auto, *, Auto"
+                              HeightRequest="40">
+                            <Image Grid.Column="0"
+                                   Style="{StaticResource MainSearchIcon}"
+                                   Margin="16,0,0,0" />
 
-                        <Entry Grid.Column="1"
-                               x:Name="SearchEntry"
-                               Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
-                               Placeholder="Введите название города..."
-                               Style="{StaticResource MainSearchEntry}" />
+                            <Entry Grid.Column="1"
+                                   x:Name="SearchEntry"
+                                   Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceEventName=TextChanged}"
+                                   Placeholder="Введите название города..."
+                                   Style="{StaticResource MainSearchEntry}" />
 
-                        <Button Grid.Column="2"
-                                Command="{Binding ClearSearchCommand}"
-                                IsVisible="{Binding SearchQuery, Converter={StaticResource StringToBool}}"
-                                Style="{StaticResource MainClearButton}" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding ClearSearchCommand}"
+                                    IsVisible="{Binding SearchQuery, Converter={StaticResource StringToBool}}"
+                                    Style="{StaticResource MainClearButton}" />
+                        </Grid>
+
+                        <BoxView Grid.Row="1"
+                                 Style="{StaticResource MainSearchSeparator}"
+                                 IsVisible="{Binding ShowSearchSuggestions}" 
+                                 />
+
+                        <CollectionView Grid.Row="1"
+                                        x:Name="SearchResultsList"
+                                        ItemsSource="{Binding SearchSuggestions}"
+                                        IsVisible="{Binding ShowSearchSuggestions}"
+                                        MaximumHeightRequest="250"
+                                        Margin="0"
+                                        SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Style="{StaticResource MainSuggestionItem}">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                Command="{Binding BindingContext.SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding}" />
+                                        </Grid.GestureRecognizers>
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding Name}" 
+                                                   Style="{StaticResource MainSuggestionTitle}" />
+                                            <Label Text="{Binding FullDisplayText}" 
+                                                   Style="{StaticResource MainSuggestionSubtitle}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </Grid>
+                </Border>
 
-                    <BoxView Grid.Row="1"
-                             Style="{StaticResource MainSearchSeparator}"
-                             IsVisible="{Binding ShowSearchSuggestions}" 
-                             />
+                <VerticalStackLayout Grid.Row="2" 
+                                     Spacing="20">
+                    <Button Style="{StaticResource MainLocationButton}"
+                            Command="{Binding GetLocationCommand}" />
 
-                    <CollectionView Grid.Row="1"
-                                    x:Name="SearchResultsList"
-                                    ItemsSource="{Binding SearchSuggestions}"
-                                    IsVisible="{Binding ShowSearchSuggestions}"
-                                    MaximumHeightRequest="250"
-                                    Margin="0"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Style="{StaticResource MainSuggestionItem}">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer 
-                                            Command="{Binding BindingContext.SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                            CommandParameter="{Binding}" />
-                                    </Grid.GestureRecognizers>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Text="{Binding Name}" 
-                                               Style="{StaticResource MainSuggestionTitle}" />
-                                        <Label Text="{Binding FullDisplayText}" 
-                                               Style="{StaticResource MainSuggestionSubtitle}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </Grid>
-            </Border>
+                    <Label Text="Недавние"
+                           Style="{StaticResource MainRecentLabel}" />
 
-            <VerticalStackLayout Grid.Row="2" 
-                                 Spacing="20">
-                <Button Style="{StaticResource MainLocationButton}"
-                        Command="{Binding GetLocationCommand}" />
-
-                <Label Text="Недавние"
-                       Style="{StaticResource MainRecentLabel}" />
-
-                <StackLayout IsVisible="{Binding RecentCities.Count, Converter={StaticResource IntToBool}}" 
-                             Spacing="8">
-                    <FlexLayout BindableLayout.ItemsSource="{Binding RecentCities}"
-                                Wrap="Wrap"
-                                Direction="Row"
-                                AlignItems="Center"
-                                JustifyContent="Start">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Padding="0" Margin="0,0,8,8">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=SelectRecentCityCommand}" 
-                                                              CommandParameter="{Binding .}" />
-                                    </Grid.GestureRecognizers>
-                                    <Border Style="{StaticResource MainRecentCityBorder}">
-                                        <Grid ColumnDefinitions="Auto, Auto">
-                                            <VerticalStackLayout Grid.Column="0" 
-                                                                 VerticalOptions="Center">
-                                                <Label Text="{Binding DisplayName}"
-                                                       Style="{StaticResource MainRecentCityName}"/>
-                                            </VerticalStackLayout>
-                                            <Button Grid.Column="1" 
-                                                    Style="{StaticResource MainRecentRemoveButton}"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=RemoveRecentCityCommand}" 
-                                                    CommandParameter="{Binding .}" />
-                                        </Grid>
-                                    </Border>
-                                </Grid>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </FlexLayout>
-                </StackLayout>
-            </VerticalStackLayout>
-        </Grid>
-
+                    <StackLayout IsVisible="{Binding RecentCities.Count, Converter={StaticResource IntToBool}}" 
+                                 Spacing="8">
+                        <FlexLayout BindableLayout.ItemsSource="{Binding RecentCities}"
+                                    Wrap="Wrap"
+                                    Direction="Row"
+                                    AlignItems="Center"
+                                    JustifyContent="Start">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="0" Margin="0,0,8,8">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=SelectRecentCityCommand}" 
+                                                                  CommandParameter="{Binding .}" />
+                                        </Grid.GestureRecognizers>
+                                        <Border Style="{StaticResource MainRecentCityBorder}">
+                                            <Grid ColumnDefinitions="Auto, Auto">
+                                                <VerticalStackLayout Grid.Column="0" 
+                                                                     VerticalOptions="Center">
+                                                    <Label Text="{Binding DisplayName}"
+                                                           Style="{StaticResource MainRecentCityName}"/>
+                                                </VerticalStackLayout>
+                                                <Button Grid.Column="1" 
+                                                        Style="{StaticResource MainRecentRemoveButton}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=RemoveRecentCityCommand}" 
+                                                        CommandParameter="{Binding .}" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </StackLayout>
+                </VerticalStackLayout>
+            </Grid>
+        </ScrollView>
         <Grid Style="{StaticResource WeatherLoadingOverlay}"
               IsVisible="{Binding IsBusy}">
             <ActivityIndicator IsRunning="{Binding IsBusy}" 

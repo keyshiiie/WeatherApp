@@ -19,7 +19,8 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <ScrollView Grid.Row="0" Padding="20,0,20,20">
+            <ScrollView Grid.Row="0" 
+                        Style="{StaticResource ScrollContainer}">
                 <StackLayout>
                     <Label Text="{Binding ErrorMessage}"
                            IsVisible="{Binding HasError}"
@@ -54,7 +55,7 @@
                     </Grid>
 
                     <Border Style="{StaticResource WeatherCardBorder}"
-                            Padding="15,10">
+                            Padding="10">
                         <CollectionView ItemsSource="{Binding ForecastDaysDisplay}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
@@ -102,8 +103,8 @@
                         <local:HourlyChartView x:Name="HourlyChartView" />
                     </Border>
 
-                    <Grid RowDefinitions="*, *" 
-                          ColumnDefinitions="*, *" 
+                    <Grid RowDefinitions="Auto, *" 
+                          ColumnDefinitions="Auto, *" 
                           Padding="0" 
                           RowSpacing="8" 
                           ColumnSpacing="8" 
@@ -122,7 +123,7 @@
                         <Border Grid.Column="0" 
                                 Grid.Row="1"
                                 Style="{StaticResource WeatherCardBorder}"
-                                Padding="15,10">
+                                Padding="10">
                             <VerticalStackLayout Spacing="4" 
                                                  VerticalOptions="Center">
                                 <HorizontalStackLayout Spacing="10">
@@ -143,7 +144,7 @@
                         <Border Grid.Column="1" 
                                 Grid.RowSpan="2"
                                 Style="{StaticResource WeatherCardBorder}"
-                                Padding="15,10">
+                                Padding="10">
                             <VerticalStackLayout Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label Text="Влажность"
