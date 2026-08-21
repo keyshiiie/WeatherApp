@@ -90,7 +90,6 @@ public static class MauiProgram
         services.AddScoped<IHistoryRepository, HistoryRepository>();
         services.AddScoped<ICityService, CityService>();
         services.AddSingleton<INotificationService, NotificationService>();
-        services.AddSingleton<WeatherAlertService>();
         services.AddSingleton<ISettingsService, SettingsService>();
     }
 
@@ -106,6 +105,7 @@ public static class MauiProgram
         services.AddTransient<FavoritesPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<LoginPageViewModel>();
+        services.AddTransient<ChangeApiKeyPageViewModel>();
     }
 
     private static void RegisterPages(IServiceCollection services)
@@ -115,6 +115,7 @@ public static class MauiProgram
         services.AddTransient<FavoritesPage>();
         services.AddTransient<SettingsPage>();
         services.AddTransient<LoginPage>();
+        services.AddTransient<ChangeApiKeyPage>();
     }
 
     private static void InitializeDatabase(IServiceProvider services)

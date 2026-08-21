@@ -1,20 +1,27 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using WeatherApp.UI.ViewModels;
+using WeatherApp.Core.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
 public partial class LoginPageViewModel : BaseViewModel
 {
+    private readonly IWeatherService _weatherService;
+
     [ObservableProperty]
     private string? _apiKey;
 
-    public LoginPageViewModel(ILogger<LoginPageViewModel> logger)
+    [ObservableProperty]
+    private bool _isValidating;
+
+    public LoginPageViewModel(
+        IWeatherService weatherService,
+        ILogger<LoginPageViewModel> logger)
         : base(logger)
     {
         Title = "Вход";
+        _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         Logger.LogInformation("LoginPageViewModel initialized");
     }
 
@@ -27,16 +34,29 @@ public partial class LoginPageViewModel : BaseViewModel
             var savedKey = await SecureStorage.GetAsync("weather_api_key");
             if (!string.IsNullOrEmpty(savedKey))
             {
-                Logger.LogInformation("Existing API key found, navigating back");
-                await Shell.Current.GoToAsync("..");
+                Logger.LogInformation("Existing API key found, validating...");
+
+                var isValid = await ValidateApiKeyAsync(savedKey);
+                if (isValid)
+                {
+                    Logger.LogInformation("API key is valid, navigating back");
+                    await Shell.Current.GoToAsync("..");
+                }
+                else
+                {
+                    Logger.LogWarning("API key is invalid, clearing it");
+                    await SecureStorage.SetAsync("weather_api_key", string.Empty);
+                }
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error checking for saved API key");
+            await Shell.Current.CurrentPage.DisplayAlertAsync(
+                "Ошибка",
+                "Не удалось проверить сохраненный ключ",
+                "ОК");
         }
-
-        await Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -51,18 +71,61 @@ public partial class LoginPageViewModel : BaseViewModel
             return;
         }
 
+        var trimmedKey = ApiKey.Trim();
+
         try
         {
-            Logger.LogInformation("Saving API key");
-            await SecureStorage.SetAsync("weather_api_key", ApiKey.Trim());
+            IsValidating = true;
+            Logger.LogInformation("Validating API key...");
+
+            var isValid = await ValidateApiKeyAsync(trimmedKey);
+
+            if (!isValid)
+            {
+                Logger.LogWarning("Invalid API key");
+                await Shell.Current.CurrentPage.DisplayAlertAsync(
+                    "Ошибка",
+                    "Неверный API ключ. Проверьте его корректность и попробуйте снова.",
+                    "ОК");
+                return;
+            }
+
+            Logger.LogInformation("API key is valid, saving...");
+            await SecureStorage.SetAsync("weather_api_key", trimmedKey);
 
             Logger.LogInformation("API key saved successfully, navigating back");
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error saving API key");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось сохранить API ключ", "ОК");
+            Logger.LogError(ex, "Error validating/saving API key");
+            await Shell.Current.CurrentPage.DisplayAlertAsync(
+                "Ошибка",
+                "Не удалось проверить API ключ. Проверьте подключение к интернету.",
+                "ОК");
+        }
+        finally
+        {
+            IsValidating = false;
+        }
+    }
+
+    private async Task<bool> ValidateApiKeyAsync(string apiKey)
+    {
+        try
+        {
+            var weather = await _weatherService.GetCurrentWeatherAsync("London");
+            return weather != null;
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("401") || ex.Message.Contains("403"))
+        {
+            Logger.LogWarning("API key validation failed: Unauthorized");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "API key validation error");
+            return false;
         }
     }
 

@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="456" height="456" fill="#512BD4" />
+<svg width="343" height="227" viewBox="0 0 343 227" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M112 10V57.5" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M112 164V211.5" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M35.8086 34L72.1957 64.5324" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M187 181L150.613 150.468" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M188.387 36L152 66.5324" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M34.4219 179L70.809 148.468" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M10 108L57.5 108" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<path d="M210.5 108L163 108" stroke="#FF884C" stroke-width="20" stroke-linecap="round"/>
+<circle cx="112.5" cy="108.5" r="67.5" fill="#FFC24B"/>
+<path d="M244.495 97.547C209.537 55.1972 151.935 88.9847 159.085 162.271C159.085 162.271 105.058 116.588 85.5934 171.794C66.1294 227 87.1811 227 113.798 227H317.987C343.809 227 358.109 163.703 317.987 124.203C277.865 84.7026 244.495 97.547 244.495 97.547Z" fill="#EBEFF1"/>
 </svg>

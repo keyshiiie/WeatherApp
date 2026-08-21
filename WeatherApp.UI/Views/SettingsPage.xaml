@@ -74,6 +74,9 @@
                            Style="{StaticResource SettingsSectionTitle}" />
                     <VerticalStackLayout Spacing="5">
                         <Border Style="{StaticResource SettingsItemBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenSignupLinkCommand}" />
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Получить ключ" 
                                        Style="{StaticResource SettingsItemLabel}" />
@@ -82,6 +85,9 @@
                             </Grid>
                         </Border>
                         <Border Style="{StaticResource SettingsItemBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ChangeApiKeyCommand}"/>
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Изменить ключ" 
                                        Style="{StaticResource SettingsItemLabel}" />
@@ -96,14 +102,20 @@
                            Style="{StaticResource SettingsSectionTitle}" />
                     <VerticalStackLayout Spacing="5">
                         <Border Style="{StaticResource SettingsItemBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenFeedbackLinkCommand}" />
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Обратная связь" 
-                                   Style="{StaticResource SettingsItemLabel}" />
+                                       Style="{StaticResource SettingsItemLabel}" />
                                 <Button Style="{StaticResource SettingsArrowButton}"
                                         Grid.Column="1"/>
                             </Grid>
                         </Border>
                         <Border Style="{StaticResource SettingsItemBorder}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenPrivacyPolicyLinkCommand}" />
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Text="Политика конфиденциальности" 
                                        Style="{StaticResource SettingsItemLabel}" />

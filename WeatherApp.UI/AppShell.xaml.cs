@@ -10,6 +10,7 @@ namespace WeatherApp.UI
 
             Routing.RegisterRoute(nameof(CurrentWeatherPage), typeof(CurrentWeatherPage));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
+            Routing.RegisterRoute(nameof(ChangeApiKeyPage), typeof(ChangeApiKeyPage));
         }
     }
 }

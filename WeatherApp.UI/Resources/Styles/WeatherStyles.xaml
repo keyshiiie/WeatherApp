@@ -208,7 +208,7 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextTertiary}, Dark={StaticResource DarkTextTertiary}}" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="VerticalOptions" Value="Center" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="14" />
     </Style>
 
     <Style x:Key="FavoritesItemBorder" TargetType="Border" BasedOn="{StaticResource MainRecentCityBorder}">

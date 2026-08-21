@@ -14,6 +14,7 @@ namespace WeatherApp.UI.DisplayModels
             _hour = hour ?? throw new ArgumentNullException(nameof(hour));
         }
 
+        public DateTime Time => _hour.Time;
         public string TimeDisplay => _hour.Time.ToString("HH:mm");
         public string TemperatureDisplay => FormatTemperature(_hour.TemperatureC, _hour.TemperatureF);
         public string FeelsLikeDisplay => FormatTemperature(_hour.FeelsLikeC, _hour.FeelsLikeF);

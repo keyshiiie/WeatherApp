@@ -9,15 +9,20 @@ namespace WeatherApp.UI.Views
         private float _maxTemp;
         private float _chartPadding;
         private float _pointSpacing;
+        private int _currentHourIndex = -1;
+
+        // Цвет для текущего часа
+        private static readonly Color CurrentHourColor = Color.FromArgb("#FFC24B");
 
         public void SetData(List<HourlyForecastDisplay> dataPoints, float minTemp, float maxTemp,
-                            float chartPadding, float pointSpacing)
+                            float chartPadding, float pointSpacing, int currentHourIndex = -1)
         {
             _dataPoints = dataPoints;
             _minTemp = minTemp;
             _maxTemp = maxTemp;
             _chartPadding = chartPadding;
             _pointSpacing = pointSpacing;
+            _currentHourIndex = currentHourIndex;
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
@@ -27,37 +32,34 @@ namespace WeatherApp.UI.Views
 
             var height = dirtyRect.Height;
             var chartHeight = height - _chartPadding * 2;
-            var bottomY = _chartPadding + chartHeight; // Нижняя граница графика
+            var bottomY = _chartPadding + chartHeight;
 
             // Вычисляем точки графика
             var points = new List<PointF>();
 
             for (int i = 0; i < _dataPoints.Count; i++)
             {
-                // Центр блока данных
                 var x = _chartPadding + i * _pointSpacing + _pointSpacing / 2;
-
                 var temp = _dataPoints[i].TemperatureValue;
                 var normalized = (temp - _minTemp) / (_maxTemp - _minTemp);
                 var y = _chartPadding + (1 - normalized) * chartHeight;
-
                 points.Add(new PointF(x, y));
             }
 
-            // вертикальная пунктирная линия ===
-            canvas.StrokeColor = Colors.White.WithAlpha(0.5f); // Полупрозрачные
+            // Вертикальные пунктирные линии
+            canvas.StrokeColor = Colors.White.WithAlpha(0.5f);
             canvas.StrokeSize = 1f;
-            canvas.StrokeDashPattern = new float[] { 4, 4 }; // Пунктир: 4px линия, 4px промежуток
+            canvas.StrokeDashPattern = new float[] { 4, 4 };
 
             foreach (var point in points)
             {
                 canvas.DrawLine(point.X, point.Y, point.X, bottomY);
             }
 
-            // Сбрасываем пунктир для остальных элементов
+            // Сбрасываем пунктир
             canvas.StrokeDashPattern = null;
 
-            // линия графика ===
+            // Линия графика
             canvas.StrokeColor = Colors.White;
             canvas.StrokeSize = 2.5f;
 
@@ -66,23 +68,47 @@ namespace WeatherApp.UI.Views
                 canvas.DrawLine(points[i], points[i + 1]);
             }
 
-            // точки на графике
-            foreach (var point in points)
+            // Точки на графике
+            for (int i = 0; i < points.Count; i++)
             {
-                canvas.FillColor = Colors.White;
-                canvas.FillCircle(point, 4);
+                var point = points[i];
+                var isCurrentHour = (i == _currentHourIndex);
 
-                canvas.StrokeColor = Colors.White.WithAlpha(0.3f);
-                canvas.StrokeSize = 1;
-                canvas.DrawCircle(point, 6);
+                if (isCurrentHour)
+                {
+                    // Текущий час - цвет #FFC24B
+                    // Основной кружок
+                    canvas.FillColor = CurrentHourColor;
+                    canvas.FillCircle(point, 6);
+
+                    // Внешний круг
+                    canvas.StrokeColor = CurrentHourColor.WithAlpha(0.5f);
+                    canvas.StrokeSize = 2;
+                    canvas.DrawCircle(point, 10);
+
+                    // Glow-эффект
+                    canvas.FillColor = CurrentHourColor.WithAlpha(0.15f);
+                    canvas.FillCircle(point, 14);
+                }
+                else
+                {
+                    // Обычные точки - белые
+                    canvas.FillColor = Colors.White;
+                    canvas.FillCircle(point, 4);
+
+                    canvas.StrokeColor = Colors.White.WithAlpha(0.3f);
+                    canvas.StrokeSize = 1;
+                    canvas.DrawCircle(point, 6);
+                }
             }
 
-            // заливка под графиком
+            // Заливка под графиком
             var path = new PathF();
             path.MoveTo(points[0].X, bottomY);
 
-            foreach (var point in points)
+            for (int i = 0; i < points.Count; i++)
             {
+                var point = points[i];
                 path.LineTo(point);
             }
 

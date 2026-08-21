@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
-using WeatherApp.UI.ViewModels;
+using WeatherApp.UI.Views;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -30,8 +32,8 @@ public partial class SettingsPageViewModel : BaseViewModel
 
     public SettingsPageViewModel(
         ISettingsService settingsService,
-        ILogger<SettingsPageViewModel> logger) // Добавляем логгер
-        : base(logger) // Передаем в базовый класс
+        ILogger<SettingsPageViewModel> logger)
+        : base(logger) 
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         Title = "Настройки";
@@ -74,5 +76,70 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         Logger.LogInformation($"Speed unit changed to: {value}");
         _settingsService.SetSpeedUnit(value);
+    }
+
+    [RelayCommand]
+    private async Task OpenPrivacyPolicyLink()
+    {
+        Logger.LogInformation("Opening PrivacyPolicy link");
+
+        try
+        {
+            await Launcher.Default.OpenAsync("https://docs.google.com/document/d/1_HLs8XS7O9jJmULp2wmO5npSthn5lGssMUEi8N4vAKA");
+            Logger.LogInformation("Link opened successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening link");
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenFeedbackLink()
+    {
+        Logger.LogInformation("Opening PrivacyPolicy link");
+
+        try
+        {
+            await Launcher.Default.OpenAsync("https://docs.google.com/document/d/1M5El2eHB7WYWytcqArusLCM1xe7VtZUb59o_I7BAuQA");
+            Logger.LogInformation("Link opened successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening link");
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenSignupLink()
+    {
+        Logger.LogInformation("Opening WeatherAPI signup link");
+
+        try
+        {
+            await Launcher.Default.OpenAsync("https://www.weatherapi.com/signup.aspx");
+            Logger.LogInformation("Link opened successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening link");
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ChangeApiKey()
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(ChangeApiKeyPage));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error navigating to ChangeApiKeyPage");
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть страницу смены ключа", "ОК");
+        }
     }
 }

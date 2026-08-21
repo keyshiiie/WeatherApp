@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
@@ -29,12 +28,18 @@ public partial class MainPageViewModel : BaseViewModel
     [ObservableProperty]
     private bool _showSearchSuggestions;
 
+    [ObservableProperty]
+    private bool _showRecent;
+
+    [ObservableProperty]
+    private bool _isBusy;
+
     public MainPageViewModel(
         IWeatherService weatherService,
         IGeolocationService geolocationService,
         ICityService cityService,
-        ILogger<MainPageViewModel> logger) // Добавляем логгер
-        : base(logger) // Передаем в базовый класс
+        ILogger<MainPageViewModel> logger) 
+        : base(logger)
     {
         Title = "Поиск";
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
@@ -119,6 +124,8 @@ public partial class MainPageViewModel : BaseViewModel
 
         try
         {
+            IsBusy = true;
+
             var city = new City
             {
                 Name = suggestion.Name,
@@ -146,6 +153,10 @@ public partial class MainPageViewModel : BaseViewModel
             Logger.LogError(ex, $"Error selecting city: {suggestion.Name}");
             await Toast.Make("Не удалось открыть погоду для выбранного города", ToastDuration.Long).Show();
         }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -155,6 +166,8 @@ public partial class MainPageViewModel : BaseViewModel
 
         try
         {
+            IsBusy = true;
+
             var hasPermission = await _geolocationService.RequestLocationPermissionAsync();
             if (!hasPermission)
             {
@@ -193,6 +206,10 @@ public partial class MainPageViewModel : BaseViewModel
         {
             Logger.LogError(ex, "Error getting location");
             await Toast.Make("Не удалось определить местоположение", ToastDuration.Long).Show();
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -275,10 +292,13 @@ public partial class MainPageViewModel : BaseViewModel
             {
                 RecentCities.Add(city);
             }
+
+            ShowRecent = RecentCities.Any();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading city lists");
+            ShowRecent = false;
         }
     }
 

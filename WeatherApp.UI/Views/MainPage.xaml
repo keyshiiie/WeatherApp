@@ -78,7 +78,8 @@
                             Command="{Binding GetLocationCommand}" />
 
                     <Label Text="Недавние"
-                           Style="{StaticResource MainRecentLabel}" />
+                           Style="{StaticResource MainRecentLabel}"
+                           IsVisible="{Binding ShowRecent}"/>
 
                     <StackLayout IsVisible="{Binding RecentCities.Count, Converter={StaticResource IntToBool}}" 
                                  Spacing="8">
