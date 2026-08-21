@@ -345,4 +345,79 @@
         <Setter Property="TextDecorations" Value="Underline" />
     </Style>
 
+    <!-- Стили для ChangeApiKeyPage -->
+
+    <Style x:Key="ChangeApiKeyPageContainer" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BackgroundPrimary}, Dark={StaticResource DarkBackgroundPrimary}}" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontFamily" Value="InterSemiBold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource DarkTextPrimary}}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeySubtitle" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource DarkTextSecondary}}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource DarkTextSecondary}}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="InterMedium" />
+        <Setter Property="Margin" Value="0,10,0,5" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyEntryBorder" TargetType="Border" BasedOn="{StaticResource MainSearchBorder}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,5" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyEntry" TargetType="Entry" BasedOn="{StaticResource MainSearchEntry}">
+        <Setter Property="IsPassword" Value="False" />
+        <Setter Property="Margin" Value="12,0,12,0" />
+        <Setter Property="ClearButtonVisibility" Value="WhileEditing" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeySaveButton" TargetType="Button" BasedOn="{StaticResource LoginButton}">
+        <Setter Property="Text" Value="Сохранить" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource DarkTextPrimary}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BackgroundWhite}, Dark={StaticResource TextSecondary}}" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyCancelButton" TargetType="Button" BasedOn="{StaticResource LoginButton}">
+        <Setter Property="Text" Value="Отмена" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TextTertiary}, Dark={StaticResource DarkTextTertiary}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BackgroundWhite}, Dark={StaticResource TextPrimary}}" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyLinkText" TargetType="Label" BasedOn="{StaticResource LoginLinkText}">
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyLinkUnderline" TargetType="Label" BasedOn="{StaticResource LoginLinkUnderline}">
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyErrorLabel" TargetType="Label" BasedOn="{StaticResource WeatherErrorLabel}">
+        <Setter Property="Margin" Value="0,10" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyLoadingOverlay" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="ChangeApiKeyActivityIndicator" TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource DarkTextPrimary}}" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
 </ResourceDictionary>

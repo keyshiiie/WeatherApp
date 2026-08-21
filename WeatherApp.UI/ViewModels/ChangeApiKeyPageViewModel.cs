@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
 using WeatherApp.Core.Services;
 
 namespace WeatherApp.UI.ViewModels;
@@ -12,13 +13,7 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     private readonly IWeatherService _weatherService;
 
     [ObservableProperty]
-    private string? _currentApiKey;
-
-    [ObservableProperty]
     private string? _newApiKey;
-
-    [ObservableProperty]
-    private string? _currentApiKeyMasked;
 
     [ObservableProperty]
     private string? _errorMessage;
@@ -29,7 +24,13 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     [ObservableProperty]
     private bool _isLoading;
 
-    public bool CanSave => !string.IsNullOrWhiteSpace(NewApiKey) && NewApiKey != CurrentApiKey;
+    [ObservableProperty]
+    private string? _keyStatus;
+
+    [ObservableProperty]
+    private Color _keyStatusColor;
+
+    public bool CanSave => !string.IsNullOrWhiteSpace(NewApiKey);
 
     public ChangeApiKeyPageViewModel(
         IWeatherService weatherService,
@@ -43,35 +44,32 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     public override async Task OnAppearingAsync()
     {
         Logger.LogInformation("ChangeApiKeyPage appearing");
-        await LoadCurrentApiKeyAsync();
+        await CheckKeyStatusAsync();
     }
 
-    private async Task LoadCurrentApiKeyAsync()
+    private async Task CheckKeyStatusAsync()
     {
         try
         {
-            CurrentApiKey = await SecureStorage.GetAsync("weather_api_key");
-            CurrentApiKeyMasked = MaskApiKey(CurrentApiKey);
-            Logger.LogInformation("Current API key loaded");
+            var key = await SecureStorage.GetAsync("weather_api_key");
+
+            if (string.IsNullOrEmpty(key))
+            {
+                KeyStatus = "Не установлен";
+                KeyStatusColor = Colors.Red;
+            }
+            else
+            {
+                KeyStatus = "Установлен ✓";
+                KeyStatusColor = Colors.Green;
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading API key");
+            Logger.LogError(ex, "Error checking API key status");
+            KeyStatus = "Ошибка проверки";
+            KeyStatusColor = Colors.Red;
         }
-    }
-
-    private string? MaskApiKey(string? apiKey)
-    {
-        if (string.IsNullOrEmpty(apiKey))
-            return "Не установлен";
-
-        if (apiKey.Length <= 4)
-            return new string('*', apiKey.Length);
-
-        var first = apiKey[..2];
-        var last = apiKey[^2..];
-        var stars = new string('*', Math.Min(apiKey.Length - 4, 10));
-        return $"{first}{stars}{last}";
     }
 
     [RelayCommand]
@@ -92,7 +90,6 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
 
             Logger.LogInformation("Validating new API key...");
 
-            // Валидация ключа
             var isValid = await ValidateApiKeyAsync(NewApiKey.Trim());
 
             if (!isValid)
@@ -106,6 +103,13 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
             await SecureStorage.SetAsync("weather_api_key", NewApiKey.Trim());
 
             Logger.LogInformation("API key saved successfully");
+
+            // Обновляем статус
+            await CheckKeyStatusAsync();
+
+            // Очищаем поле ввода
+            NewApiKey = string.Empty;
+
             await Toast.Make("API ключ успешно обновлен", ToastDuration.Short).Show();
 
             await Shell.Current.GoToAsync("..");
@@ -126,13 +130,11 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     {
         try
         {
-            // Временно сохраняем ключ для проверки
             var oldKey = await SecureStorage.GetAsync("weather_api_key");
             await SecureStorage.SetAsync("weather_api_key", apiKey);
 
             var weather = await _weatherService.GetCurrentWeatherAsync("London");
 
-            // Возвращаем старый ключ
             if (!string.IsNullOrEmpty(oldKey))
                 await SecureStorage.SetAsync("weather_api_key", oldKey);
             else
