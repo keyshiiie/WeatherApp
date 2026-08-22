@@ -35,18 +35,6 @@ public partial class LoginPageViewModel : BaseViewModel
             if (!string.IsNullOrEmpty(savedKey))
             {
                 Logger.LogInformation("Existing API key found, validating...");
-
-                var isValid = await ValidateApiKeyAsync(savedKey);
-                if (isValid)
-                {
-                    Logger.LogInformation("API key is valid, navigating back");
-                    await Shell.Current.GoToAsync("..");
-                }
-                else
-                {
-                    Logger.LogWarning("API key is invalid, clearing it");
-                    await SecureStorage.SetAsync("weather_api_key", string.Empty);
-                }
             }
         }
         catch (Exception ex)
@@ -76,19 +64,6 @@ public partial class LoginPageViewModel : BaseViewModel
         try
         {
             IsValidating = true;
-            Logger.LogInformation("Validating API key...");
-
-            var isValid = await ValidateApiKeyAsync(trimmedKey);
-
-            if (!isValid)
-            {
-                Logger.LogWarning("Invalid API key");
-                await Shell.Current.CurrentPage.DisplayAlertAsync(
-                    "Ошибка",
-                    "Неверный API ключ. Проверьте его корректность и попробуйте снова.",
-                    "ОК");
-                return;
-            }
 
             Logger.LogInformation("API key is valid, saving...");
             await SecureStorage.SetAsync("weather_api_key", trimmedKey);
@@ -107,25 +82,6 @@ public partial class LoginPageViewModel : BaseViewModel
         finally
         {
             IsValidating = false;
-        }
-    }
-
-    private async Task<bool> ValidateApiKeyAsync(string apiKey)
-    {
-        try
-        {
-            var weather = await _weatherService.GetCurrentWeatherAsync("London");
-            return weather != null;
-        }
-        catch (HttpRequestException ex) when (ex.Message.Contains("401") || ex.Message.Contains("403"))
-        {
-            Logger.LogWarning("API key validation failed: Unauthorized");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "API key validation error");
-            return false;
         }
     }
 

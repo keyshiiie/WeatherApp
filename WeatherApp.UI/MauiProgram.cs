@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Constants;
 using WeatherApp.Core.Data;
+using WeatherApp.Core.Mappers;
 using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
 using WeatherApp.Core.ViewModels;
@@ -70,6 +71,7 @@ public static class MauiProgram
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
 
+        RegisterMappers(builder.Services);
         RegisterServices(builder.Services);
         RegisterRepositories(builder.Services);
         RegisterViewModels(builder.Services);
@@ -79,6 +81,13 @@ public static class MauiProgram
         InitializeDatabase(app.Services);
 
         return app;
+    }
+
+    private static void RegisterMappers(IServiceCollection services)
+    {
+        services.AddSingleton<IWeatherMapper, WeatherDtoMapper>();
+        services.AddSingleton<ICityMapper, CityMapper>();
+
     }
 
     private static void RegisterServices(IServiceCollection services)

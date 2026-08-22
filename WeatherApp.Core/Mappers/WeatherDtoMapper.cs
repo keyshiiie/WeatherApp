@@ -7,79 +7,42 @@ using WeatherApp.Core.Translator;
 
 namespace WeatherApp.Core.Mappers
 {
-    public class WeatherDtoMapper
+    public class WeatherDtoMapper : IWeatherMapper
     {
-        // Вспомогательный метод для обработки иконок
-        private static string? FixIconUrl(string? icon)
+        private readonly int _rainThresholdPercent;
+
+        public WeatherDtoMapper(int rainThresholdPercent = 30)
         {
-            if (string.IsNullOrEmpty(icon))
-                return null;
-
-            if (icon.StartsWith("//"))
-                return "https:" + icon;
-
-            return icon;
+            _rainThresholdPercent = rainThresholdPercent;
         }
 
-        public static WeatherData MapToWeatherData(WeatherResponseDto dto)
+        public WeatherData MapToWeatherData(WeatherResponseDto dto)
         {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
+            ArgumentNullException.ThrowIfNull(dto);
+            return CreateWeatherData(dto.Location, dto.Current);
+        }
 
-            return new WeatherData
+        public WeatherData MapToWeatherDataFromForecast(ForecastResponseDto dto)
+        {
+            ArgumentNullException.ThrowIfNull(dto);
+
+            var weatherData = CreateWeatherData(dto.Location, dto.Current);
+
+            var todayForecast = dto.Forecast?.Forecastday?.FirstOrDefault();
+            if (todayForecast != null)
             {
-                CityName = dto.Location?.Name,
-                Country = dto.Location?.Country,
-                Region = dto.Location?.Region,
-                Latitude = dto.Location?.Lat ?? 0,
-                Longitude = dto.Location?.Lon ?? 0,
+                weatherData.Sunrise = todayForecast.Astro?.Sunrise;
+                weatherData.Sunset = todayForecast.Astro?.Sunset;
 
-                TemperatureC = dto.Current?.TempC ?? 0,
-                TemperatureF = dto.Current?.TempF ?? 0,
-                FeelsLikeC = dto.Current?.FeelslikeC ?? 0,
-                FeelsLikeF = dto.Current?.FeelslikeF ?? 0,
+                var maxRainChance = todayForecast.Hour?.Max(h => h.ChanceOfRain) ?? 0;
+                weatherData.ChanceOfRainToday = maxRainChance;
+                weatherData.WillItRainToday = maxRainChance >= _rainThresholdPercent;
+            }
 
-                ConditionText = dto.Current?.Condition?.Text,
-                ConditionIcon = FixIconUrl(dto.Current?.Condition?.Icon),
-                ConditionCode = dto.Current?.Condition?.Code ?? 0,
-                IsDay = dto.Current?.IsDay == 1,
-
-                Humidity = dto.Current?.Humidity ?? 0,
-                WindSpeedKph = dto.Current?.WindKph ?? 0,
-                WindSpeedMph = dto.Current?.WindMph ?? 0,
-                WindDirection = dto.Current?.WindDir,
-                PressureMb = dto.Current?.PressureMb ?? 0,
-                PressureIn = dto.Current?.PressureIn ?? 0,
-                PrecipitationMm = dto.Current?.PrecipMm ?? 0,
-                PrecipitationIn = dto.Current?.PrecipIn ?? 0,
-                UVIndex = dto.Current?.Uv ?? 0,
-                VisibilityKm = dto.Current?.VisKm ?? 0,
-                VisibilityMiles = dto.Current?.VisMiles ?? 0,
-                CloudCover = dto.Current?.Cloud ?? 0,
-
-                AirQuality = dto.Current?.AirQuality != null
-                    ? new AirQualityData
-                    {
-                        Co = dto.Current.AirQuality.Co,
-                        No2 = dto.Current.AirQuality.No2,
-                        O3 = dto.Current.AirQuality.O3,
-                        So2 = dto.Current.AirQuality.So2,
-                        Pm25 = dto.Current.AirQuality.Pm25,
-                        Pm10 = dto.Current.AirQuality.Pm10,
-                        UsEpaIndex = dto.Current.AirQuality.UsEpaIndex,
-                        GbDefraIndex = dto.Current.AirQuality.GbDefraIndex
-                    }
-                    : null,
-
-                LastUpdated = DateTime.TryParse(dto.Current?.LastUpdated, out var lastUpdated)
-                    ? lastUpdated
-                    : DateTime.UtcNow,
-
-                IsCached = false
-            };
+            return weatherData;
         }
 
-        public static List<ForecastDay> MapToForecastDays(ForecastResponseDto dto)
+        public List<ForecastDay> MapToForecastDays(ForecastResponseDto dto)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
@@ -163,121 +126,75 @@ namespace WeatherApp.Core.Mappers
             return forecastDays;
         }
 
-        public static WeatherData MapToWeatherDataFromForecast(ForecastResponseDto dto)
+        private string? FixIconUrl(string? icon)
         {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
+            if (string.IsNullOrEmpty(icon))
+                return null;
 
-            // Получаем первый день прогноза (сегодня), чтобы взять восход/закат и осадки
-            var todayForecast = dto.Forecast?.Forecastday?.FirstOrDefault();
+            if (icon.StartsWith("//"))
+                return "https:" + icon;
 
-            // Вычисляем максимальную вероятность дождя за день из почасового прогноза
-            int maxRainChance = 0;
-            if (todayForecast?.Hour != null && todayForecast.Hour.Any())
-            {
-                maxRainChance = todayForecast.Hour.Max(h => h.ChanceOfRain);
-            }
+            return icon;
+        }
 
+        private WeatherData CreateWeatherData(LocationDto? location, CurrentWeatherDto? current)
+        {
             return new WeatherData
             {
-                CityName = dto.Location?.Name,
-                Country = dto.Location?.Country,
-                Region = dto.Location?.Region,
-                Latitude = dto.Location?.Lat ?? 0,
-                Longitude = dto.Location?.Lon ?? 0,
+                CityName = location?.Name,
+                Country = location?.Country,
+                Region = location?.Region,
+                Latitude = location?.Lat ?? 0,
+                Longitude = location?.Lon ?? 0,
 
-                TemperatureC = dto.Current?.TempC ?? 0,
-                TemperatureF = dto.Current?.TempF ?? 0,
-                FeelsLikeC = dto.Current?.FeelslikeC ?? 0,
-                FeelsLikeF = dto.Current?.FeelslikeF ?? 0,
+                TemperatureC = current?.TempC ?? 0,
+                TemperatureF = current?.TempF ?? 0,
+                FeelsLikeC = current?.FeelslikeC ?? 0,
+                FeelsLikeF = current?.FeelslikeF ?? 0,
 
-                ConditionText = dto.Current?.Condition?.Text,
-                ConditionIcon = FixIconUrl(dto.Current?.Condition?.Icon),
-                ConditionCode = dto.Current?.Condition?.Code ?? 0,
-                IsDay = dto.Current?.IsDay == 1,
+                ConditionText = current?.Condition?.Text,
+                ConditionIcon = FixIconUrl(current?.Condition?.Icon),
+                ConditionCode = current?.Condition?.Code ?? 0,
+                IsDay = current?.IsDay == 1,
 
-                Humidity = dto.Current?.Humidity ?? 0,
-                WindSpeedKph = dto.Current?.WindKph ?? 0,
-                WindSpeedMph = dto.Current?.WindMph ?? 0,
-                WindDirection = dto.Current?.WindDir,
-                PressureMb = dto.Current?.PressureMb ?? 0,
-                PressureIn = dto.Current?.PressureIn ?? 0,
-                PrecipitationMm = dto.Current?.PrecipMm ?? 0,
-                PrecipitationIn = dto.Current?.PrecipIn ?? 0,
-                UVIndex = dto.Current?.Uv ?? 0,
-                VisibilityKm = dto.Current?.VisKm ?? 0,
-                VisibilityMiles = dto.Current?.VisMiles ?? 0,
-                CloudCover = dto.Current?.Cloud ?? 0,
+                Humidity = current?.Humidity ?? 0,
+                WindSpeedKph = current?.WindKph ?? 0,
+                WindSpeedMph = current?.WindMph ?? 0,
+                WindDirection = current?.WindDir,
+                PressureMb = current?.PressureMb ?? 0,
+                PressureIn = current?.PressureIn ?? 0,
+                PrecipitationMm = current?.PrecipMm ?? 0,
+                PrecipitationIn = current?.PrecipIn ?? 0,
+                UVIndex = current?.Uv ?? 0,
+                VisibilityKm = current?.VisKm ?? 0,
+                VisibilityMiles = current?.VisMiles ?? 0,
+                CloudCover = current?.Cloud ?? 0,
 
-                AirQuality = dto.Current?.AirQuality != null
-                    ? new AirQualityData
-                    {
-                        Co = dto.Current.AirQuality.Co,
-                        No2 = dto.Current.AirQuality.No2,
-                        O3 = dto.Current.AirQuality.O3,
-                        So2 = dto.Current.AirQuality.So2,
-                        Pm25 = dto.Current.AirQuality.Pm25,
-                        Pm10 = dto.Current.AirQuality.Pm10,
-                        UsEpaIndex = dto.Current.AirQuality.UsEpaIndex,
-                        GbDefraIndex = dto.Current.AirQuality.GbDefraIndex
-                    }
-                    : null,
+                AirQuality = MapAirQuality(current?.AirQuality),
 
-                LastUpdated = DateTime.TryParse(dto.Current?.LastUpdated, out var lastUpdated)
+                LastUpdated = DateTime.TryParse(current?.LastUpdated, out var lastUpdated)
                     ? lastUpdated
                     : DateTime.UtcNow,
 
-                IsCached = false,
-
-                Sunrise = todayForecast?.Astro?.Sunrise,
-                Sunset = todayForecast?.Astro?.Sunset,
-
-                ChanceOfRainToday = maxRainChance,
-                ChanceOfSnowToday = 0,
-                WillItRainToday = maxRainChance > 0,
-                WillItSnowToday = false
+                IsCached = false
             };
         }
 
-        public static CitySuggestion MapToCitySuggestion(SearchResponseDto dto)
+        private AirQualityData? MapAirQuality(AirQualityDto? airQualityDto)
         {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
+            if (airQualityDto == null)
+                return null;
 
-            // Переводим регион
-            var translatedRegion = RegionTranslator.Translate(dto.Region ?? string.Empty);
-
-            return new CitySuggestion
+            return new AirQualityData
             {
-                Id = dto.Id,
-                Name = dto.Name ?? string.Empty,
-                Region = translatedRegion,
-                Country = dto.Country ?? string.Empty,
-                Latitude = dto.Lat,
-                Longitude = dto.Lon,
-                Url = dto.Url ?? string.Empty
-            };
-        }
-
-        public static City MapToCity(GeocodingResponseDto dto)
-        {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
-
-            var address = dto.Address;
-            var cityName = address?.GetCityName() ?? "Неизвестное место";
-
-            return new City
-            {
-                Name = cityName,
-                Country = address?.Country ?? "Unknown",
-                Region = address?.State ?? address?.Region ?? address?.County,
-                Latitude = double.TryParse(dto.Lat, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out var lat) ? lat : 0,
-                Longitude = double.TryParse(dto.Lon, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out var lon) ? lon : 0,
-                AddedAt = DateTime.UtcNow,
-                IsLastSelected = false
+                Co = airQualityDto.Co,
+                No2 = airQualityDto.No2,
+                O3 = airQualityDto.O3,
+                So2 = airQualityDto.So2,
+                Pm25 = airQualityDto.Pm25,
+                Pm10 = airQualityDto.Pm10,
+                UsEpaIndex = airQualityDto.UsEpaIndex,
+                GbDefraIndex = airQualityDto.GbDefraIndex
             };
         }
     }

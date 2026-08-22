@@ -8,11 +8,15 @@ namespace WeatherApp.Core.Repositories;
 public class WeatherRepository : IWeatherRepository
 {
     private readonly AppDbContext _context;
+    private readonly ICityMapper _cityMapper;
     private readonly ILogger<WeatherRepository> _logger;
 
-    public WeatherRepository(AppDbContext context, ILogger<WeatherRepository> logger)
+    public WeatherRepository(AppDbContext context,
+        ICityMapper cityMapper,
+        ILogger<WeatherRepository> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _cityMapper = cityMapper;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -24,7 +28,7 @@ public class WeatherRepository : IWeatherRepository
                 .OrderBy(c => c.Name)
                 .ToListAsync(cancellationToken);
 
-            return entities.Select(CityMapper.ToModel)
+            return entities.Select(_cityMapper.MapToModel)
                 .Where(c => c != null)
                 .Select(c => c!)
                 .ToList();
@@ -43,7 +47,7 @@ public class WeatherRepository : IWeatherRepository
             var entity = await _context.Cities
                 .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
-            return CityMapper.ToModel(entity);
+            return _cityMapper.MapToModel(entity);
         }
         catch (Exception ex)
         {
@@ -62,7 +66,7 @@ public class WeatherRepository : IWeatherRepository
             var entity = await _context.Cities
                 .FirstOrDefaultAsync(c => c.Name == name, cancellationToken);
 
-            return CityMapper.ToModel(entity);
+            return _cityMapper.MapToModel(entity);
         }
         catch (Exception ex)
         {
@@ -78,7 +82,7 @@ public class WeatherRepository : IWeatherRepository
             var entity = await _context.Cities
                 .FirstOrDefaultAsync(c => c.Latitude == latitude && c.Longitude == longitude, cancellationToken);
 
-            return CityMapper.ToModel(entity);
+            return _cityMapper.MapToModel(entity);
         }
         catch (Exception ex)
         {
@@ -94,7 +98,7 @@ public class WeatherRepository : IWeatherRepository
             var entity = await _context.Cities
                 .FirstOrDefaultAsync(c => c.IsLastSelected, cancellationToken);
 
-            return CityMapper.ToModel(entity);
+            return _cityMapper.MapToModel(entity);
         }
         catch (Exception ex)
         {
@@ -115,14 +119,14 @@ public class WeatherRepository : IWeatherRepository
             if (existing != null)
                 return existing;
 
-            var entity = CityMapper.ToEntity(city);
+            var entity = _cityMapper.MapToEntity(city);
             if (entity == null)
                 throw new InvalidOperationException("Failed to map city to entity");
 
             await _context.Cities.AddAsync(entity, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return CityMapper.ToModel(entity) ?? throw new InvalidOperationException("Failed to map entity back to model");
+            return _cityMapper.MapToModel(entity) ?? throw new InvalidOperationException("Failed to map entity back to model");
         }
         catch (Exception ex)
         {
@@ -295,7 +299,7 @@ public class WeatherRepository : IWeatherRepository
         var entities = await _context.Cities
             .Where(c => c.IsFavorite)
             .ToListAsync(cancellationToken);
-        return entities.Select(CityMapper.ToModel).ToList();
+        return entities.Select(_cityMapper.MapToModel).ToList();
     }
 
     public async Task<List<City>> GetRecentCitiesAsync(CancellationToken cancellationToken = default)
@@ -305,7 +309,7 @@ public class WeatherRepository : IWeatherRepository
             .OrderByDescending(c => c.LastSearchedAt)
             .Take(20) // Ограничим историю 20 записями
             .ToListAsync(cancellationToken);
-        return entities.Select(CityMapper.ToModel).ToList();
+        return entities.Select(_cityMapper.MapToModel).ToList();
     }
 
     public async Task<City> UpdateCityAsync(City city, CancellationToken cancellationToken = default)
@@ -319,6 +323,6 @@ public class WeatherRepository : IWeatherRepository
         entity.LastSearchedAt = city.LastSearchedAt;
 
         await _context.SaveChangesAsync(cancellationToken);
-        return CityMapper.ToModel(entity);
+        return _cityMapper.MapToModel(entity);
     }
 }

@@ -88,17 +88,6 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
             HasError = false;
             ErrorMessage = string.Empty;
 
-            Logger.LogInformation("Validating new API key...");
-
-            var isValid = await ValidateApiKeyAsync(NewApiKey.Trim());
-
-            if (!isValid)
-            {
-                HasError = true;
-                ErrorMessage = "Неверный API ключ. Проверьте его корректность.";
-                return;
-            }
-
             Logger.LogInformation("Saving new API key...");
             await SecureStorage.SetAsync("weather_api_key", NewApiKey.Trim());
 
@@ -123,34 +112,6 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
         finally
         {
             IsLoading = false;
-        }
-    }
-
-    private async Task<bool> ValidateApiKeyAsync(string apiKey)
-    {
-        try
-        {
-            var oldKey = await SecureStorage.GetAsync("weather_api_key");
-            await SecureStorage.SetAsync("weather_api_key", apiKey);
-
-            var weather = await _weatherService.GetCurrentWeatherAsync("London");
-
-            if (!string.IsNullOrEmpty(oldKey))
-                await SecureStorage.SetAsync("weather_api_key", oldKey);
-            else
-                SecureStorage.Remove("weather_api_key");
-
-            return weather != null;
-        }
-        catch (HttpRequestException ex) when (ex.Message.Contains("401") || ex.Message.Contains("403"))
-        {
-            Logger.LogWarning("Invalid API key (401/403)");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "API key validation error");
-            return false;
         }
     }
 
