@@ -32,7 +32,7 @@ public partial class App : Application
             if (string.IsNullOrEmpty(apiKey))
             {
                 _logger.LogWarning("API key not found, redirecting to LoginPage");
-                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+                await Shell.Current.GoToAsync(nameof(LoginPage));
                 return;
             }
 
@@ -46,7 +46,7 @@ public partial class App : Application
                     "Ваш API ключ недействителен. Пожалуйста, введите новый ключ.",
                     "ОК");
                 await SecureStorage.SetAsync("weather_api_key", string.Empty);
-                await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+                await Shell.Current.GoToAsync(nameof(LoginPage));
                 return;
             }
 
