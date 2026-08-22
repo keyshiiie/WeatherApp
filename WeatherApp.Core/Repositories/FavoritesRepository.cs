@@ -2,12 +2,15 @@
 using WeatherApp.Core.Models;
 
 namespace WeatherApp.Core.Repositories;
+
 public class FavoritesRepository : IFavoritesRepository
 {
     private readonly IWeatherRepository _repository;
     private readonly ILogger<FavoritesRepository> _logger;
 
-    public FavoritesRepository(IWeatherRepository repository, ILogger<FavoritesRepository> logger)
+    public FavoritesRepository(
+        IWeatherRepository repository,
+        ILogger<FavoritesRepository> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -23,27 +26,30 @@ public class FavoritesRepository : IFavoritesRepository
             if (string.IsNullOrWhiteSpace(city.Name))
                 throw new ArgumentException("City name cannot be empty", nameof(city));
 
-            var existing = await _repository.GetCityByNameAsync(city.Name, cancellationToken);
+            City? existing = null;
+            if (city.Id > 0)
+            {
+                existing = await _repository.GetCityByIdAsync(city.Id, cancellationToken);
+            }
+            else
+            {
+                var allCities = await _repository.GetAllCitiesAsync(cancellationToken);
+                existing = allCities.FirstOrDefault(c =>
+                    Math.Abs(c.Latitude - city.Latitude) < 0.001 &&
+                    Math.Abs(c.Longitude - city.Longitude) < 0.001);
+            }
+
             if (existing != null)
             {
                 _logger.LogInformation($"City {city.Name} already exists. Updating to favorite...");
-
                 existing.IsFavorite = true;
                 existing.AddedAt = DateTime.UtcNow;
-                await _repository.UpdateCityAsync(existing, cancellationToken);
-
-                return existing;
+                return await _repository.UpdateCityAsync(existing, cancellationToken);
             }
 
             city.IsFavorite = true;
             city.AddedAt = DateTime.UtcNow;
             var result = await _repository.AddCityAsync(city, cancellationToken);
-
-            var count = await _repository.GetAllCitiesAsync(cancellationToken);
-            if (count.Count == 1)
-            {
-                await _repository.SetLastSelectedCityAsync(result.Id, cancellationToken);
-            }
 
             _logger.LogInformation($"City {city.Name} added to favorites");
             return result;
@@ -71,7 +77,7 @@ public class FavoritesRepository : IFavoritesRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error removing favorite city with id: {cityId}");
-            return false;
+            throw;
         }
     }
 
@@ -82,7 +88,11 @@ public class FavoritesRepository : IFavoritesRepository
             if (string.IsNullOrWhiteSpace(cityName))
                 return false;
 
-            var city = await _repository.GetCityByNameAsync(cityName, cancellationToken);
+            // ✅ Используем поиск по имени (как раньше)
+            var allCities = await _repository.GetAllCitiesAsync(cancellationToken);
+            var city = allCities.FirstOrDefault(c =>
+                string.Equals(c.Name, cityName, StringComparison.OrdinalIgnoreCase));
+
             return city != null && city.IsFavorite;
         }
         catch (Exception ex)
@@ -112,7 +122,8 @@ public class FavoritesRepository : IFavoritesRepository
             var favorites = await _repository.GetFavoriteCitiesAsync(cancellationToken);
             foreach (var city in favorites)
             {
-                await _repository.RemoveCityAsync(city.Id, cancellationToken);
+                city.IsFavorite = false;
+                await _repository.UpdateCityAsync(city, cancellationToken);
             }
             _logger.LogInformation("All favorites cleared");
         }

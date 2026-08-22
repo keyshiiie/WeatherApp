@@ -8,7 +8,9 @@ public class HistoryRepository : IHistoryRepository
     private readonly IWeatherRepository _repository;
     private readonly ILogger<HistoryRepository> _logger;
 
-    public HistoryRepository(IWeatherRepository repository, ILogger<HistoryRepository> logger)
+    public HistoryRepository(
+        IWeatherRepository repository,
+        ILogger<HistoryRepository> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -16,16 +18,39 @@ public class HistoryRepository : IHistoryRepository
 
     public async Task<List<City>> GetHistoryAsync(CancellationToken cancellationToken = default)
     {
-        return await _repository.GetRecentCitiesAsync(cancellationToken);
+        try
+        {
+            return await _repository.GetRecentCitiesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting history");
+            return new List<City>();
+        }
     }
 
     public async Task<City> AddInHistoryAsync(City city, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (city == null) throw new ArgumentNullException(nameof(city));
+            if (city == null)
+                throw new ArgumentNullException(nameof(city));
 
-            var existing = await _repository.GetCityByNameAsync(city.Name, cancellationToken);
+            // Проверяем существование по ID (если есть) или по координатам
+            City? existing = null;
+            if (city.Id > 0)
+            {
+                existing = await _repository.GetCityByIdAsync(city.Id, cancellationToken);
+            }
+            else
+            {
+                // Если ID нет, ищем по координатам среди всех городов
+                var allCities = await _repository.GetAllCitiesAsync(cancellationToken);
+                existing = allCities.FirstOrDefault(c =>
+                    Math.Abs(c.Latitude - city.Latitude) < 0.001 &&
+                    Math.Abs(c.Longitude - city.Longitude) < 0.001);
+            }
+
             if (existing != null)
             {
                 existing.IsRecent = true;
@@ -36,7 +61,7 @@ public class HistoryRepository : IHistoryRepository
 
             city.IsRecent = true;
             city.LastSearchedAt = DateTime.UtcNow;
-            city.IsFavorite = false; 
+            city.IsFavorite = false;
             var result = await _repository.AddCityAsync(city, cancellationToken);
             return result;
         }
@@ -49,27 +74,58 @@ public class HistoryRepository : IHistoryRepository
 
     public async Task<bool> RemoveFromHistoryAsync(int cityId, CancellationToken cancellationToken = default)
     {
-        var city = await _repository.GetCityByIdAsync(cityId, cancellationToken);
-        if (city == null) return false;
+        try
+        {
+            var city = await _repository.GetCityByIdAsync(cityId, cancellationToken);
+            if (city == null) return false;
 
-        city.IsRecent = false;
-        await _repository.UpdateCityAsync(city, cancellationToken);
-        return true;
+            city.IsRecent = false;
+            await _repository.UpdateCityAsync(city, cancellationToken);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error removing city from history: {cityId}");
+            throw;
+        }
     }
 
     public async Task<bool> IsRecentAsync(string cityName, CancellationToken cancellationToken = default)
     {
-        var city = await _repository.GetCityByNameAsync(cityName, cancellationToken);
-        return city != null && city.IsRecent;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(cityName))
+                return false;
+
+            var allCities = await _repository.GetAllCitiesAsync(cancellationToken);
+            var city = allCities.FirstOrDefault(c =>
+                string.Equals(c.Name, cityName, StringComparison.OrdinalIgnoreCase));
+
+            return city != null && city.IsRecent;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error checking if city is recent: {cityName}");
+            return false;
+        }
     }
 
     public async Task ClearHistoryAsync(CancellationToken cancellationToken = default)
     {
-        var list = await _repository.GetRecentCitiesAsync(cancellationToken);
-        foreach (var city in list)
+        try
         {
-            city.IsRecent = false;
-            await _repository.UpdateCityAsync(city, cancellationToken);
+            var list = await _repository.GetRecentCitiesAsync(cancellationToken);
+            foreach (var city in list)
+            {
+                city.IsRecent = false;
+                await _repository.UpdateCityAsync(city, cancellationToken);
+            }
+            _logger.LogInformation($"History cleared ({list.Count} cities)");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing history");
+            throw;
         }
     }
 }
