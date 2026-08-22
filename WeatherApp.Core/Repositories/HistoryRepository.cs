@@ -25,21 +25,18 @@ public class HistoryRepository : IHistoryRepository
         {
             if (city == null) throw new ArgumentNullException(nameof(city));
 
-            // Проверяем, есть ли уже такой город в БД (чтобы не было дубликатов)
             var existing = await _repository.GetCityByNameAsync(city.Name, cancellationToken);
             if (existing != null)
             {
-                // Если есть, просто обновляем дату и делаем его "недавним"
                 existing.IsRecent = true;
                 existing.LastSearchedAt = DateTime.UtcNow;
                 await _repository.UpdateCityAsync(existing, cancellationToken);
                 return existing;
             }
 
-            // Если нет - создаем новый
             city.IsRecent = true;
             city.LastSearchedAt = DateTime.UtcNow;
-            city.IsFavorite = false; // По умолчанию не в избранном
+            city.IsFavorite = false; 
             var result = await _repository.AddCityAsync(city, cancellationToken);
             return result;
         }
@@ -52,18 +49,7 @@ public class HistoryRepository : IHistoryRepository
 
     public async Task<bool> RemoveFromHistoryAsync(int cityId, CancellationToken cancellationToken = default)
     {
-        // Если удаляем из истории, просто ставим IsRecent = false
         var city = await _repository.GetCityByIdAsync(cityId, cancellationToken);
-        if (city == null) return false;
-
-        city.IsRecent = false;
-        await _repository.UpdateCityAsync(city, cancellationToken);
-        return true;
-    }
-
-    public async Task<bool> RemoveFromHistoryByNameAsync(string cityName, CancellationToken cancellationToken = default)
-    {
-        var city = await _repository.GetCityByNameAsync(cityName, cancellationToken);
         if (city == null) return false;
 
         city.IsRecent = false;
@@ -75,12 +61,6 @@ public class HistoryRepository : IHistoryRepository
     {
         var city = await _repository.GetCityByNameAsync(cityName, cancellationToken);
         return city != null && city.IsRecent;
-    }
-
-    public async Task<int> GetHistoryCountAsync(CancellationToken cancellationToken = default)
-    {
-        var list = await _repository.GetRecentCitiesAsync(cancellationToken);
-        return list.Count;
     }
 
     public async Task ClearHistoryAsync(CancellationToken cancellationToken = default)

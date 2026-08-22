@@ -257,7 +257,7 @@ public partial class MainPageViewModel : BaseViewModel
 
         try
         {
-            await _cityService.RemoveFromHistoryByNameAsync(city.Name!);
+            await _cityService.RemoveFromHistoryAsync(city.Id);
 
             var cityToRemove = RecentCities.FirstOrDefault(c => c.Name == city.Name);
             if (cityToRemove != null)

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WeatherApp.Core.DTOs;
+﻿using WeatherApp.Core.DTOs;
 using WeatherApp.Core.Models;
 
 namespace WeatherApp.Core.Mappers

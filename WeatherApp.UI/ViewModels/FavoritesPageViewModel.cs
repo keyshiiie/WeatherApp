@@ -160,7 +160,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
 
         await ExecuteAsync(async () =>
         {
-            await _cityService.RemoveFavoriteByNameAsync(city.Name!);
+            await _cityService.RemoveFavoriteAsync(city.Id);
 
             var cityToRemove = FavoriteCities.FirstOrDefault(c => c.City.Name == city.Name);
             if (cityToRemove != null)

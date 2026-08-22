@@ -120,7 +120,13 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 IsRecent = false
             };
 
-            await _cityService.AddFavoriteAsync(city);
+            var result = await _cityService.AddFavoriteAsync(city);
+
+            if (SelectedCity != null && result != null)
+            {
+                SelectedCity.Id = result.Id;
+            }
+
             await CheckIsFavoriteAsync();
             UpdateFavoriteToolbarItem();
 
@@ -131,21 +137,27 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     [RelayCommand]
     private async Task RemoveFromFavoritesAsync()
     {
-        if (CurrentWeather == null || string.IsNullOrEmpty(CurrentWeather.CityName))
+        if (SelectedCity == null)
         {
-            Logger.LogWarning("Cannot remove from favorites: current weather is null or city name is empty");
+            Logger.LogWarning("Cannot remove from favorites: SelectedCity is null");
             return;
         }
 
-        Logger.LogInformation($"Removing {CurrentWeather.CityName} from favorites");
+        if (SelectedCity.Id == 0)
+        {
+            Logger.LogWarning($"Cannot remove from favorites: City '{SelectedCity.Name}' has no ID (not saved in DB yet)");
+            return;
+        }
+
+        Logger.LogInformation($"Removing {SelectedCity.Name} from favorites (ID: {SelectedCity.Id})");
 
         await ExecuteAsync(async () =>
         {
-            await _cityService.RemoveFavoriteByNameAsync(CurrentWeather.CityName);
+            await _cityService.RemoveFavoriteAsync(SelectedCity.Id);
             await CheckIsFavoriteAsync();
             UpdateFavoriteToolbarItem();
 
-            Logger.LogInformation($"Removed {CurrentWeather.CityName} from favorites");
+            Logger.LogInformation($"Removed {SelectedCity.Name} from favorites");
         }, "Не удалось удалить из избранного");
     }
 
@@ -172,10 +184,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         if (SelectedCity != null)
         {
             await LoadWeatherForCityAsync(SelectedCity);
-        }
-        else
-        {
-            await LoadBestCityAsync();
         }
     }
 
@@ -207,7 +215,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
                 Title = city.DisplayName;
 
-                // Просто создаем Display модели
                 CurrentWeather = current;
                 CurrentWeatherDisplay = new CurrentWeatherDisplay(current, Settings);
                 ForecastDays = forecast;
@@ -216,7 +223,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                 {
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
 
-                    // Создаем списки Display моделей
                     ForecastDaysDisplay = forecast
                         .Select(day => new ForecastDayDisplay(day, Settings))
                         .ToList();
@@ -225,7 +231,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                         .Select(hour => new HourlyForecastDisplay(hour, Settings))
                         .ToList();
 
-                    // Вызываем событие для графика
                     HourlyDataUpdated?.Invoke(this, HourlyForecastDisplay);
 
                     Logger.LogInformation($"Loaded weather for {city.Name}: {current.TemperatureC}°C, {forecast.Count} forecast days");
@@ -238,7 +243,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
                     Logger.LogWarning($"No forecast data for {city.Name}");
                 }
 
-                // Уведомляем об обновлении
                 OnPropertyChanged(nameof(CurrentWeather));
                 OnPropertyChanged(nameof(CurrentWeatherDisplay));
                 OnPropertyChanged(nameof(ForecastDays));
@@ -276,7 +280,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
     private void UpdateDisplayModels()
     {
-        // Обновляем все Display модели при изменении настроек
         if (CurrentWeather != null)
         {
             CurrentWeatherDisplay = new CurrentWeatherDisplay(CurrentWeather, Settings);
@@ -337,46 +340,6 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error updating favorite toolbar item");
-        }
-    }
-
-    private async Task LoadBestCityAsync()
-    {
-        Logger.LogInformation("Loading best city");
-
-        try
-        {
-            var bestCity = await _cityService.GetBestCityAsync();
-
-            if (bestCity != null)
-            {
-                Logger.LogInformation($"Best city found: {bestCity.Name}");
-                await LoadWeatherForCityAsync(bestCity);
-            }
-            else
-            {
-                Logger.LogWarning("No best city found, using default (Moscow)");
-
-                var defaultCity = new City
-                {
-                    Name = "Москва",
-                    Country = "Россия",
-                    Region = "Московская область",
-                    Latitude = 55.7558,
-                    Longitude = 37.6176,
-                    AddedAt = DateTime.UtcNow,
-                    IsLastSelected = false,
-                    IsFavorite = false,
-                    IsRecent = false
-                };
-
-                await LoadWeatherForCityAsync(defaultCity);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error loading best city");
-            SetError($"Не удалось загрузить начальный город: {ex.Message}");
         }
     }
 

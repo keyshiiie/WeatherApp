@@ -53,7 +53,6 @@ public class CityMapper : ICityMapper
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
-        // Переводим регион
         var translatedRegion = RegionTranslator.Translate(dto.Region ?? string.Empty);
 
         return new CitySuggestion

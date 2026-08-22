@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WeatherApp.Core.DTOs;
+﻿using WeatherApp.Core.DTOs;
 using WeatherApp.Core.Models;
-using WeatherApp.Core.Translator;
 
 namespace WeatherApp.Core.Mappers
 {
@@ -83,7 +79,6 @@ namespace WeatherApp.Core.Mappers
                     MoonIllumination = dayDto.Astro?.MoonIllumination ?? 0
                 };
 
-                // Маппинг почасового прогноза
                 if (dayDto.Hour != null)
                 {
                     foreach (var hourDto in dayDto.Hour)

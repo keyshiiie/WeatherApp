@@ -8,6 +8,5 @@ namespace WeatherApp.Core.Services
 {
     public interface ICityService : IFavoritesRepository, IHistoryRepository
     {
-        Task<City?> GetBestCityAsync(CancellationToken cancellationToken = default);
     }
 }

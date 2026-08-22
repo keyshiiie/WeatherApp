@@ -2,7 +2,7 @@
 
 public static class ApiConstants
 {
-    // Базовые URL будут загружаться из конфигурации
+    // Базовые URL
     public const string WeatherApiBaseUrl = "https://api.weatherapi.com/v1/";
     public const string NominatimBaseUrl = "https://nominatim.openstreetmap.org/";
 

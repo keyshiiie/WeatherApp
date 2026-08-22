@@ -2,8 +2,6 @@
 using WeatherApp.Core.Models;
 
 namespace WeatherApp.Core.Repositories;
-
-/// Реализация сервиса для работы с избранными городами
 public class FavoritesRepository : IFavoritesRepository
 {
     private readonly IWeatherRepository _repository;
@@ -37,6 +35,8 @@ public class FavoritesRepository : IFavoritesRepository
                 return existing;
             }
 
+            city.IsFavorite = true;
+            city.AddedAt = DateTime.UtcNow;
             var result = await _repository.AddCityAsync(city, cancellationToken);
 
             var count = await _repository.GetAllCitiesAsync(cancellationToken);
@@ -75,68 +75,6 @@ public class FavoritesRepository : IFavoritesRepository
         }
     }
 
-    public async Task<bool> RemoveFavoriteByNameAsync(string cityName, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(cityName))
-                return false;
-
-            var city = await _repository.GetCityByNameAsync(cityName, cancellationToken);
-            if (city == null)
-                return false;
-
-            city.IsFavorite = false;
-            await _repository.UpdateCityAsync(city, cancellationToken);
-            _logger.LogInformation($"City {cityName} removed from favorites");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error removing favorite city by name: {cityName}");
-            return false;
-        }
-    }
-
-    public async Task<City?> GetLastFavoriteAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return await _repository.GetLastSelectedCityAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting last favorite");
-            return null;
-        }
-    }
-
-    public async Task SetLastFavoriteAsync(City city, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (city == null)
-                throw new ArgumentNullException(nameof(city));
-
-            if (city.Id <= 0)
-                throw new ArgumentException("Invalid city id", nameof(city));
-
-            // Проверяем, существует ли город
-            var existing = await _repository.GetCityByIdAsync(city.Id, cancellationToken);
-            if (existing == null)
-                throw new InvalidOperationException($"City with id {city.Id} not found");
-
-            await _repository.SetLastSelectedCityAsync(city.Id, cancellationToken);
-
-            _logger.LogInformation($"City {city.Name} set as last favorite");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error setting last favorite: {city?.Name}");
-            throw;
-        }
-    }
-
     public async Task<bool> IsFavoriteAsync(string cityName, CancellationToken cancellationToken = default)
     {
         try
@@ -167,26 +105,12 @@ public class FavoritesRepository : IFavoritesRepository
         }
     }
 
-    public async Task<int> GetFavoritesCountAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var cities = await _repository.GetFavoriteCitiesAsync(cancellationToken);
-            return cities.Count;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting favorites count");
-            return 0;
-        }
-    }
-
     public async Task ClearAllFavoritesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var cities = await _repository.GetAllCitiesAsync(cancellationToken);
-            foreach (var city in cities)
+            var favorites = await _repository.GetFavoriteCitiesAsync(cancellationToken);
+            foreach (var city in favorites)
             {
                 await _repository.RemoveCityAsync(city.Id, cancellationToken);
             }
@@ -196,28 +120,6 @@ public class FavoritesRepository : IFavoritesRepository
         {
             _logger.LogError(ex, "Error clearing all favorites");
             throw;
-        }
-    }
-
-    private async Task SelectFirstAvailableCityAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var cities = await _repository.GetAllCitiesAsync(cancellationToken);
-            if (cities.Count > 0)
-            {
-                var firstCity = cities[0];
-                await _repository.SetLastSelectedCityAsync(firstCity.Id, cancellationToken);
-                _logger.LogInformation($"Auto-selected city: {firstCity.Name}");
-            }
-            else
-            {
-                _logger.LogInformation("No cities left in favorites");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error selecting first available city");
         }
     }
 }

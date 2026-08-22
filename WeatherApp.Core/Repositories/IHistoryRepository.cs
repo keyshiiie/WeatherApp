@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WeatherApp.Core.Models;
+﻿using WeatherApp.Core.Models;
 
 namespace WeatherApp.Core.Repositories
 {
@@ -10,9 +7,7 @@ namespace WeatherApp.Core.Repositories
         Task<List<City>> GetHistoryAsync(CancellationToken cancellationToken = default);
         Task<City> AddInHistoryAsync(City city, CancellationToken cancellationToken = default);
         Task<bool> RemoveFromHistoryAsync(int cityId, CancellationToken cancellationToken = default);
-        Task<bool> RemoveFromHistoryByNameAsync(string cityName, CancellationToken cancellationToken = default);
         Task<bool> IsRecentAsync(string cityName, CancellationToken cancellationToken = default);
-        Task<int> GetHistoryCountAsync(CancellationToken cancellationToken = default);
         Task ClearHistoryAsync(CancellationToken cancellationToken = default);
     }
 }
