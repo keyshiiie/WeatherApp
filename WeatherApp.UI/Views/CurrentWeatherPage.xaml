@@ -22,9 +22,6 @@
             <ScrollView Grid.Row="0" 
                         Style="{StaticResource ScrollContainer}">
                 <StackLayout>
-                    <Label Text="{Binding ErrorMessage}"
-                           IsVisible="{Binding HasError}"
-                           Style="{StaticResource WeatherErrorLabel}" />
 
                     <StackLayout HorizontalOptions="Center" 
                                  Spacing="0"

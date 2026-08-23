@@ -7,7 +7,6 @@ using WeatherApp.Core.Data;
 using WeatherApp.Core.Mappers;
 using WeatherApp.Core.Repositories;
 using WeatherApp.Core.Services;
-using WeatherApp.Core.ViewModels;
 using WeatherApp.UI.Services;
 using WeatherApp.UI.ViewModels;
 using WeatherApp.UI.Views;

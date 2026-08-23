@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Maui.Core;
+﻿// WeatherApp.UI/ViewModels/SettingsPageViewModel.cs
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
 
@@ -33,7 +35,7 @@ public partial class SettingsPageViewModel : BaseViewModel
     public SettingsPageViewModel(
         ISettingsService settingsService,
         ILogger<SettingsPageViewModel> logger)
-        : base(logger) 
+        : base(logger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         Title = "Настройки";
@@ -52,30 +54,63 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         Logger.LogInformation("Loading settings");
 
-        var settings = _settingsService.GetSettings();
-        SelectedTemperatureUnit = settings.TemperatureUnit;
-        SelectedPressureUnit = settings.PressureUnit;
-        SelectedSpeedUnit = settings.SpeedUnit;
+        var result = _settingsService.GetSettings();
+        if (result.IsSuccess)
+        {
+            var settings = result.Value!;
+            SelectedTemperatureUnit = settings.TemperatureUnit;
+            SelectedPressureUnit = settings.PressureUnit;
+            SelectedSpeedUnit = settings.SpeedUnit;
 
-        Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, Pressure={SelectedPressureUnit}, Speed={SelectedSpeedUnit}");
+            Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, Pressure={SelectedPressureUnit}, Speed={SelectedSpeedUnit}");
+        }
+        else
+        {
+            Logger.LogWarning($"Failed to load settings: {result.Error?.Message}");
+            SetError(result.Error!);
+        }
     }
 
     partial void OnSelectedTemperatureUnitChanged(TemperatureUnit value)
     {
-        Logger.LogInformation($"Temperature unit changed to: {value}");
-        _settingsService.SetTemperatureUnit(value);
+        if (!IsBusy)
+        {
+            Logger.LogInformation($"Temperature unit changed to: {value}");
+            var result = _settingsService.SetTemperatureUnit(value);
+            if (result.IsFailure)
+            {
+                Logger.LogWarning($"Failed to set temperature unit: {result.Error?.Message}");
+                SetError(result.Error!);
+            }
+        }
     }
 
     partial void OnSelectedPressureUnitChanged(PressureUnit value)
     {
-        Logger.LogInformation($"Pressure unit changed to: {value}");
-        _settingsService.SetPressureUnit(value);
+        if (!IsBusy)
+        {
+            Logger.LogInformation($"Pressure unit changed to: {value}");
+            var result = _settingsService.SetPressureUnit(value);
+            if (result.IsFailure)
+            {
+                Logger.LogWarning($"Failed to set pressure unit: {result.Error?.Message}");
+                SetError(result.Error!);
+            }
+        }
     }
 
     partial void OnSelectedSpeedUnitChanged(SpeedUnit value)
     {
-        Logger.LogInformation($"Speed unit changed to: {value}");
-        _settingsService.SetSpeedUnit(value);
+        if (!IsBusy)
+        {
+            Logger.LogInformation($"Speed unit changed to: {value}");
+            var result = _settingsService.SetSpeedUnit(value);
+            if (result.IsFailure)
+            {
+                Logger.LogWarning($"Failed to set speed unit: {result.Error?.Message}");
+                SetError(result.Error!);
+            }
+        }
     }
 
     [RelayCommand]
@@ -91,14 +126,14 @@ public partial class SettingsPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error opening link");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+            await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
         }
     }
 
     [RelayCommand]
     private async Task OpenFeedbackLink()
     {
-        Logger.LogInformation("Opening PrivacyPolicy link");
+        Logger.LogInformation("Opening Feedback link");
 
         try
         {
@@ -108,7 +143,7 @@ public partial class SettingsPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error opening link");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+            await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
         }
     }
 
@@ -125,7 +160,7 @@ public partial class SettingsPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error opening link");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+            await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
         }
     }
 
@@ -139,7 +174,7 @@ public partial class SettingsPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error navigating to ChangeApiKeyPage");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть страницу смены ключа", "ОК");
+            await ShowAlertAsync("Ошибка", "Не удалось открыть страницу смены ключа");
         }
     }
 }

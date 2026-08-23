@@ -1,19 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WeatherApp.Core.Models;
+﻿using WeatherApp.Core.Models;
+using WeatherApp.Core.Results;
 
-namespace WeatherApp.Core.Repositories
+namespace WeatherApp.Core.Repositories;
+
+public interface IWeatherRepository
 {
-    public interface IWeatherRepository
-    {
-        Task<List<City>> GetAllCitiesAsync(CancellationToken cancellationToken = default);
-        Task<City?> GetCityByIdAsync(int id, CancellationToken cancellationToken = default);
-        Task<City> AddCityAsync(City city, CancellationToken cancellationToken = default);
-        Task<City> UpdateCityAsync(City city, CancellationToken cancellationToken = default);
-        Task<bool> RemoveCityAsync(int id, CancellationToken cancellationToken = default);
-        Task SetLastSelectedCityAsync(int cityId, CancellationToken cancellationToken = default);
-        Task<List<City>> GetFavoriteCitiesAsync(CancellationToken cancellationToken = default);
-        Task<List<City>> GetRecentCitiesAsync(CancellationToken cancellationToken = default);
-    }
+    Task<Result<List<City>>> GetAllCitiesAsync(CancellationToken cancellationToken = default);
+    Task<Result<City>> GetCityByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<Result<City>> AddCityAsync(City city, CancellationToken cancellationToken = default);
+    Task<Result<City>> UpdateCityAsync(City city, CancellationToken cancellationToken = default);
+    Task<Result<bool>> RemoveCityAsync(int id, CancellationToken cancellationToken = default);
+    Task<Result> SetLastSelectedCityAsync(int cityId, CancellationToken cancellationToken = default);
+    Task<Result<List<City>>> GetFavoriteCitiesAsync(CancellationToken cancellationToken = default);
+    Task<Result<List<City>>> GetRecentCitiesAsync(CancellationToken cancellationToken = default);
+    Task<Result<bool>> IsCityFavoriteByNameAsync(string cityName, CancellationToken cancellationToken = default);
+    Task<Result<City>> FindOrCreateCityAsync(
+        string name,
+        string country,
+        double latitude,
+        double longitude,
+        string? region = null,
+        CancellationToken cancellationToken = default);
 }

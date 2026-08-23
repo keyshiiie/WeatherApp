@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Text;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Results;
 
 namespace WeatherApp.Core.Services
 {
     public interface ISettingsService
     {
-        UserSettings GetSettings();
-        void SaveSettings(UserSettings settings);
-        void SetTemperatureUnit(TemperatureUnit unit);
-        void SetPressureUnit(PressureUnit unit);
-        void SetSpeedUnit(SpeedUnit unit);
+        Result<UserSettings> GetSettings();
+        Result SaveSettings(UserSettings settings);
+        Result SetTemperatureUnit(TemperatureUnit unit);
+        Result SetPressureUnit(PressureUnit unit);
+        Result SetSpeedUnit(SpeedUnit unit);
         event EventHandler<UserSettings>? SettingsChanged;
     }
 }

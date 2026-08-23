@@ -1,7 +1,9 @@
-﻿using System.ComponentModel;
+﻿// WeatherApp.UI/ViewModels/BaseViewModel.cs
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using WeatherApp.Core.Results;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -12,7 +14,6 @@ public abstract partial class BaseViewModel : ObservableObject
     private string _errorMessage = string.Empty;
     private bool _hasError;
 
-    // Добавляем логгер
     protected ILogger Logger { get; }
 
     protected BaseViewModel(ILogger logger)
@@ -60,29 +61,65 @@ public abstract partial class BaseViewModel : ObservableObject
         HasError = !string.IsNullOrEmpty(message);
     }
 
+    protected void SetError(Error error)
+    {
+        ErrorMessage = error.Message;
+        HasError = true;
+        Logger.LogWarning($"Error: {error.Code} - {error.Message}");
+    }
+
     protected void ClearError()
     {
         ErrorMessage = string.Empty;
         HasError = false;
     }
 
-    protected async Task ExecuteAsync(Func<Task> action, string errorMessage = "Произошла ошибка")
+    /// <summary>
+    /// Выполняет действие с обработкой Result
+    /// </summary>
+    protected async Task<Result<T>> ExecuteWithResultAsync<T>(
+        Func<Task<Result<T>>> action,
+        string successMessage = "",
+        string errorMessage = "Произошла ошибка")
     {
         if (IsBusy)
-            return;
+            return Result.Failure<T>(new ValidationError("Операция уже выполняется"));
 
         try
         {
             IsBusy = true;
             ClearError();
             Logger.LogInformation($"Executing: {action.Method.Name}");
-            await action();
-            Logger.LogInformation($"Completed: {action.Method.Name}");
+
+            var result = await action();
+
+            if (result.IsSuccess)
+            {
+                Logger.LogInformation($"Completed: {action.Method.Name} - Success");
+                if (!string.IsNullOrEmpty(successMessage))
+                {
+                    await ShowToastAsync(successMessage);
+                }
+                return result;
+            }
+            else
+            {
+                Logger.LogWarning($"Completed: {action.Method.Name} - Failed: {result.Error?.Message}");
+                SetError(result.Error!);
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    await ShowToastAsync($"{errorMessage}: {result.Error?.Message}");
+                }
+                return Result.Failure<T>(result.Error!);
+            }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
-            SetError($"{errorMessage}: {ex.Message}");
+            var error = new UnknownError($"{errorMessage}: {ex.Message}", ex);
+            SetError(error);
+            await ShowToastAsync(error.Message);
+            return Result.Failure<T>(error);
         }
         finally
         {
@@ -90,29 +127,105 @@ public abstract partial class BaseViewModel : ObservableObject
         }
     }
 
-    protected async Task<T> ExecuteAsync<T>(Func<Task<T>> action, string errorMessage = "Произошла ошибка")
+    /// <summary>
+    /// Выполняет действие без возврата результата
+    /// </summary>
+    protected async Task<Result> ExecuteWithResultAsync(
+        Func<Task<Result>> action,
+        string successMessage = "",
+        string errorMessage = "Произошла ошибка")
     {
         if (IsBusy)
-            return default!;
+            return Result.Failure(new ValidationError("Операция уже выполняется"));
 
         try
         {
             IsBusy = true;
             ClearError();
             Logger.LogInformation($"Executing: {action.Method.Name}");
+
             var result = await action();
-            Logger.LogInformation($"Completed: {action.Method.Name}");
-            return result;
+
+            if (result.IsSuccess)
+            {
+                Logger.LogInformation($"Completed: {action.Method.Name} - Success");
+                if (!string.IsNullOrEmpty(successMessage))
+                {
+                    await ShowToastAsync(successMessage);
+                }
+                return result;
+            }
+            else
+            {
+                Logger.LogWarning($"Completed: {action.Method.Name} - Failed: {result.Error?.Message}");
+                SetError(result.Error!);
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    await ShowToastAsync($"{errorMessage}: {result.Error?.Message}");
+                }
+                return Result.Failure(result.Error!);
+            }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
-            SetError($"{errorMessage}: {ex.Message}");
-            return default!;
+            var error = new UnknownError($"{errorMessage}: {ex.Message}", ex);
+            SetError(error);
+            await ShowToastAsync(error.Message);
+            return Result.Failure(error);
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Показывает Toast сообщение
+    /// </summary>
+    protected virtual async Task ShowToastAsync(string message)
+    {
+        try
+        {
+            await CommunityToolkit.Maui.Alerts.Toast.Make(message, CommunityToolkit.Maui.Core.ToastDuration.Short).Show();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to show toast");
+        }
+    }
+
+    /// <summary>
+    /// Показывает Alert сообщение
+    /// </summary>
+    protected virtual async Task ShowAlertAsync(string title, string message)
+    {
+        try
+        {
+            await Shell.Current.CurrentPage.DisplayAlertAsync(title, message, "OK");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to show alert");
+        }
+    }
+
+    /// <summary>
+    /// Обрабатывает ошибку Result и возвращает понятное сообщение
+    /// </summary>
+    protected string GetUserFriendlyErrorMessage(Error error)
+    {
+        return error switch
+        {
+            ApiKeyMissingError => "⚠️ API ключ не найден. Добавьте его в настройках.",
+            NetworkError => "🌐 Нет подключения к интернету. Проверьте соединение.",
+            TimeoutError => "⏱️ Превышено время ожидания. Попробуйте еще раз.",
+            NotFoundError notFound => $"🔍 {notFound.Message}",
+            ApiError apiError when apiError.StatusCode == 401 => "🔑 Неверный API ключ. Проверьте настройки.",
+            ApiError apiError => $"❌ Ошибка API: {apiError.Message}",
+            DatabaseError dbError => $"💾 Ошибка базы данных: {dbError.Message}",
+            ValidationError validationError => $"⚠️ {validationError.Message}",
+            _ => $"❌ {error.Message}"
+        };
     }
 }

@@ -1,13 +1,16 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// WeatherApp.UI/ViewModels/LoginPageViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
 using WeatherApp.Core.Services;
+using WeatherApp.Core.Results;
 
 namespace WeatherApp.UI.ViewModels;
 
 public partial class LoginPageViewModel : BaseViewModel
 {
-    private readonly IWeatherService _weatherService;
+    private readonly IApiKeyService _apiKeyService;
 
     [ObservableProperty]
     private string? _apiKey;
@@ -16,12 +19,12 @@ public partial class LoginPageViewModel : BaseViewModel
     private bool _isValidating;
 
     public LoginPageViewModel(
-        IWeatherService weatherService,
+        IApiKeyService apiKeyService,
         ILogger<LoginPageViewModel> logger)
         : base(logger)
     {
         Title = "Вход";
-        _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
+        _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
         Logger.LogInformation("LoginPageViewModel initialized");
     }
 
@@ -29,22 +32,23 @@ public partial class LoginPageViewModel : BaseViewModel
     {
         Logger.LogInformation("Login page appearing");
 
-        try
-        {
-            var savedKey = await SecureStorage.GetAsync("weather_api_key");
-            if (!string.IsNullOrEmpty(savedKey))
+        var result = await ExecuteWithResultAsync(
+            async () =>
             {
-                Logger.LogInformation("Existing API key found, validating...");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking for saved API key");
-            await Shell.Current.CurrentPage.DisplayAlertAsync(
-                "Ошибка",
-                "Не удалось проверить сохраненный ключ",
-                "ОК");
-        }
+                var keyResult = await _apiKeyService.HasApiKeyAsync();
+                if (keyResult.IsFailure)
+                    return Result.Failure<bool>(keyResult.Error!);
+
+                if (keyResult.Value)
+                {
+                    Logger.LogInformation("Existing API key found");
+                    await ShowToastAsync("🔑 API ключ уже установлен");
+                }
+
+                return Result.Success(keyResult.Value);
+            },
+            errorMessage: "Не удалось проверить сохраненный ключ"
+        );
     }
 
     [RelayCommand]
@@ -55,34 +59,34 @@ public partial class LoginPageViewModel : BaseViewModel
         if (string.IsNullOrWhiteSpace(ApiKey))
         {
             Logger.LogWarning("Login failed: API key is empty");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Введите API ключ!", "ОК");
+            await ShowAlertAsync("Ошибка", "Введите API ключ!");
             return;
         }
 
         var trimmedKey = ApiKey.Trim();
 
-        try
+        var result = await ExecuteWithResultAsync(
+            async () =>
+            {
+                IsValidating = true;
+
+                var saveResult = await _apiKeyService.SetApiKeyAsync(trimmedKey);
+                if (saveResult.IsFailure)
+                    return Result.Failure(saveResult.Error!);
+
+                Logger.LogInformation("API key saved successfully");
+                return Result.Success();
+            },
+            successMessage: "✅ API ключ сохранен",
+            errorMessage: "Не удалось сохранить API ключ"
+        );
+
+        if (result.IsSuccess)
         {
-            IsValidating = true;
-
-            Logger.LogInformation("API key is valid, saving...");
-            await SecureStorage.SetAsync("weather_api_key", trimmedKey);
-
-            Logger.LogInformation("API key saved successfully, navigating back");
             await Shell.Current.GoToAsync("..");
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error validating/saving API key");
-            await Shell.Current.CurrentPage.DisplayAlertAsync(
-                "Ошибка",
-                "Не удалось проверить API ключ. Проверьте подключение к интернету.",
-                "ОК");
-        }
-        finally
-        {
-            IsValidating = false;
-        }
+
+        IsValidating = false;
     }
 
     [RelayCommand]
@@ -98,7 +102,7 @@ public partial class LoginPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error opening link");
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Ошибка", "Не удалось открыть ссылку", "ОК");
+            await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
         }
     }
 }

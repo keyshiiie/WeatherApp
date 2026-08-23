@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.DisplayModels;
 
@@ -10,6 +11,7 @@ namespace WeatherApp.UI.ViewModels;
 public partial class CurrentWeatherViewModel : BaseViewModel
 {
     public event EventHandler<List<HourlyForecastDisplay>>? HourlyDataUpdated;
+
     private readonly IWeatherService _weatherService;
     private readonly ICityService _cityService;
     private readonly ISettingsService _settingsService;
@@ -58,7 +60,11 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         Title = "Погода";
 
         _settingsService.SettingsChanged += OnSettingsChanged;
-        Settings = _settingsService.GetSettings();
+        var settingsResult = _settingsService.GetSettings();
+        if (settingsResult.IsSuccess)
+        {
+            Settings = settingsResult.Value!;
+        }
     }
 
     private void OnSettingsChanged(object? sender, UserSettings settings)
@@ -105,33 +111,40 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
         Logger.LogInformation($"Adding {CurrentWeather.CityName} to favorites");
 
-        await ExecuteAsync(async () =>
-        {
-            var city = new City
+        var result = await ExecuteWithResultAsync(
+            async () =>
             {
-                Name = CurrentWeather.CityName,
-                Country = CurrentWeather.Country,
-                Region = CurrentWeather.Region,
-                Latitude = CurrentWeather.Latitude,
-                Longitude = CurrentWeather.Longitude,
-                AddedAt = DateTime.UtcNow,
-                IsLastSelected = false,
-                IsFavorite = true,
-                IsRecent = false
-            };
+                var city = new City
+                {
+                    Name = CurrentWeather.CityName,
+                    Country = CurrentWeather.Country,
+                    Region = CurrentWeather.Region,
+                    Latitude = CurrentWeather.Latitude,
+                    Longitude = CurrentWeather.Longitude,
+                    AddedAt = DateTime.UtcNow,
+                    IsLastSelected = false,
+                    IsFavorite = true,
+                    IsRecent = false
+                };
 
-            var result = await _cityService.AddFavoriteAsync(city);
+                var addResult = await _cityService.AddFavoriteAsync(city);
+                if (addResult.IsFailure)
+                    return Result.Failure(addResult.Error!);
 
-            if (SelectedCity != null && result != null)
-            {
-                SelectedCity.Id = result.Id;
-            }
+                if (SelectedCity != null && addResult.Value != null)
+                {
+                    SelectedCity.Id = addResult.Value.Id;
+                }
 
-            await CheckIsFavoriteAsync();
-            UpdateFavoriteToolbarItem();
+                await CheckIsFavoriteAsync();
+                UpdateFavoriteToolbarItem();
 
-            Logger.LogInformation($"Added {CurrentWeather.CityName} to favorites");
-        }, "Не удалось добавить в избранное");
+                Logger.LogInformation($"Added {CurrentWeather.CityName} to favorites");
+                return Result.Success();
+            },
+            successMessage: $"{CurrentWeather.CityName} добавлен в избранное",
+            errorMessage: "Не удалось добавить в избранное"
+        );
     }
 
     [RelayCommand]
@@ -145,20 +158,29 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
         if (SelectedCity.Id == 0)
         {
-            Logger.LogWarning($"Cannot remove from favorites: City '{SelectedCity.Name}' has no ID (not saved in DB yet)");
+            Logger.LogWarning($"Cannot remove from favorites: City '{SelectedCity.Name}' has no ID");
+            await ShowAlertAsync("Ошибка", "Город не сохранен в базе данных. Попробуйте обновить страницу.");
             return;
         }
 
         Logger.LogInformation($"Removing {SelectedCity.Name} from favorites (ID: {SelectedCity.Id})");
 
-        await ExecuteAsync(async () =>
-        {
-            await _cityService.RemoveFavoriteAsync(SelectedCity.Id);
-            await CheckIsFavoriteAsync();
-            UpdateFavoriteToolbarItem();
+        var result = await ExecuteWithResultAsync(
+            async () =>
+            {
+                var removeResult = await _cityService.RemoveFavoriteAsync(SelectedCity.Id);
+                if (removeResult.IsFailure)
+                    return Result.Failure(removeResult.Error!);
 
-            Logger.LogInformation($"Removed {SelectedCity.Name} from favorites");
-        }, "Не удалось удалить из избранного");
+                await CheckIsFavoriteAsync();
+                UpdateFavoriteToolbarItem();
+
+                Logger.LogInformation($"Removed {SelectedCity.Name} from favorites");
+                return Result.Success();
+            },
+            successMessage: $"{SelectedCity.Name} удален из избранного",
+            errorMessage: "Не удалось удалить из избранного"
+        );
     }
 
     [RelayCommand]
@@ -180,7 +202,12 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     {
         Logger.LogInformation("CurrentWeather page appearing");
 
-        Settings = _settingsService.GetSettings();
+        var settingsResult = _settingsService.GetSettings();
+        if (settingsResult.IsSuccess)
+        {
+            Settings = settingsResult.Value!;
+        }
+
         if (SelectedCity != null)
         {
             await LoadWeatherForCityAsync(SelectedCity);
@@ -200,15 +227,23 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         IsCurrentCityFavorite = false;
         SelectedCity = city;
 
-        await ExecuteAsync(async () =>
-        {
-            var (current, forecast) = await _weatherService.GetCurrentAndForecastAsync(
-                city.Latitude,
-                city.Longitude,
-                5);
-
-            if (current != null)
+        var result = await ExecuteWithResultAsync<WeatherData>(
+            async () =>
             {
+                var weatherResult = await _weatherService.GetCurrentAndForecastAsync(
+                    city.Latitude,
+                    city.Longitude,
+                    5);
+
+                if (weatherResult.IsFailure)
+                    return Result.Failure<WeatherData>(weatherResult.Error!);
+
+                var (current, forecast) = weatherResult.Value;
+                if (current == null)
+                {
+                    return Result.Failure<WeatherData>(new NotFoundError("Weather", city.Name));
+                }
+
                 current.CityName = city.Name;
                 current.Country = city.Country;
                 current.Region = city.Region;
@@ -252,21 +287,33 @@ public partial class CurrentWeatherViewModel : BaseViewModel
 
                 await CheckIsFavoriteAsync();
                 UpdateFavoriteToolbarItem();
-            }
-            else
-            {
-                Logger.LogError($"Failed to load weather for {city.Name}");
-                SetError($"Не удалось загрузить погоду для {city.Name}");
-            }
-        }, $"Не удалось загрузить погоду для {city.Name}");
+
+                return Result.Success(current);
+            },
+            errorMessage: $"Не удалось загрузить погоду для {city.Name}"
+        );
+
+        if (result.IsFailure)
+        {
+            SetError(result.Error!);
+        }
     }
 
     public async Task CheckIsFavoriteAsync()
     {
         if (CurrentWeather != null && !string.IsNullOrEmpty(CurrentWeather.CityName))
         {
-            IsCurrentCityFavorite = await _cityService.IsFavoriteAsync(CurrentWeather.CityName);
-            Logger.LogDebug($"Is {CurrentWeather.CityName} favorite: {IsCurrentCityFavorite}");
+            var result = await _cityService.IsFavoriteAsync(CurrentWeather.CityName);
+            if (result.IsSuccess)
+            {
+                IsCurrentCityFavorite = result.Value;
+                Logger.LogDebug($"Is {CurrentWeather.CityName} favorite: {IsCurrentCityFavorite}");
+            }
+            else
+            {
+                IsCurrentCityFavorite = false;
+                Logger.LogWarning($"Failed to check favorite status: {result.Error?.Message}");
+            }
         }
         else
         {

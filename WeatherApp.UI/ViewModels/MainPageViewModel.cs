@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using WeatherApp.Core.Models;
+using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.Views;
 
@@ -31,14 +32,11 @@ public partial class MainPageViewModel : BaseViewModel
     [ObservableProperty]
     private bool _showRecent;
 
-    [ObservableProperty]
-    private bool _isBusy;
-
     public MainPageViewModel(
         IWeatherService weatherService,
         IGeolocationService geolocationService,
         ICityService cityService,
-        ILogger<MainPageViewModel> logger) 
+        ILogger<MainPageViewModel> logger)
         : base(logger)
     {
         Title = "Поиск";
@@ -82,14 +80,17 @@ public partial class MainPageViewModel : BaseViewModel
 
         Logger.LogInformation($"Searching cities: {SearchQuery}");
 
-        try
-        {
-            var results = await _weatherService.SearchCitiesAsync(SearchQuery);
+        var result = await ExecuteWithResultAsync(
+            async () => await _weatherService.SearchCitiesAsync(SearchQuery),
+            errorMessage: "Ошибка поиска городов"
+        );
 
-            if (results != null && results.Any())
+        if (result.IsSuccess && result.Value != null)
+        {
+            if (result.Value.Any())
             {
-                Logger.LogInformation($"Found {results.Count()} cities for '{SearchQuery}'");
-                SearchSuggestions = results.Take(10).ToList();
+                Logger.LogInformation($"Found {result.Value.Count} cities for '{SearchQuery}'");
+                SearchSuggestions = result.Value.Take(10).ToList();
                 ShowSearchSuggestions = SearchSuggestions.Any();
             }
             else
@@ -97,15 +98,11 @@ public partial class MainPageViewModel : BaseViewModel
                 Logger.LogWarning($"No cities found for '{SearchQuery}'");
                 SearchSuggestions.Clear();
                 ShowSearchSuggestions = false;
-
-                await Toast.Make("Города не найдены. Попробуйте изменить запрос", ToastDuration.Long).Show();
+                await ShowToastAsync("Города не найдены. Попробуйте изменить запрос");
             }
         }
-        catch (Exception ex)
+        else
         {
-            Logger.LogError(ex, $"Error searching cities: {SearchQuery}");
-            await Toast.Make("Ошибка поиска городов. Проверьте подключение к интернету", ToastDuration.Long).Show();
-
             SearchSuggestions.Clear();
             ShowSearchSuggestions = false;
         }
@@ -122,40 +119,40 @@ public partial class MainPageViewModel : BaseViewModel
 
         Logger.LogInformation($"Selecting city: {suggestion.Name}, {suggestion.Country}");
 
-        try
-        {
-            IsBusy = true;
-
-            var city = new City
+        var result = await ExecuteWithResultAsync<City>(
+            async () =>
             {
-                Name = suggestion.Name,
-                Country = suggestion.Country,
-                Region = suggestion.Region,
-                Latitude = suggestion.Latitude,
-                Longitude = suggestion.Longitude,
-                AddedAt = DateTime.UtcNow,
-                IsLastSelected = false
-            };
+                var city = new City
+                {
+                    Name = suggestion.Name,
+                    Country = suggestion.Country,
+                    Region = suggestion.Region,
+                    Latitude = suggestion.Latitude,
+                    Longitude = suggestion.Longitude,
+                    AddedAt = DateTime.UtcNow,
+                    IsLastSelected = false
+                };
 
-            await _cityService.AddInHistoryAsync(city);
-            Logger.LogInformation($"City added to history: {city.Name}");
+                var addResult = await _cityService.AddInHistoryAsync(city);
+                if (addResult.IsFailure)
+                    return Result.Failure<City>(addResult.Error!);
 
-            await NavigateToWeatherPage(city);
+                Logger.LogInformation($"City added to history: {city.Name}");
+                return Result.Success(city);
+            },
+            successMessage: $"{suggestion.Name} добавлен в историю",
+            errorMessage: "Не удалось добавить город в историю"
+        );
+
+        if (result.IsSuccess)
+        {
+            await NavigateToWeatherPage(result.Value!);
 
             SearchQuery = string.Empty;
             SearchSuggestions.Clear();
             ShowSearchSuggestions = false;
 
             await LoadCityListsAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"Error selecting city: {suggestion.Name}");
-            await Toast.Make("Не удалось открыть погоду для выбранного города", ToastDuration.Long).Show();
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -164,52 +161,49 @@ public partial class MainPageViewModel : BaseViewModel
     {
         Logger.LogInformation("Getting current location");
 
-        try
+        var result = await ExecuteWithResultAsync<City>(
+            async () =>
+            {
+                var hasPermission = await _geolocationService.RequestLocationPermissionAsync();
+                if (!hasPermission)
+                {
+                    Logger.LogWarning("Location permission denied");
+                    return Result.Failure<City>(new ValidationError("Разрешение на определение местоположения не получено"));
+                }
+
+                var location = await _geolocationService.GetCurrentLocationAsync();
+                if (location == null)
+                {
+                    Logger.LogWarning("Location is null");
+                    return Result.Failure<City>(new NotFoundError("Location", "current"));
+                }
+
+                if (string.IsNullOrEmpty(location.Name))
+                {
+                    Logger.LogWarning("Location name is empty");
+                    return Result.Failure<City>(new ValidationError("Не удалось определить название города"));
+                }
+
+                Logger.LogInformation($"Location found: {location.Name}, {location.Country}");
+
+                location.Country ??= "Unknown";
+                location.Region ??= "Unknown";
+
+                var addResult = await _cityService.AddInHistoryAsync(location);
+                if (addResult.IsFailure)
+                    return Result.Failure<City>(addResult.Error!);
+
+                Logger.LogInformation($"Location added to history: {location.Name}");
+                return Result.Success(location);
+            },
+            successMessage: $"Определено местоположение",
+            errorMessage: "Не удалось определить местоположение"
+        );
+
+        if (result.IsSuccess)
         {
-            IsBusy = true;
-
-            var hasPermission = await _geolocationService.RequestLocationPermissionAsync();
-            if (!hasPermission)
-            {
-                Logger.LogWarning("Location permission denied");
-                await Toast.Make("Разрешение на определение местоположения не получено", ToastDuration.Long).Show();
-                return;
-            }
-
-            var location = await _geolocationService.GetCurrentLocationAsync();
-            if (location == null)
-            {
-                Logger.LogWarning("Location is null");
-                await Toast.Make("Не удалось определить местоположение", ToastDuration.Long).Show();
-                return;
-            }
-
-            if (string.IsNullOrEmpty(location.Name))
-            {
-                Logger.LogWarning("Location name is empty");
-                await Toast.Make("Не удалось определить название города", ToastDuration.Long).Show();
-                return;
-            }
-
-            Logger.LogInformation($"Location found: {location.Name}, {location.Country}");
-
-            location.Country ??= "Unknown";
-            location.Region ??= "Unknown";
-
-            await _cityService.AddInHistoryAsync(location);
-            Logger.LogInformation($"Location added to history: {location.Name}");
-
-            await NavigateToWeatherPage(location);
+            await NavigateToWeatherPage(result.Value!);
             await LoadCityListsAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error getting location");
-            await Toast.Make("Не удалось определить местоположение", ToastDuration.Long).Show();
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -232,16 +226,7 @@ public partial class MainPageViewModel : BaseViewModel
         }
 
         Logger.LogInformation($"Selecting recent city: {city.Name}");
-
-        try
-        {
-            await NavigateToWeatherPage(city);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"Error selecting recent city: {city.Name}");
-            await Toast.Make("Не удалось открыть погоду", ToastDuration.Long).Show();
-        }
+        await NavigateToWeatherPage(city);
     }
 
     [RelayCommand]
@@ -255,21 +240,27 @@ public partial class MainPageViewModel : BaseViewModel
 
         Logger.LogInformation($"Removing city from history: {city.Name}");
 
-        try
-        {
-            await _cityService.RemoveFromHistoryAsync(city.Id);
+        var result = await ExecuteWithResultAsync(
+            async () =>
+            {
+                var removeResult = await _cityService.RemoveFromHistoryAsync(city.Id);
+                if (removeResult.IsFailure)
+                    return Result.Failure(removeResult.Error!);
 
+                Logger.LogInformation($"City removed from history: {city.Name}");
+                return Result.Success();
+            },
+            successMessage: $"{city.Name} удален из истории",
+            errorMessage: $"Не удалось удалить город {city.Name}"
+        );
+
+        if (result.IsSuccess)
+        {
             var cityToRemove = RecentCities.FirstOrDefault(c => c.Name == city.Name);
             if (cityToRemove != null)
             {
                 RecentCities.Remove(cityToRemove);
-                Logger.LogInformation($"City removed from history: {city.Name}");
             }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"Error removing city from history: {city.Name}");
-            await Toast.Make($"Не удалось удалить город {city.Name}", ToastDuration.Long).Show();
         }
     }
 
@@ -281,23 +272,30 @@ public partial class MainPageViewModel : BaseViewModel
     {
         Logger.LogInformation("Loading city lists");
 
-        try
+        var result = await ExecuteWithResultAsync(
+            async () =>
+            {
+                var historyResult = await _cityService.GetHistoryAsync();
+                if (historyResult.IsFailure)
+                    return Result.Failure<List<City>>(historyResult.Error!);
+
+                Logger.LogInformation($"Loaded {historyResult.Value?.Count ?? 0} cities from history");
+                return Result.Success(historyResult.Value ?? new List<City>());
+            },
+            errorMessage: "Не удалось загрузить историю"
+        );
+
+        if (result.IsSuccess)
         {
-            var history = await _cityService.GetHistoryAsync() ?? new List<City>();
-
-            Logger.LogInformation($"Loaded {history.Count} cities from history");
-
             RecentCities.Clear();
-            foreach (var city in history)
+            foreach (var city in result.Value!)
             {
                 RecentCities.Add(city);
             }
-
             ShowRecent = RecentCities.Any();
         }
-        catch (Exception ex)
+        else
         {
-            Logger.LogError(ex, "Error loading city lists");
             ShowRecent = false;
         }
     }
@@ -315,7 +313,7 @@ public partial class MainPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, $"Navigation error for city: {city.Name}");
-            throw;
+            await ShowAlertAsync("Ошибка", $"Не удалось открыть страницу погоды для {city.Name}");
         }
     }
 

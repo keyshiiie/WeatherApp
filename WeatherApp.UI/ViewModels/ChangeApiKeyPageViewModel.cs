@@ -1,28 +1,21 @@
-﻿using CommunityToolkit.Maui.Alerts;
+﻿// WeatherApp.UI/ViewModels/ChangeApiKeyPageViewModel.cs
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using WeatherApp.Core.Services;
+using WeatherApp.Core.Results;
 
 namespace WeatherApp.UI.ViewModels;
 
 public partial class ChangeApiKeyPageViewModel : BaseViewModel
 {
-    private readonly IWeatherService _weatherService;
+    private readonly IApiKeyService _apiKeyService;
 
     [ObservableProperty]
     private string? _newApiKey;
-
-    [ObservableProperty]
-    private string? _errorMessage;
-
-    [ObservableProperty]
-    private bool _hasError;
-
-    [ObservableProperty]
-    private bool _isLoading;
 
     [ObservableProperty]
     private string? _keyStatus;
@@ -30,15 +23,13 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     [ObservableProperty]
     private Color _keyStatusColor;
 
-    public bool CanSave => !string.IsNullOrWhiteSpace(NewApiKey);
-
     public ChangeApiKeyPageViewModel(
-        IWeatherService weatherService,
+        IApiKeyService apiKeyService,
         ILogger<ChangeApiKeyPageViewModel> logger)
         : base(logger)
     {
         Title = "API ключ";
-        _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
+        _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
     }
 
     public override async Task OnAppearingAsync()
@@ -49,24 +40,33 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
 
     private async Task CheckKeyStatusAsync()
     {
-        try
-        {
-            var key = await SecureStorage.GetAsync("weather_api_key");
-
-            if (string.IsNullOrEmpty(key))
+        var result = await ExecuteWithResultAsync(
+            async () =>
             {
-                KeyStatus = "Не установлен";
-                KeyStatusColor = Colors.Red;
-            }
-            else
+                var keyResult = await _apiKeyService.HasApiKeyAsync();
+                if (keyResult.IsFailure)
+                    return Result.Failure<bool>(keyResult.Error!);
+
+                return Result.Success(keyResult.Value);
+            },
+            errorMessage: "Ошибка проверки ключа"
+        );
+
+        if (result.IsSuccess)
+        {
+            if (result.Value)
             {
                 KeyStatus = "Установлен ✓";
                 KeyStatusColor = Colors.Green;
             }
+            else
+            {
+                KeyStatus = "Не установлен";
+                KeyStatusColor = Colors.Red;
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Logger.LogError(ex, "Error checking API key status");
             KeyStatus = "Ошибка проверки";
             KeyStatusColor = Colors.Red;
         }
@@ -77,41 +77,31 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(NewApiKey))
         {
-            HasError = true;
-            ErrorMessage = "Введите API ключ";
+            await ShowAlertAsync("Ошибка", "Введите API ключ");
             return;
         }
 
-        try
+        Logger.LogInformation("Saving new API key...");
+
+        var result = await ExecuteWithResultAsync(
+            async () =>
+            {
+                var saveResult = await _apiKeyService.SetApiKeyAsync(NewApiKey.Trim());
+                if (saveResult.IsFailure)
+                    return Result.Failure(saveResult.Error!);
+
+                Logger.LogInformation("API key saved successfully");
+                return Result.Success();
+            },
+            successMessage: "✅ API ключ успешно обновлен",
+            errorMessage: "Не удалось сохранить API ключ"
+        );
+
+        if (result.IsSuccess)
         {
-            IsLoading = true;
-            HasError = false;
-            ErrorMessage = string.Empty;
-
-            Logger.LogInformation("Saving new API key...");
-            await SecureStorage.SetAsync("weather_api_key", NewApiKey.Trim());
-
-            Logger.LogInformation("API key saved successfully");
-
-            // Обновляем статус
-            await CheckKeyStatusAsync();
-
-            // Очищаем поле ввода
             NewApiKey = string.Empty;
-
-            await Toast.Make("API ключ успешно обновлен", ToastDuration.Short).Show();
-
+            await CheckKeyStatusAsync();
             await Shell.Current.GoToAsync("..");
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error saving API key");
-            HasError = true;
-            ErrorMessage = "Не удалось сохранить API ключ. Проверьте подключение к интернету.";
-        }
-        finally
-        {
-            IsLoading = false;
         }
     }
 
@@ -135,7 +125,7 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error opening link");
-            await Toast.Make("Не удалось открыть ссылку", ToastDuration.Short).Show();
+            await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
         }
     }
 }
