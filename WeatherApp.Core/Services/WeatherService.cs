@@ -15,44 +15,22 @@ public class WeatherService : IWeatherService
     private readonly IWeatherMapper _weatherMapper;
     private readonly ICityMapper _cityMapper;
     private string _language;
-    private string? _cachedApiKey;
-    private readonly SemaphoreSlim _apiKeyLock = new(1, 1);
+    private readonly IApiKeyService _apiKeyService;
 
     public WeatherService(
         IHttpClientFactory httpClientFactory,
         IWeatherMapper weatherMapper,
         ICityMapper cityMapper,
         ILogger<WeatherService> logger,
+        IApiKeyService apiKeyService,
         string language = ApiConstants.DefaultLanguage)
     {
         _httpClient = httpClientFactory.CreateClient("WeatherApi");
         _weatherMapper = weatherMapper;
         _cityMapper = cityMapper;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
         _language = string.IsNullOrEmpty(language) ? ApiConstants.DefaultLanguage : language;
-    }
-    private async Task<string> GetApiKeyAsync()
-    {
-        if (!string.IsNullOrEmpty(_cachedApiKey))
-            return _cachedApiKey;
-
-        await _apiKeyLock.WaitAsync();
-        try
-        {
-            if (!string.IsNullOrEmpty(_cachedApiKey))
-                return _cachedApiKey;
-
-            _cachedApiKey = await SecureStorage.GetAsync("weather_api_key") ?? string.Empty;
-            if (string.IsNullOrEmpty(_cachedApiKey))
-            {
-                _logger.LogWarning("API Key not found in SecureStorage!");
-            }
-            return _cachedApiKey;
-        }
-        finally
-        {
-            _apiKeyLock.Release();
-        }
     }
 
     public async Task<WeatherData?> GetCurrentWeatherAsync(
@@ -122,8 +100,12 @@ public class WeatherService : IWeatherService
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
                 return new List<CitySuggestion>();
 
-            var apiKey = await GetApiKeyAsync();
-            if (string.IsNullOrEmpty(apiKey)) return null;
+            var apiKey = await _apiKeyService.GetApiKeyAsync();
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _logger.LogWarning("API key is not available");
+                return null;
+            }
 
             var endpoint = $"{ApiConstants.SearchEndpoint}?key={apiKey}&q={Uri.EscapeDataString(query.Trim())}";
 
@@ -174,8 +156,12 @@ public class WeatherService : IWeatherService
         {
             days = Math.Clamp(days, 1, 14);
             var query = BuildQuery(latitude, longitude);
-            var apiKey = await GetApiKeyAsync();
-            if (string.IsNullOrEmpty(apiKey)) return null;
+            var apiKey = await _apiKeyService.GetApiKeyAsync();
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _logger.LogWarning("API key is not available");
+                return null;
+            }
 
             var endpoint = BuildUrl(
                 ApiConstants.ForecastEndpoint,

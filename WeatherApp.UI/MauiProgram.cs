@@ -100,6 +100,7 @@ public static class MauiProgram
         services.AddScoped<ICityService, CityService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IApiKeyService, MauiApiKeyService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)
