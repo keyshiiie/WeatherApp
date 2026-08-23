@@ -25,9 +25,9 @@ public partial class CurrentWeatherPage : ContentPage
                         _ = vm.LoadWeatherForCityAsync(city);
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    System.Diagnostics.Debug.WriteLine($"Ошибка десериализации: {ex.Message}");
+                    // Ignore deserialization errors
                 }
             }
         }
@@ -38,7 +38,6 @@ public partial class CurrentWeatherPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
 
-        // Подписываемся на обновление данных для графика
         if (viewModel != null)
         {
             viewModel.HourlyDataUpdated += OnHourlyDataUpdated;
@@ -66,14 +65,17 @@ public partial class CurrentWeatherPage : ContentPage
 
     private void OnHourlyDataUpdated(object? sender, List<HourlyForecastDisplay> data)
     {
-        // Проверяем, что элемент управления существует и данные есть
-        if (HourlyChartView != null && data != null && data.Any())
+        if (HourlyChartView == null || data == null || !data.Any())
+            return;
+
+        Dispatcher.Dispatch(() =>
         {
-            // Вызываем через Dispatcher для безопасности
-            Dispatcher.Dispatch(() =>
+            HourlyChartView.SetData(data);
+
+            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(100), () =>
             {
-                HourlyChartView.SetData(data);
+                HourlyChartView.ForceRefresh();
             });
-        }
+        });
     }
 }

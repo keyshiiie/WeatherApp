@@ -140,19 +140,19 @@ public static class MauiProgram
 
             if (created)
             {
-                logger.LogInformation("✅ Database created successfully");
+                logger.LogInformation("Database created successfully");
             }
             else
             {
-                logger.LogInformation("✅ Database already exists");
+                logger.LogInformation("Database already exists");
             }
 
-            logger.LogInformation("📁 Database location: {DbPath}",
+            logger.LogInformation("Database location: {DbPath}",
                 Path.Combine(FileSystem.AppDataDirectory, "weatherapp.db"));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "❌ Database initialization error");
+            logger.LogError(ex, "Database initialization error");
         }
     }
 }

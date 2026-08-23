@@ -1,275 +1,169 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
-using System.Windows.Input;
 using WeatherApp.UI.DisplayModels;
 
-namespace WeatherApp.UI.ViewModels
+namespace WeatherApp.UI.ViewModels;
+
+public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 {
-    public partial class HourlyChartViewModel : BaseViewModel, IDisposable
+    [ObservableProperty]
+    private ObservableCollection<DayGroup> _dayGroups = new();
+
+    [ObservableProperty]
+    private DayGroup? _selectedDay;
+
+    [ObservableProperty]
+    private List<HourlyForecastDisplay>? _currentDayData;
+
+    [ObservableProperty]
+    private float _minTemp;
+
+    [ObservableProperty]
+    private float _maxTemp;
+
+    [ObservableProperty]
+    private int _currentHourIndex = -1;
+
+    [ObservableProperty]
+    private bool _hasData;
+
+    [ObservableProperty]
+    private string _emptyStateMessage = "Нет данных";
+
+    public event EventHandler<ChartDataUpdatedEventArgs>? ChartDataUpdated;
+
+    public HourlyChartViewModel(ILogger<HourlyChartViewModel> logger) : base(logger)
     {
-        private List<HourlyForecastDisplay>? _allDataPoints;
-        private ObservableCollection<DayGroup> _dayGroups = new();
-        private DayGroup? _selectedDay;
-        private int _selectedDayIndex;
-        private float _minTemp;
-        private float _maxTemp;
-        private int _currentHourIndex = -1;
-        private float _chartPadding = 0f;
-        private float _pointSpacing = 100f;
+        Title = "Почасовой прогноз";
+    }
 
-        // Событие для обновления графика
-        public event EventHandler<ChartDataUpdatedEventArgs>? ChartDataUpdated;
-
-        // Коллекции и свойства
-        public ObservableCollection<DayGroup> DayGroups
+    public void SetData(List<HourlyForecastDisplay> dataPoints)
+    {
+        if (dataPoints == null || !dataPoints.Any())
         {
-            get => _dayGroups;
-            set => SetProperty(ref _dayGroups, value);
-        }
-
-        public DayGroup? SelectedDay
-        {
-            get => _selectedDay;
-            set
-            {
-                if (SetProperty(ref _selectedDay, value))
-                {
-                    // Обновляем IsSelected для всех групп
-                    foreach (var group in DayGroups)
-                    {
-                        group.IsSelected = group == value;
-                    }
-
-                    if (value != null)
-                    {
-                        SelectedDayIndex = DayGroups.IndexOf(value);
-                        UpdateChartData();
-                    }
-                }
-            }
-        }
-
-        public int SelectedDayIndex
-        {
-            get => _selectedDayIndex;
-            set => SetProperty(ref _selectedDayIndex, value);
-        }
-
-        public float MinTemp
-        {
-            get => _minTemp;
-            private set => SetProperty(ref _minTemp, value);
-        }
-
-        public float MaxTemp
-        {
-            get => _maxTemp;
-            private set => SetProperty(ref _maxTemp, value);
-        }
-
-        public int CurrentHourIndex
-        {
-            get => _currentHourIndex;
-            private set => SetProperty(ref _currentHourIndex, value);
-        }
-
-        public float ChartPadding
-        {
-            get => _chartPadding;
-            set => SetProperty(ref _chartPadding, value);
-        }
-
-        public float PointSpacing
-        {
-            get => _pointSpacing;
-            set => SetProperty(ref _pointSpacing, value);
-        }
-
-        // Команды
-        public ICommand SelectDayCommand { get; }
-        public ICommand RefreshDataCommand { get; }
-
-        public HourlyChartViewModel(ILogger<HourlyChartViewModel> logger)
-            : base(logger)
-        {
-            Title = "Почасовой прогноз";
-
-            // Инициализируем команды
-            SelectDayCommand = new RelayCommand<int>(SelectDay);
-            RefreshDataCommand = new RelayCommand(RefreshData);
-        }
-
-        public void SetData(List<HourlyForecastDisplay> dataPoints)
-        {
-            if (dataPoints == null || !dataPoints.Any())
-            {
-                Logger.LogWarning("SetData called with null or empty data");
-                return;
-            }
-
-            Logger.LogInformation($"Setting {dataPoints.Count} data points");
-
-            _allDataPoints = dataPoints;
-            GroupDataByDay();
-
-            if (DayGroups.Any())
-            {
-                SelectedDay = DayGroups.FirstOrDefault();
-            }
-        }
-
-        private void GroupDataByDay()
-        {
-            if (_allDataPoints == null || !_allDataPoints.Any())
-                return;
-
-            Logger.LogInformation("Grouping data by day");
-
+            HasData = false;
+            EmptyStateMessage = "Нет данных для отображения";
+            CurrentDayData = null;
             DayGroups.Clear();
-
-            var grouped = _allDataPoints
-                .GroupBy(h => h.Time.Date)
-                .Select((g, index) => new DayGroup
-                {
-                    Date = g.Key,
-                    HourlyData = g.ToList(),
-                    DayName = GetDayName(g.Key, index),
-                    IsSelected = index == 0,
-                    Index = index
-                })
-                .ToList();
-
-            foreach (var group in grouped)
-            {
-                DayGroups.Add(group);
-            }
-
-            Logger.LogInformation($"Created {DayGroups.Count} day groups");
+            return;
         }
 
-        private string GetDayName(DateTime date, int index)
+        HasData = true;
+        GroupDataByDay(dataPoints);
+
+        if (DayGroups.Any())
         {
-            var now = DateTime.Now;
-
-            if (date.Date == now.Date)
-                return "Сегодня";
-            if (date.Date == now.AddDays(1).Date)
-                return "Завтра";
-            if (date.Date == now.AddDays(2).Date)
-                return "Послезавтра";
-
-            // Если это первый день в списке и он не сегодня - показываем "Сегодня"
-            if (index == 0 && date.Date < now.Date)
-                return "Сегодня";
-
-            var culture = new System.Globalization.CultureInfo("ru-RU");
-            return culture.DateTimeFormat.GetDayName(date.DayOfWeek);
-        }
-
-        public void UpdateChartData()
-        {
-            if (SelectedDay?.HourlyData == null || !SelectedDay.HourlyData.Any())
-            {
-                Logger.LogWarning("No data for selected day");
-                return;
-            }
-
-            var data = SelectedDay.HourlyData;
-            Logger.LogInformation($"Updating chart with {data.Count} points for {SelectedDay.DayName}");
-
-            // Находим индекс текущего часа
-            var now = DateTime.Now;
-            CurrentHourIndex = data.FindIndex(d =>
-                d.Time.Hour == now.Hour && d.Time.Date == now.Date);
-
-            if (CurrentHourIndex == -1)
-                CurrentHourIndex = data.FindIndex(d => d.Time > now);
-
-            if (CurrentHourIndex == -1 && data.Any())
-                CurrentHourIndex = 0;
-
-            // Вычисляем min/max температуры
-            if (data.Any())
-            {
-                var temps = data.Select(d => d.TemperatureValue).ToList();
-                MinTemp = temps.Min();
-                MaxTemp = temps.Max();
-
-                // Добавляем отступы для лучшего отображения
-                var tempRange = MaxTemp - MinTemp;
-                var padding = tempRange * 0.1f;
-                if (padding < 1) padding = 1;
-
-                MinTemp -= padding;
-                MaxTemp += padding;
-            }
-
-            // Уведомляем View об обновлении
-            ChartDataUpdated?.Invoke(this, new ChartDataUpdatedEventArgs
-            {
-                DataPoints = data,
-                MinTemp = MinTemp,
-                MaxTemp = MaxTemp,
-                CurrentHourIndex = CurrentHourIndex,
-                ChartPadding = ChartPadding,
-                PointSpacing = PointSpacing
-            });
-
-            Logger.LogInformation($"Chart updated: Min={MinTemp:F1}°C, Max={MaxTemp:F1}°C, CurrentHour={CurrentHourIndex}");
-        }
-
-        private void SelectDay(int index)
-        {
-            if (index < 0 || index >= DayGroups.Count)
-            {
-                Logger.LogWarning($"Invalid day index: {index}");
-                return;
-            }
-
-            var day = DayGroups[index];
-            if (SelectedDay == day)
-            {
-                Logger.LogInformation($"Day {index} already selected");
-                return;
-            }
-
-            Logger.LogInformation($"Selecting day {index}: {day.DayName}");
-            SelectedDay = day;
-        }
-
-        private void RefreshData()
-        {
-            Logger.LogInformation("Refreshing chart data");
-            if (_allDataPoints != null)
-            {
-                SetData(_allDataPoints);
-            }
-        }
-
-        // Метод для обновления всех данных
-        public void UpdateAllData(List<HourlyForecastDisplay> dataPoints)
-        {
-            SetData(dataPoints);
-        }
-
-        // Получить данные для текущего дня
-        public List<HourlyForecastDisplay>? GetCurrentDayData()
-        {
-            return SelectedDay?.HourlyData;
-        }
-
-        // Проверить, есть ли данные
-        public bool HasData => DayGroups.Any() && DayGroups.Any(g => g.HourlyData?.Any() == true);
-
-        public void Dispose()
-        {
-            ChartDataUpdated = null;
-            GC.SuppressFinalize(this);
+            SelectedDay = DayGroups.First();
+            UpdateCurrentDayData();
+            RaiseChartDataUpdated();
         }
     }
 
+    private void GroupDataByDay(List<HourlyForecastDisplay> dataPoints)
+    {
+        DayGroups.Clear();
+
+        var now = DateTime.Now;
+        var grouped = dataPoints
+            .GroupBy(h => h.Time.Date)
+            .Select((g, index) => new DayGroup
+            {
+                Date = g.Key,
+                HourlyData = g.ToList(),
+                DayName = GetDayName(g.Key, now, index),
+                IsSelected = index == 0,
+                Index = index
+            })
+            .ToList();
+
+        foreach (var group in grouped)
+        {
+            DayGroups.Add(group);
+        }
+    }
+
+    private string GetDayName(DateTime date, DateTime now, int index)
+    {
+        if (date.Date == now.Date)
+            return "Сегодня";
+        if (date.Date == now.AddDays(1).Date)
+            return "Завтра";
+        if (date.Date == now.AddDays(2).Date)
+            return "Послезавтра";
+
+        var culture = new System.Globalization.CultureInfo("ru-RU");
+        return culture.DateTimeFormat.GetDayName(date.DayOfWeek);
+    }
+
+    [RelayCommand]
+    private void SelectDay(DayGroup day)
+    {
+        if (day == null || SelectedDay == day)
+            return;
+
+        foreach (var group in DayGroups)
+        {
+            group.IsSelected = group == day;
+        }
+
+        SelectedDay = day;
+        UpdateCurrentDayData();
+        RaiseChartDataUpdated();
+    }
+
+    private void UpdateCurrentDayData()
+    {
+        if (SelectedDay?.HourlyData == null || !SelectedDay.HourlyData.Any())
+        {
+            CurrentDayData = null;
+            return;
+        }
+
+        CurrentDayData = SelectedDay.HourlyData;
+
+        var now = DateTime.Now;
+        CurrentHourIndex = CurrentDayData.FindIndex(d =>
+            d.Time.Hour == now.Hour && d.Time.Date == now.Date);
+
+        if (CurrentHourIndex == -1)
+            CurrentHourIndex = CurrentDayData.FindIndex(d => d.Time > now);
+
+        if (CurrentHourIndex == -1 && CurrentDayData.Any())
+            CurrentHourIndex = 0;
+
+        var temps = CurrentDayData.Select(d => d.TemperatureValue).ToList();
+        MinTemp = temps.Min();
+        MaxTemp = temps.Max();
+
+        var padding = (MaxTemp - MinTemp) * 0.1f;
+        if (padding < 1) padding = 1;
+        MinTemp -= padding;
+        MaxTemp += padding;
+    }
+
+    private void RaiseChartDataUpdated()
+    {
+        if (CurrentDayData == null || !CurrentDayData.Any())
+            return;
+
+        ChartDataUpdated?.Invoke(this, new ChartDataUpdatedEventArgs
+        {
+            DataPoints = CurrentDayData,
+            MinTemp = MinTemp,
+            MaxTemp = MaxTemp,
+            CurrentHourIndex = CurrentHourIndex,
+            ChartPadding = 0f,
+            PointSpacing = 100f
+        });
+    }
+
+    public void Dispose()
+    {
+        ChartDataUpdated = null;
+        DayGroups.Clear();
+        CurrentDayData = null;
+        GC.SuppressFinalize(this);
+    }
 }

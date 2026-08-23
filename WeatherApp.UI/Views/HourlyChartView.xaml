@@ -8,30 +8,34 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Табы по дням -->
         <HorizontalStackLayout x:Name="DayTabs"
                                Grid.Row="0"
                                Spacing="8"
                                HorizontalOptions="Center"
                                Margin="0,0,0,8">
-            <!-- Табы будут создаваться динамически -->
         </HorizontalStackLayout>
 
-        <!-- График -->
         <ScrollView x:Name="MainScrollView"
                     Grid.Row="1"
                     Orientation="Horizontal"
                     HorizontalScrollBarVisibility="Never">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="200" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <GraphicsView x:Name="ChartGraphicsView"
-                              Grid.Row="0"
-                              HeightRequest="180"
-                              HorizontalOptions="Start"
-                              Margin="0"/>
+
+                <Border Grid.Row="0"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0">
+                    <GraphicsView x:Name="ChartGraphicsView"
+                                  HeightRequest="200"
+                                  WidthRequest="2400"
+                                  HorizontalOptions="Start"
+                                  VerticalOptions="Start"
+                                  BackgroundColor="Transparent"/>
+                </Border>
+
                 <HorizontalStackLayout x:Name="DataStack"
                                       Grid.Row="1"
                                       Spacing="0"
