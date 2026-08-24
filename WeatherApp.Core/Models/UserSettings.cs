@@ -1,28 +1,24 @@
-﻿// WeatherApp.Core/Models/UserSettings.cs
-namespace WeatherApp.Core.Models;
+﻿namespace WeatherApp.Core.Models;
+
 
 public class UserSettings
 {
     public TemperatureUnit TemperatureUnit { get; set; } = TemperatureUnit.Celsius;
     public PressureUnit PressureUnit { get; set; } = PressureUnit.Millibars;
     public SpeedUnit SpeedUnit { get; set; } = SpeedUnit.KilometersPerHour;
+    public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
 
-    /// <summary>
-    /// Создает глубокую копию настроек
-    /// </summary>
     public UserSettings Clone()
     {
         return new UserSettings
         {
             TemperatureUnit = this.TemperatureUnit,
             PressureUnit = this.PressureUnit,
-            SpeedUnit = this.SpeedUnit
+            SpeedUnit = this.SpeedUnit,
+            ThemeMode = this.ThemeMode
         };
     }
 
-    /// <summary>
-    /// Проверяет, эквивалентны ли настройки
-    /// </summary>
     public override bool Equals(object? obj)
     {
         if (obj is not UserSettings other)
@@ -30,13 +26,21 @@ public class UserSettings
 
         return TemperatureUnit == other.TemperatureUnit &&
                PressureUnit == other.PressureUnit &&
-               SpeedUnit == other.SpeedUnit;
+               SpeedUnit == other.SpeedUnit &&
+               ThemeMode == other.ThemeMode; 
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(TemperatureUnit, PressureUnit, SpeedUnit);
+        return HashCode.Combine(TemperatureUnit, PressureUnit, SpeedUnit, ThemeMode);
     }
+}
+
+public enum ThemeMode
+{
+    Light,
+    Dark,
+    System
 }
 
 public enum TemperatureUnit

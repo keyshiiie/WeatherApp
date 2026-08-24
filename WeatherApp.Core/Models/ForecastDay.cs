@@ -10,6 +10,8 @@ public class ForecastDay
 {
     // Дата
     public DateTime Date { get; set; }
+    public string? TimeZoneId { get; set; }
+    public DateTime LocalTime { get; set; }
 
     // Температура (все единицы измерения)
     public double MaxTempC { get; set; }

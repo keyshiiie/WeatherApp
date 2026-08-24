@@ -13,6 +13,7 @@ namespace WeatherApp.Core.Services
         Result SetTemperatureUnit(TemperatureUnit unit);
         Result SetPressureUnit(PressureUnit unit);
         Result SetSpeedUnit(SpeedUnit unit);
+        Result SetThemeMode(ThemeMode theme);
         event EventHandler<UserSettings>? SettingsChanged;
     }
 }

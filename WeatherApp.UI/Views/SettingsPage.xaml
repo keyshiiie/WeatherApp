@@ -10,6 +10,30 @@
         <ScrollView Style="{StaticResource ScrollContainer}">
             <VerticalStackLayout Spacing="20">
                 <StackLayout Spacing="10">
+                    <Label Text="Внешний вид"
+           Style="{StaticResource SettingsSectionTitle}" />
+                    <VerticalStackLayout Spacing="5">
+                        <Border Style="{StaticResource SettingsItemBorder}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Тема оформления" 
+                       Style="{StaticResource SettingsItemLabel}" />
+                                <Picker Grid.Column="1"
+                        ItemsSource="{Binding ThemeModes}"
+                        Style="{StaticResource SettingsPicker}"
+                        SelectedItem="{Binding SelectedThemeMode}">
+                                    <Picker.ItemDisplayBinding>
+                                        <Binding Path=".">
+                                            <Binding.Converter>
+                                                <converters:EnumDisplayConverter />
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </Picker.ItemDisplayBinding>
+                                </Picker>
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+                </StackLayout>
+                <StackLayout Spacing="10">
                     <Label Text="Единицы измерения"
                            Style="{StaticResource SettingsSectionTitle}" />
                     <VerticalStackLayout Spacing="5">

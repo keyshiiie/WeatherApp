@@ -37,6 +37,8 @@ public class WeatherData
     public double VisibilityKm { get; set; }
     public double VisibilityMiles { get; set; }
     public int CloudCover { get; set; }
+    public string? TimeZoneId { get; set; }
+    public DateTime LocalTime { get; set; }
 
     public AirQualityData? AirQuality { get; set; }
 
@@ -52,7 +54,6 @@ public class WeatherData
     public bool WillItRainToday { get; set; }
     public bool WillItSnowToday { get; set; }
 
-    // ✅ Оставляем только эти свойства, они не зависят от настроек
     public string SunriseDisplay => ConvertTo24HourFormat(Sunrise);
     public string SunsetDisplay => ConvertTo24HourFormat(Sunset);
 

@@ -1,5 +1,4 @@
-﻿// WeatherApp.UI/ViewModels/SettingsPageViewModel.cs
-using CommunityToolkit.Maui.Core;
+﻿using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -22,6 +21,8 @@ public partial class SettingsPageViewModel : BaseViewModel
 
     [ObservableProperty]
     private SpeedUnit _selectedSpeedUnit;
+    [ObservableProperty]
+    private ThemeMode _selectedThemeMode;
 
     public List<TemperatureUnit> TemperatureUnits { get; } =
         Enum.GetValues(typeof(TemperatureUnit)).Cast<TemperatureUnit>().ToList();
@@ -31,6 +32,8 @@ public partial class SettingsPageViewModel : BaseViewModel
 
     public List<SpeedUnit> SpeedUnits { get; } =
         Enum.GetValues(typeof(SpeedUnit)).Cast<SpeedUnit>().ToList();
+    public List<ThemeMode> ThemeModes { get; } = 
+        Enum.GetValues(typeof(ThemeMode)).Cast<ThemeMode>().ToList();
 
     public SettingsPageViewModel(
         ISettingsService settingsService,
@@ -61,8 +64,12 @@ public partial class SettingsPageViewModel : BaseViewModel
             SelectedTemperatureUnit = settings.TemperatureUnit;
             SelectedPressureUnit = settings.PressureUnit;
             SelectedSpeedUnit = settings.SpeedUnit;
+            SelectedThemeMode = settings.ThemeMode;
 
-            Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, Pressure={SelectedPressureUnit}, Speed={SelectedSpeedUnit}");
+            Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, " +
+                $"Pressure={SelectedPressureUnit}, " +
+                $"Speed={SelectedSpeedUnit}, " + 
+                $"Theme={SelectedThemeMode}");
         }
         else
         {
@@ -109,6 +116,24 @@ public partial class SettingsPageViewModel : BaseViewModel
             {
                 Logger.LogWarning($"Failed to set speed unit: {result.Error?.Message}");
                 SetError(result.Error!);
+            }
+        }
+    }
+
+    partial void OnSelectedThemeModeChanged(ThemeMode value)
+    {
+        if (!IsBusy)
+        {
+            Logger.LogInformation($"Theme changed to: {value}");
+            var result = _settingsService.SetThemeMode(value);
+            if (result.IsFailure)
+            {
+                Logger.LogWarning($"Failed to set theme: {result.Error?.Message}");
+                SetError(result.Error!);
+            }
+            else
+            {
+                ApplyTheme(value);
             }
         }
     }
@@ -175,6 +200,35 @@ public partial class SettingsPageViewModel : BaseViewModel
         {
             Logger.LogError(ex, "Error navigating to ChangeApiKeyPage");
             await ShowAlertAsync("Ошибка", "Не удалось открыть страницу смены ключа");
+        }
+    }
+
+    private void ApplyTheme(ThemeMode theme)
+    {
+        try
+        {
+            Application.Current?.Dispatcher.Dispatch(() =>
+            {
+                switch (theme)
+                {
+                    case ThemeMode.Light:
+                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Light;
+                        break;
+                    case ThemeMode.Dark:
+                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Dark;
+                        break;
+                    case ThemeMode.System:
+                    default:
+                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Unspecified;
+                        break;
+                }
+            });
+
+            Logger.LogInformation($"Theme applied: {theme}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Failed to apply theme: {theme}");
         }
     }
 }

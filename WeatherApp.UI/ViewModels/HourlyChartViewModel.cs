@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using WeatherApp.Core.Utils;
 using WeatherApp.UI.DisplayModels;
 
 namespace WeatherApp.UI.ViewModels;
@@ -65,14 +66,18 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
     {
         DayGroups.Clear();
 
-        var now = DateTime.Now;
+        if (dataPoints == null || !dataPoints.Any())
+            return;
+
+        var localTime = dataPoints.First().LocalTime;
+
         var grouped = dataPoints
             .GroupBy(h => h.Time.Date)
             .Select((g, index) => new DayGroup
             {
                 Date = g.Key,
                 HourlyData = g.ToList(),
-                DayName = GetDayName(g.Key, now, index),
+                DayName = TimeZoneHelper.GetDayLabel(g.Key, localTime),
                 IsSelected = index == 0,
                 Index = index
             })
@@ -82,19 +87,6 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
         {
             DayGroups.Add(group);
         }
-    }
-
-    private string GetDayName(DateTime date, DateTime now, int index)
-    {
-        if (date.Date == now.Date)
-            return "Сегодня";
-        if (date.Date == now.AddDays(1).Date)
-            return "Завтра";
-        if (date.Date == now.AddDays(2).Date)
-            return "Послезавтра";
-
-        var culture = new System.Globalization.CultureInfo("ru-RU");
-        return culture.DateTimeFormat.GetDayName(date.DayOfWeek);
     }
 
     [RelayCommand]
@@ -123,12 +115,15 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 
         CurrentDayData = SelectedDay.HourlyData;
 
-        var now = DateTime.Now;
+        var localTime = CurrentDayData.First().LocalTime;
+        var currentHour = localTime.Hour;
+        var currentDate = localTime.Date;
+
         CurrentHourIndex = CurrentDayData.FindIndex(d =>
-            d.Time.Hour == now.Hour && d.Time.Date == now.Date);
+            d.Time.Hour == currentHour && d.Time.Date == currentDate);
 
         if (CurrentHourIndex == -1)
-            CurrentHourIndex = CurrentDayData.FindIndex(d => d.Time > now);
+            CurrentHourIndex = CurrentDayData.FindIndex(d => d.Time > localTime);
 
         if (CurrentHourIndex == -1 && CurrentDayData.Any())
             CurrentHourIndex = 0;

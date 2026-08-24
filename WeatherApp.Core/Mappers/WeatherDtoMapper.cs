@@ -23,6 +23,8 @@ namespace WeatherApp.Core.Mappers
             ArgumentNullException.ThrowIfNull(dto);
 
             var weatherData = CreateWeatherData(dto.Location, dto.Current);
+            weatherData.TimeZoneId = dto.Location?.TzId;
+            weatherData.LocalTime = ParseLocalTime(dto.Location?.Localtime);
 
             var todayForecast = dto.Forecast?.Forecastday?.FirstOrDefault();
             if (todayForecast != null)
@@ -45,6 +47,9 @@ namespace WeatherApp.Core.Mappers
 
             var forecastDays = new List<ForecastDay>();
 
+            var timeZoneId = dto.Location?.TzId;
+            var localTime = ParseLocalTime(dto.Location?.Localtime);
+
             if (dto.Forecast?.Forecastday == null)
                 return forecastDays;
 
@@ -53,7 +58,8 @@ namespace WeatherApp.Core.Mappers
                 var forecastDay = new ForecastDay
                 {
                     Date = DateTime.TryParse(dayDto.Date, out var date) ? date : DateTime.UtcNow,
-
+                    TimeZoneId = timeZoneId,
+                    LocalTime = localTime,
                     MaxTempC = dayDto.Day?.MaxtempC ?? 0,
                     MinTempC = dayDto.Day?.MintempC ?? 0,
                     AvgTempC = dayDto.Day?.AvgtempC ?? 0,
@@ -86,6 +92,8 @@ namespace WeatherApp.Core.Mappers
                         var hour = new HourlyForecast
                         {
                             Time = DateTime.TryParse(hourDto.Time, out var time) ? time : DateTime.UtcNow,
+                            TimeZoneId = timeZoneId,
+                            LocalTime = localTime,
 
                             TemperatureC = hourDto.TempC,
                             TemperatureF = hourDto.TempF,
@@ -119,6 +127,17 @@ namespace WeatherApp.Core.Mappers
             }
 
             return forecastDays;
+        }
+
+        private DateTime ParseLocalTime(string? localtime)
+        {
+            if (string.IsNullOrEmpty(localtime))
+                return DateTime.UtcNow;
+
+            if (DateTime.TryParse(localtime, out var result))
+                return result;
+
+            return DateTime.UtcNow;
         }
 
         private string? FixIconUrl(string? icon)

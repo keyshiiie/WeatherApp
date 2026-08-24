@@ -1,5 +1,4 @@
-﻿// WeatherApp.Core/Services/SettingsService.cs
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Results;
@@ -11,6 +10,7 @@ public class SettingsService : ISettingsService
     private const string TemperatureKey = "temperature_unit";
     private const string PressureKey = "pressure_unit";
     private const string SpeedKey = "speed_unit";
+    private const string ThemeKey = "app_theme";
 
     private UserSettings _cachedSettings;
     private readonly object _lock = new();
@@ -41,7 +41,6 @@ public class SettingsService : ISettingsService
         {
             lock (_lock)
             {
-                // Возвращаем КОПИЮ, чтобы нельзя было изменить кэш извне
                 return Result.Success(_cachedSettings.Clone());
             }
         }
@@ -67,6 +66,7 @@ public class SettingsService : ISettingsService
                 Preferences.Set(TemperatureKey, (int)settingsCopy.TemperatureUnit);
                 Preferences.Set(PressureKey, (int)settingsCopy.PressureUnit);
                 Preferences.Set(SpeedKey, (int)settingsCopy.SpeedUnit);
+                Preferences.Set(ThemeKey, (int)settingsCopy.ThemeMode);
 
                 _cachedSettings = settingsCopy;
             }
@@ -75,7 +75,6 @@ public class SettingsService : ISettingsService
                                    $"Pressure={settingsCopy.PressureUnit}, " +
                                    $"Speed={settingsCopy.SpeedUnit}");
 
-            // Вызываем событие ПОСЛЕ сохранения
             SettingsChanged?.Invoke(this, settingsCopy);
 
             return Result.Success();
@@ -84,6 +83,29 @@ public class SettingsService : ISettingsService
         {
             _logger?.LogError(ex, "Failed to save settings");
             return Result.Failure(new UnknownError("Failed to save settings", ex));
+        }
+    }
+
+    public Result SetThemeMode(ThemeMode theme)
+    {
+        try
+        {
+            var settingsResult = GetSettings();
+            if (settingsResult.IsFailure)
+                return Result.Failure(settingsResult.Error!);
+
+            var settings = settingsResult.Value!;
+
+            if (settings.ThemeMode == theme)
+                return Result.Success();
+
+            settings.ThemeMode = theme;
+            return SaveSettings(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, $"Failed to set theme to {theme}");
+            return Result.Failure(new UnknownError($"Failed to set theme to {theme}", ex));
         }
     }
 
@@ -97,9 +119,8 @@ public class SettingsService : ISettingsService
 
             var settings = settingsResult.Value!;
 
-            // Проверяем, изменилось ли значение
             if (settings.TemperatureUnit == unit)
-                return Result.Success(); // Ничего не меняем
+                return Result.Success(); 
 
             settings.TemperatureUnit = unit;
             return SaveSettings(settings);
@@ -173,7 +194,10 @@ public class SettingsService : ISettingsService
 
                 SpeedUnit = (SpeedUnit)Preferences.Get(
                     SpeedKey,
-                    (int)SpeedUnit.KilometersPerHour)
+                    (int)SpeedUnit.KilometersPerHour),
+                ThemeMode = (ThemeMode)Preferences.Get(  
+                    ThemeKey,
+                    (int)ThemeMode.System)
             };
 
             return Result.Success(settings);

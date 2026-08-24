@@ -36,6 +36,13 @@ public class EnumDisplayConverter : IValueConverter
                 "Miles Per Hour" => "Миль/ч",
                 _ => displayName
             },
+            nameof(ThemeMode) => displayName switch  
+            {
+                "Light" => "Светлая",
+                "Dark" => "Тёмная",
+                "System" => "Системная",
+                _ => displayName
+            },
             _ => displayName
         };
     }
