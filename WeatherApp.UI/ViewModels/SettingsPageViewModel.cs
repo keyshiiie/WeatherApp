@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
-using WeatherApp.UI.Services; // Добавляем
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -12,34 +12,34 @@ public partial class SettingsPageViewModel : BaseViewModel
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
-    private TemperatureUnit _selectedTemperatureUnit;
+    public partial TemperatureUnit SelectedTemperatureUnit { get; set; }
 
     [ObservableProperty]
-    private PressureUnit _selectedPressureUnit;
+    public partial PressureUnit SelectedPressureUnit { get; set; }
 
     [ObservableProperty]
-    private SpeedUnit _selectedSpeedUnit;
+    public partial SpeedUnit SelectedSpeedUnit { get; set; }
 
     [ObservableProperty]
-    private ThemeMode _selectedThemeMode;
+    public partial ThemeMode SelectedThemeMode { get; set; }
 
     public List<TemperatureUnit> TemperatureUnits { get; } =
-        Enum.GetValues(typeof(TemperatureUnit)).Cast<TemperatureUnit>().ToList();
+        Enum.GetValues<TemperatureUnit>().Cast<TemperatureUnit>().ToList();
 
     public List<PressureUnit> PressureUnits { get; } =
-        Enum.GetValues(typeof(PressureUnit)).Cast<PressureUnit>().ToList();
+        Enum.GetValues<PressureUnit>().Cast<PressureUnit>().ToList();
 
     public List<SpeedUnit> SpeedUnits { get; } =
-        Enum.GetValues(typeof(SpeedUnit)).Cast<SpeedUnit>().ToList();
+        Enum.GetValues<SpeedUnit>().Cast<SpeedUnit>().ToList();
 
     public List<ThemeMode> ThemeModes { get; } =
-        Enum.GetValues(typeof(ThemeMode)).Cast<ThemeMode>().ToList();
+        Enum.GetValues<ThemeMode>().Cast<ThemeMode>().ToList();
 
     public SettingsPageViewModel(
         ISettingsService settingsService,
-        INavigationService navigationService, 
+        INavigationService navigationService,
         ILogger<SettingsPageViewModel> logger)
-        : base(logger, navigationService) 
+        : base(logger, navigationService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         Title = "Настройки";
@@ -67,14 +67,12 @@ public partial class SettingsPageViewModel : BaseViewModel
             SelectedSpeedUnit = settings.SpeedUnit;
             SelectedThemeMode = settings.ThemeMode;
 
-            Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, " +
-                $"Pressure={SelectedPressureUnit}, " +
-                $"Speed={SelectedSpeedUnit}, " +
-                $"Theme={SelectedThemeMode}");
+            Logger.LogInformation("Settings loaded: Temp={TemperatureUnit}, Pressure={PressureUnit}, Speed={SpeedUnit}, Theme={ThemeMode}",
+                SelectedTemperatureUnit, SelectedPressureUnit, SelectedSpeedUnit, SelectedThemeMode);
         }
         else
         {
-            Logger.LogWarning($"Failed to load settings: {result.Error?.Message}");
+            Logger.LogWarning("Failed to load settings: {ErrorMessage}", result.Error?.Message);
             SetError(result.Error!);
         }
     }
@@ -83,11 +81,11 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         if (!IsBusy)
         {
-            Logger.LogInformation($"Temperature unit changed to: {value}");
+            Logger.LogInformation("Temperature unit changed to: {Unit}", value);
             var result = _settingsService.SetTemperatureUnit(value);
             if (result.IsFailure)
             {
-                Logger.LogWarning($"Failed to set temperature unit: {result.Error?.Message}");
+                Logger.LogWarning("Failed to set temperature unit: {ErrorMessage}", result.Error?.Message);
                 SetError(result.Error!);
             }
         }
@@ -97,11 +95,11 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         if (!IsBusy)
         {
-            Logger.LogInformation($"Pressure unit changed to: {value}");
+            Logger.LogInformation("Pressure unit changed to: {Unit}", value);
             var result = _settingsService.SetPressureUnit(value);
             if (result.IsFailure)
             {
-                Logger.LogWarning($"Failed to set pressure unit: {result.Error?.Message}");
+                Logger.LogWarning("Failed to set pressure unit: {ErrorMessage}", result.Error?.Message);
                 SetError(result.Error!);
             }
         }
@@ -111,11 +109,11 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         if (!IsBusy)
         {
-            Logger.LogInformation($"Speed unit changed to: {value}");
+            Logger.LogInformation("Speed unit changed to: {Unit}", value);
             var result = _settingsService.SetSpeedUnit(value);
             if (result.IsFailure)
             {
-                Logger.LogWarning($"Failed to set speed unit: {result.Error?.Message}");
+                Logger.LogWarning("Failed to set speed unit: {ErrorMessage}", result.Error?.Message);
                 SetError(result.Error!);
             }
         }
@@ -125,11 +123,11 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         if (!IsBusy)
         {
-            Logger.LogInformation($"Theme changed to: {value}");
+            Logger.LogInformation("Theme changed to: {Theme}", value);
             var result = _settingsService.SetThemeMode(value);
             if (result.IsFailure)
             {
-                Logger.LogWarning($"Failed to set theme: {result.Error?.Message}");
+                Logger.LogWarning("Failed to set theme: {ErrorMessage}", result.Error?.Message);
                 SetError(result.Error!);
             }
             else
@@ -195,7 +193,7 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         try
         {
-            await NavigationService.GoToChangeApiKeyPageAsync(); 
+            await NavigationService.GoToChangeApiKeyPageAsync();
         }
         catch (Exception ex)
         {
@@ -225,11 +223,11 @@ public partial class SettingsPageViewModel : BaseViewModel
                 }
             });
 
-            Logger.LogInformation($"Theme applied: {theme}");
+            Logger.LogInformation("Theme applied: {Theme}", theme);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Failed to apply theme: {theme}");
+            Logger.LogError(ex, "Failed to apply theme: {Theme}", theme);
         }
     }
 }

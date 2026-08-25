@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Services;
+using WeatherApp.UI.Services;
 using WeatherApp.UI.Views;
 
 namespace WeatherApp.UI;
@@ -9,17 +10,20 @@ public partial class App : Application
 {
     private readonly IWeatherService _weatherService;
     private readonly ISettingsService _settingsService;
+    private readonly INavigationService? _navigationService;
     private readonly ILogger<App> _logger;
 
     public App(
         IWeatherService weatherService,
         ISettingsService settingsService,
+        INavigationService navigationService,
         ILogger<App> logger)
     {
-        InitializeComponent(); 
+        InitializeComponent();
 
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _navigationService = navigationService;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         ApplySavedTheme();
@@ -35,7 +39,7 @@ public partial class App : Application
             if (settingsResult.IsSuccess && settingsResult.Value != null)
             {
                 ApplyTheme(settingsResult.Value.ThemeMode);
-                _logger.LogInformation($"Theme applied: {settingsResult.Value.ThemeMode}");
+                _logger.LogInformation("Theme applied: {Theme}", settingsResult.Value.ThemeMode);
             }
             else
             {
@@ -70,7 +74,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, $"Failed to apply theme: {theme}");
+            _logger?.LogError(ex, "Failed to apply theme: {Theme}", theme);
         }
     }
 
@@ -90,7 +94,15 @@ public partial class App : Application
             if (string.IsNullOrEmpty(apiKey))
             {
                 _logger.LogWarning("API key not found, redirecting to LoginPage");
-                await Shell.Current.GoToAsync(nameof(LoginPage));
+
+                if (_navigationService != null)
+                {
+                    await _navigationService.GoToLoginPageAsync();
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync(nameof(LoginPage));
+                }
                 return;
             }
 
@@ -99,10 +111,26 @@ public partial class App : Application
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during app start");
-            await Shell.Current.CurrentPage.DisplayAlertAsync(
-                "Ошибка",
-                "Не удалось проверить API ключ. Проверьте подключение к интернету.",
-                "ОК");
+
+            try
+            {
+                var currentPage = Shell.Current?.CurrentPage;
+                if (currentPage != null)
+                {
+                    await currentPage.DisplayAlertAsync(
+                        "Ошибка",
+                        "Не удалось проверить API ключ. Проверьте подключение к интернету.",
+                        "ОК");
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot display alert: CurrentPage is null");
+                }
+            }
+            catch (Exception alertEx)
+            {
+                _logger.LogError(alertEx, "Failed to display error alert");
+            }
         }
     }
 }

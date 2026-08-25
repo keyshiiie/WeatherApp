@@ -1,6 +1,6 @@
 ﻿using WeatherApp.UI.DisplayModels;
 
-namespace WeatherApp.UI.Views;
+namespace WeatherApp.UI.ViewModels;
 
 public class ChartDrawable : IDrawable
 {
@@ -61,7 +61,7 @@ public class ChartDrawable : IDrawable
     {
         canvas.StrokeColor = Colors.White.WithAlpha(0.5f);
         canvas.StrokeSize = 1f;
-        canvas.StrokeDashPattern = new float[] { 4, 4 };
+        canvas.StrokeDashPattern = [4, 4];
 
         foreach (var point in points)
         {

@@ -7,43 +7,26 @@ namespace WeatherApp.UI.ViewModels;
 
 public abstract partial class BaseViewModel : ObservableObject
 {
-    private string _title = string.Empty;
-    private bool _isBusy;
-    private string _errorMessage = string.Empty;
-    private bool _hasError;
+    [ObservableProperty]
+    public partial string Title { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string ErrorMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool HasError { get; set; }
 
     protected ILogger Logger { get; }
     protected INavigationService NavigationService { get; }
 
-    protected BaseViewModel(ILogger logger, 
+    protected BaseViewModel(ILogger logger,
         INavigationService navigationService)
     {
         Logger = logger;
         NavigationService = navigationService;
-    }
-
-    public string Title
-    {
-        get => _title;
-        set => SetProperty(ref _title, value);
-    }
-
-    public bool IsBusy
-    {
-        get => _isBusy;
-        set => SetProperty(ref _isBusy, value);
-    }
-
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
-    }
-
-    public bool HasError
-    {
-        get => _hasError;
-        set => SetProperty(ref _hasError, value);
     }
 
     public virtual Task OnAppearingAsync()
@@ -66,7 +49,7 @@ public abstract partial class BaseViewModel : ObservableObject
     {
         ErrorMessage = error.Message;
         HasError = true;
-        Logger.LogWarning($"Error: {error.Code} - {error.Message}");
+        Logger.LogWarning("Error: {ErrorCode} - {ErrorMessage}", error.Code, error.Message);
     }
 
     protected void ClearError()
@@ -83,17 +66,19 @@ public abstract partial class BaseViewModel : ObservableObject
         if (IsBusy)
             return Result.Failure<T>(new ValidationError("Операция уже выполняется"));
 
+        var methodName = action.Method.Name;
+
         try
         {
             IsBusy = true;
             ClearError();
-            Logger.LogInformation($"Executing: {action.Method.Name}");
+            Logger.LogInformation("Executing: {MethodName}", methodName);
 
             var result = await action();
 
             if (result.IsSuccess)
             {
-                Logger.LogInformation($"Completed: {action.Method.Name} - Success");
+                Logger.LogInformation("Completed: {MethodName} - Success", methodName);
                 if (!string.IsNullOrEmpty(successMessage))
                 {
                     await ShowToastAsync(successMessage);
@@ -102,7 +87,8 @@ public abstract partial class BaseViewModel : ObservableObject
             }
             else
             {
-                Logger.LogWarning($"Completed: {action.Method.Name} - Failed: {result.Error?.Message}");
+                Logger.LogWarning("Completed: {MethodName} - Failed: {ErrorMessage}",
+                    methodName, result.Error?.Message);
                 SetError(result.Error!);
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
@@ -113,7 +99,7 @@ public abstract partial class BaseViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
+            Logger.LogError(ex, "Error in {MethodName}: {ErrorMessage}", methodName, errorMessage);
             var error = new UnknownError($"{errorMessage}: {ex.Message}", ex);
             SetError(error);
             await ShowToastAsync(error.Message);
@@ -133,17 +119,19 @@ public abstract partial class BaseViewModel : ObservableObject
         if (IsBusy)
             return Result.Failure(new ValidationError("Операция уже выполняется"));
 
+        var methodName = action.Method.Name;
+
         try
         {
             IsBusy = true;
             ClearError();
-            Logger.LogInformation($"Executing: {action.Method.Name}");
+            Logger.LogInformation("Executing: {MethodName}", methodName);
 
             var result = await action();
 
             if (result.IsSuccess)
             {
-                Logger.LogInformation($"Completed: {action.Method.Name} - Success");
+                Logger.LogInformation("Completed: {MethodName} - Success", methodName);
                 if (!string.IsNullOrEmpty(successMessage))
                 {
                     await ShowToastAsync(successMessage);
@@ -152,7 +140,8 @@ public abstract partial class BaseViewModel : ObservableObject
             }
             else
             {
-                Logger.LogWarning($"Completed: {action.Method.Name} - Failed: {result.Error?.Message}");
+                Logger.LogWarning("Completed: {MethodName} - Failed: {ErrorMessage}",
+                    methodName, result.Error?.Message);
                 SetError(result.Error!);
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
@@ -163,7 +152,7 @@ public abstract partial class BaseViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error in {action.Method.Name}: {errorMessage}");
+            Logger.LogError(ex, "Error in {MethodName}: {ErrorMessage}", methodName, errorMessage);
             var error = new UnknownError($"{errorMessage}: {ex.Message}", ex);
             SetError(error);
             await ShowToastAsync(error.Message);
@@ -185,19 +174,16 @@ public abstract partial class BaseViewModel : ObservableObject
         return await NavigationService.DisplayAlertAsync(title, message, accept, cancel);
     }
 
-    protected string GetUserFriendlyErrorMessage(Error error)
+    protected static string GetUserFriendlyErrorMessage(Error error) => error switch
     {
-        return error switch
-        {
-            ApiKeyMissingError => "API ключ не найден. Добавьте его в настройках.",
-            NetworkError => "Нет подключения к интернету. Проверьте соединение.",
-            TimeoutError => "Превышено время ожидания. Попробуйте еще раз.",
-            NotFoundError notFound => $"{notFound.Message}",
-            ApiError apiError when apiError.StatusCode == 401 => "Неверный API ключ. Проверьте настройки.",
-            ApiError apiError => $"Ошибка API: {apiError.Message}",
-            DatabaseError dbError => $"Ошибка базы данных: {dbError.Message}",
-            ValidationError validationError => $"{validationError.Message}",
-            _ => $"{error.Message}"
-        };
-    }
+        ApiKeyMissingError => "API ключ не найден. Добавьте его в настройках.",
+        NetworkError => "Нет подключения к интернету. Проверьте соединение.",
+        TimeoutError => "Превышено время ожидания. Попробуйте еще раз.",
+        NotFoundError notFound => $"{notFound.Message}",
+        ApiError apiError when apiError.StatusCode == 401 => "Неверный API ключ. Проверьте настройки.",
+        ApiError apiError => $"Ошибка API: {apiError.Message}",
+        DatabaseError dbError => $"Ошибка базы данных: {dbError.Message}",
+        ValidationError validationError => $"{validationError.Message}",
+        _ => $"{error.Message}"
+    };
 }

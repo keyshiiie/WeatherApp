@@ -11,28 +11,24 @@ namespace WeatherApp.UI.ViewModels;
 public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 {
     [ObservableProperty]
-    private ObservableCollection<DayGroup> _dayGroups = new();
+    public partial ObservableCollection<DayGroup> DayGroups { get; set; } = new();
 
     [ObservableProperty]
-    private DayGroup? _selectedDay;
+    public partial DayGroup? SelectedDay { get; set; }
+    [ObservableProperty]
+    public partial List<HourlyForecastDisplay>? CurrentDayData { get; set; }
 
     [ObservableProperty]
-    private List<HourlyForecastDisplay>? _currentDayData;
+    public partial float MinTemp { get; set; }
+    [ObservableProperty]
+    public partial float MaxTemp { get; set; }
+    [ObservableProperty]
+    public partial int CurrentHourIndex { get; set; } = -1;
 
     [ObservableProperty]
-    private float _minTemp;
-
+    public partial bool HasData { get; set; }
     [ObservableProperty]
-    private float _maxTemp;
-
-    [ObservableProperty]
-    private int _currentHourIndex = -1;
-
-    [ObservableProperty]
-    private bool _hasData;
-
-    [ObservableProperty]
-    private string _emptyStateMessage = "Нет данных";
+    public partial string EmptyStateMessage { get; set; } = "Нет данных";
 
     public event EventHandler<ChartDataUpdatedEventArgs>? ChartDataUpdated;
 
@@ -46,7 +42,7 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 
     public void SetData(List<HourlyForecastDisplay> dataPoints)
     {
-        if (dataPoints == null || !dataPoints.Any())
+        if (dataPoints == null || dataPoints.Count == 0)
         {
             HasData = false;
             EmptyStateMessage = "Нет данных для отображения";
@@ -70,7 +66,7 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
     {
         DayGroups.Clear();
 
-        if (dataPoints == null || !dataPoints.Any())
+        if (dataPoints == null || dataPoints.Count == 0)
             return;
 
         var localTime = dataPoints.First().LocalTime;

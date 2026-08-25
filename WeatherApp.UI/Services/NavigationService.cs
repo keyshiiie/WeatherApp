@@ -18,12 +18,18 @@ public class NavigationService : INavigationService
     {
         try
         {
+            if (Shell.Current == null)
+            {
+                _logger.LogWarning("Shell.Current is null, cannot navigate to: {Route}", route);
+                return;
+            }
+
             await Shell.Current.GoToAsync(route);
-            _logger.LogInformation($"Navigated to: {route}");
+            _logger.LogInformation("Navigated to: {Route}", route);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Navigation failed to: {route}");
+            _logger.LogError(ex, "Navigation failed to: {Route}", route);
             throw;
         }
     }
@@ -32,12 +38,18 @@ public class NavigationService : INavigationService
     {
         try
         {
+            if (Shell.Current == null)
+            {
+                _logger.LogWarning("Shell.Current is null, cannot navigate to: {Route}", route);
+                return;
+            }
+
             await Shell.Current.GoToAsync(route, parameters);
-            _logger.LogInformation($"Navigated to: {route} with {parameters.Count} parameters");
+            _logger.LogInformation("Navigated to: {Route} with {ParameterCount} parameters", route, parameters.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Navigation failed to: {route}");
+            _logger.LogError(ex, "Navigation failed to: {Route}", route);
             throw;
         }
     }
@@ -46,6 +58,12 @@ public class NavigationService : INavigationService
     {
         try
         {
+            if (Shell.Current == null)
+            {
+                _logger.LogWarning("Shell.Current is null, cannot navigate back");
+                return;
+            }
+
             await Shell.Current.GoToAsync("..");
             _logger.LogInformation("Navigated back");
         }
@@ -63,6 +81,14 @@ public class NavigationService : INavigationService
 
     public async Task GoToWeatherPageAsync(City city)
     {
+        if (city == null)
+        {
+            _logger.LogWarning("Cannot navigate to weather page: city is null");
+            return;
+        }
+
+        _logger.LogInformation("Navigating to weather page for city: {CityName}", city.Name);
+
         var parameters = new Dictionary<string, object>
         {
             ["city"] = System.Text.Json.JsonSerializer.Serialize(city)
@@ -72,6 +98,8 @@ public class NavigationService : INavigationService
 
     public async Task GoToWeatherPageAsync(int cityId)
     {
+        _logger.LogInformation("Navigating to weather page for city ID: {CityId}", cityId);
+
         var parameters = new Dictionary<string, object>
         {
             ["cityId"] = cityId
@@ -103,6 +131,12 @@ public class NavigationService : INavigationService
     {
         try
         {
+            if (Shell.Current?.CurrentPage == null)
+            {
+                _logger.LogWarning("CurrentPage is null, cannot display alert: {Title}", title);
+                return false;
+            }
+
             if (string.IsNullOrEmpty(cancel))
             {
                 await Shell.Current.CurrentPage.DisplayAlertAsync(title, message, accept);
@@ -115,7 +149,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to display alert");
+            _logger.LogError(ex, "Failed to display alert: {Title}", title);
             return false;
         }
     }
@@ -125,10 +159,11 @@ public class NavigationService : INavigationService
         try
         {
             await CommunityToolkit.Maui.Alerts.Toast.Make(message, CommunityToolkit.Maui.Core.ToastDuration.Short).Show();
+            _logger.LogDebug("Toast shown: {Message}", message);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to show toast");
+            _logger.LogWarning(ex, "Failed to show toast: {Message}", message);
         }
     }
 }

@@ -18,7 +18,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
-    private ObservableCollection<FavoriteCityDisplay> _favoriteCities = new();
+    public partial ObservableCollection<FavoriteCityDisplay> FavoriteCities { get; set; } = new();
 
     public FavoritesPageViewModel(
         ICityService cityService,
@@ -56,7 +56,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
                     return Result.Failure<List<City>>(favoritesResult.Error!);
 
                 var freshList = favoritesResult.Value ?? new List<City>();
-                Logger.LogInformation($"Loaded {freshList.Count} favorite cities");
+                Logger.LogInformation("Loaded {Count} favorite cities", freshList.Count);
 
                 var settingsResult = _settingsService.GetSettings();
                 var settings = settingsResult.IsSuccess ? settingsResult.Value! : new UserSettings();
@@ -105,7 +105,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
             display.IsLoading = true;
             display.HasError = false;
 
-            Logger.LogInformation($"Loading weather for {display.City.Name}");
+            Logger.LogInformation("Loading weather for {CityName}", display.City.Name);
 
             var weatherResult = await _weatherService.GetCurrentWeatherAsync(
                 display.City.Latitude,
@@ -119,18 +119,20 @@ public partial class FavoritesPageViewModel : BaseViewModel
                 weather.Region = display.City.Region;
 
                 display.Weather = weather;
-                Logger.LogInformation($"Weather loaded for {display.City.Name}: {weather.TemperatureC}°C");
+                Logger.LogInformation("Weather loaded for {CityName}: {Temperature}°C",
+                    display.City.Name, weather.TemperatureC);
             }
             else
             {
                 display.HasError = true;
-                Logger.LogWarning($"Failed to load weather for {display.City.Name}: {weatherResult.Error?.Message}");
+                Logger.LogWarning("Failed to load weather for {CityName}: {ErrorMessage}",
+                    display.City.Name, weatherResult.Error?.Message);
             }
         }
         catch (Exception ex)
         {
             display.HasError = true;
-            Logger.LogError(ex, $"Error loading weather for {display.City.Name}");
+            Logger.LogError(ex, "Error loading weather for {CityName}", display.City.Name);
         }
         finally
         {
@@ -148,16 +150,16 @@ public partial class FavoritesPageViewModel : BaseViewModel
         }
 
         var city = display.City;
-        Logger.LogInformation($"Navigating to weather for favorite city: {city.Name}");
+        Logger.LogInformation("Navigating to weather for favorite city: {CityName}", city.Name);
 
         try
         {
             await NavigationService.GoToWeatherPageAsync(city);
-            Logger.LogInformation($"Navigation to weather for {city.Name} successful");
+            Logger.LogInformation("Navigation to weather for {CityName} successful", city.Name);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Error navigating to weather for {city.Name}");
+            Logger.LogError(ex, "Error navigating to weather for {CityName}", city.Name);
             await ShowAlertAsync("Ошибка", "Не удалось открыть страницу погоды");
         }
     }
@@ -172,7 +174,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
         }
 
         var city = display.City;
-        Logger.LogInformation($"Removing {city.Name} from favorites");
+        Logger.LogInformation("Removing {CityName} from favorites", city.Name);
 
         var result = await ExecuteWithResultAsync(
             async () =>
@@ -185,7 +187,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
                 if (cityToRemove != null)
                 {
                     FavoriteCities.Remove(cityToRemove);
-                    Logger.LogInformation($"Removed {city.Name} from favorites");
+                    Logger.LogInformation("Removed {CityName} from favorites", city.Name);
                 }
 
                 return Result.Success();

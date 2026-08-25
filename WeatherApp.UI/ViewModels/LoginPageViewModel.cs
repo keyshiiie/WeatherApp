@@ -12,10 +12,10 @@ public partial class LoginPageViewModel : BaseViewModel
     private readonly IApiKeyService _apiKeyService;
 
     [ObservableProperty]
-    private string? _apiKey;
+    public partial string? ApiKey { get; set; }
 
     [ObservableProperty]
-    private bool _isValidating;
+    public partial bool IsValidating { get; set; }
 
     public LoginPageViewModel(
         IApiKeyService apiKeyService,

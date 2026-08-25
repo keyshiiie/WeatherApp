@@ -16,19 +16,19 @@ public partial class MainPageViewModel : BaseViewModel
     private readonly ICityService _cityService;
 
     [ObservableProperty]
-    private string _searchQuery = string.Empty;
+    public partial string SearchQuery { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<City> _recentCities = new();
+    public partial ObservableCollection<City> RecentCities { get; set; } = [];
 
     [ObservableProperty]
-    private List<CitySuggestion> _searchSuggestions = new();
+    public partial List<CitySuggestion> SearchSuggestions { get; set; } = [];
 
     [ObservableProperty]
-    private bool _showSearchSuggestions;
+    public partial bool ShowSearchSuggestions { get; set; }
 
     [ObservableProperty]
-    private bool _showRecent;
+    public partial bool ShowRecent { get; set; }
 
     public MainPageViewModel(
         IWeatherService weatherService,
@@ -36,7 +36,7 @@ public partial class MainPageViewModel : BaseViewModel
         ICityService cityService,
         INavigationService navigationService,
         ILogger<MainPageViewModel> logger)
-        : base(logger, navigationService) 
+        : base(logger, navigationService)
     {
         Title = "Поиск";
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
@@ -52,7 +52,7 @@ public partial class MainPageViewModel : BaseViewModel
 
     partial void OnSearchQueryChanged(string value)
     {
-        Logger.LogDebug($"Search query changed: {value}");
+        Logger.LogDebug("Search query changed: {Query}", value);
 
         if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
         {
@@ -77,7 +77,7 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
-        Logger.LogInformation($"Searching cities: {SearchQuery}");
+        Logger.LogInformation("Searching cities: {Query}", SearchQuery);
 
         var result = await ExecuteWithResultAsync(
             async () => await _weatherService.SearchCitiesAsync(SearchQuery),
@@ -88,13 +88,13 @@ public partial class MainPageViewModel : BaseViewModel
         {
             if (result.Value.Any())
             {
-                Logger.LogInformation($"Found {result.Value.Count} cities for '{SearchQuery}'");
+                Logger.LogInformation("Found {Count} cities for '{Query}'", result.Value.Count, SearchQuery);
                 SearchSuggestions = result.Value.Take(10).ToList();
                 ShowSearchSuggestions = SearchSuggestions.Any();
             }
             else
             {
-                Logger.LogWarning($"No cities found for '{SearchQuery}'");
+                Logger.LogWarning("No cities found for '{Query}'", SearchQuery);
                 SearchSuggestions.Clear();
                 ShowSearchSuggestions = false;
                 await ShowToastAsync("Города не найдены. Попробуйте изменить запрос");
@@ -116,7 +116,7 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
-        Logger.LogInformation($"Selecting city: {suggestion.Name}, {suggestion.Country}");
+        Logger.LogInformation("Selecting city: {CityName}, {Country}", suggestion.Name, suggestion.Country);
 
         var result = await ExecuteWithResultAsync<City>(
             async () =>
@@ -136,7 +136,7 @@ public partial class MainPageViewModel : BaseViewModel
                 if (addResult.IsFailure)
                     return Result.Failure<City>(addResult.Error!);
 
-                Logger.LogInformation($"City added to history: {city.Name}");
+                Logger.LogInformation("City added to history: {CityName}", city.Name);
                 return Result.Success(city);
             },
             successMessage: $"{suggestion.Name} добавлен в историю",
@@ -183,7 +183,7 @@ public partial class MainPageViewModel : BaseViewModel
                     return Result.Failure<City>(new ValidationError("Не удалось определить название города"));
                 }
 
-                Logger.LogInformation($"Location found: {location.Name}, {location.Country}");
+                Logger.LogInformation("Location found: {CityName}, {Country}", location.Name, location.Country);
 
                 location.Country ??= "Unknown";
                 location.Region ??= "Unknown";
@@ -192,7 +192,7 @@ public partial class MainPageViewModel : BaseViewModel
                 if (addResult.IsFailure)
                     return Result.Failure<City>(addResult.Error!);
 
-                Logger.LogInformation($"Location added to history: {location.Name}");
+                Logger.LogInformation("Location added to history: {CityName}", location.Name);
                 return Result.Success(location);
             },
             successMessage: $"Определено местоположение",
@@ -224,7 +224,7 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
-        Logger.LogInformation($"Selecting recent city: {city.Name}");
+        Logger.LogInformation("Selecting recent city: {CityName}", city.Name);
         await NavigateToWeatherPage(city);
     }
 
@@ -237,7 +237,7 @@ public partial class MainPageViewModel : BaseViewModel
             return;
         }
 
-        Logger.LogInformation($"Removing city from history: {city.Name}");
+        Logger.LogInformation("Removing city from history: {CityName}", city.Name);
 
         var result = await ExecuteWithResultAsync(
             async () =>
@@ -246,7 +246,7 @@ public partial class MainPageViewModel : BaseViewModel
                 if (removeResult.IsFailure)
                     return Result.Failure(removeResult.Error!);
 
-                Logger.LogInformation($"City removed from history: {city.Name}");
+                Logger.LogInformation("City removed from history: {CityName}", city.Name);
                 return Result.Success();
             },
             successMessage: $"{city.Name} удален из истории",
@@ -278,7 +278,7 @@ public partial class MainPageViewModel : BaseViewModel
                 if (historyResult.IsFailure)
                     return Result.Failure<List<City>>(historyResult.Error!);
 
-                Logger.LogInformation($"Loaded {historyResult.Value?.Count ?? 0} cities from history");
+                Logger.LogInformation("Loaded {Count} cities from history", historyResult.Value?.Count ?? 0);
                 return Result.Success(historyResult.Value ?? new List<City>());
             },
             errorMessage: "Не удалось загрузить историю"
@@ -303,12 +303,12 @@ public partial class MainPageViewModel : BaseViewModel
     {
         try
         {
-            Logger.LogInformation($"Navigating to weather page for: {city.Name}");
+            Logger.LogInformation("Navigating to weather page for: {CityName}", city.Name);
             await NavigationService.GoToWeatherPageAsync(city);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, $"Navigation error for city: {city.Name}");
+            Logger.LogError(ex, "Navigation error for city: {CityName}", city.Name);
             await ShowAlertAsync("Ошибка", $"Не удалось открыть страницу погоды для {city.Name}");
         }
     }

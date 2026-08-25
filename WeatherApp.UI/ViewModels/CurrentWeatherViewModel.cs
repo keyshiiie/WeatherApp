@@ -18,34 +18,34 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
-    private WeatherData? _currentWeather;
+    public partial WeatherData? CurrentWeather { get; set; }
 
     [ObservableProperty]
-    private CurrentWeatherDisplay? _currentWeatherDisplay;
+    public partial CurrentWeatherDisplay? CurrentWeatherDisplay { get; set; }
 
     [ObservableProperty]
-    private List<ForecastDay>? _forecastDays;
+    public partial List<ForecastDay>? ForecastDays { get; set; }
 
     [ObservableProperty]
-    private City? _selectedCity;
+    public partial City? SelectedCity { get; set; }
 
     [ObservableProperty]
-    private bool _isRefreshing;
+    public partial bool IsRefreshing { get; set; }
 
     [ObservableProperty]
-    private bool _isCurrentCityFavorite;
+    public partial bool IsCurrentCityFavorite { get; set; }
 
     [ObservableProperty]
-    private UserSettings _settings = new();
+    public partial UserSettings Settings { get; set; } = new();
 
     [ObservableProperty]
-    private List<HourlyForecast> _hourlyForecast = new();
+    public partial List<HourlyForecast> HourlyForecast { get; set; } = new();
 
     [ObservableProperty]
-    private List<ForecastDayDisplay>? _forecastDaysDisplay;
+    public partial List<ForecastDayDisplay>? ForecastDaysDisplay { get; set; }
 
     [ObservableProperty]
-    private List<HourlyForecastDisplay>? _hourlyForecastDisplay;
+    public partial List<HourlyForecastDisplay>? HourlyForecastDisplay { get; set; }
 
     public CurrentWeatherViewModel(
         IWeatherService weatherService,
@@ -111,7 +111,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
             return;
         }
 
-        Logger.LogInformation($"Adding {CurrentWeather.CityName} to favorites");
+        Logger.LogInformation("Adding {CityName} to favorites", CurrentWeather.CityName);
 
         var result = await ExecuteWithResultAsync(
             async () =>
@@ -141,7 +141,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
                 await CheckIsFavoriteAsync();
                 UpdateFavoriteToolbarItem();
 
-                Logger.LogInformation($"Added {CurrentWeather.CityName} to favorites");
+                Logger.LogInformation("Added {CityName} to favorites", CurrentWeather.CityName);
                 return Result.Success();
             },
             successMessage: $"{CurrentWeather.CityName} добавлен в избранное",
@@ -160,12 +160,12 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
 
         if (SelectedCity.Id == 0)
         {
-            Logger.LogWarning($"Cannot remove from favorites: City '{SelectedCity.Name}' has no ID");
+            Logger.LogWarning("Cannot remove from favorites: City '{CityName}' has no ID", SelectedCity.Name);
             await ShowAlertAsync("Ошибка", "Город не сохранен в базе данных. Попробуйте обновить страницу.");
             return;
         }
 
-        Logger.LogInformation($"Removing {SelectedCity.Name} from favorites (ID: {SelectedCity.Id})");
+        Logger.LogInformation("Removing {CityName} from favorites (ID: {CityId})", SelectedCity.Name, SelectedCity.Id);
 
         var result = await ExecuteWithResultAsync(
             async () =>
@@ -177,7 +177,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
                 await CheckIsFavoriteAsync();
                 UpdateFavoriteToolbarItem();
 
-                Logger.LogInformation($"Removed {SelectedCity.Name} from favorites");
+                Logger.LogInformation("Removed {CityName} from favorites", SelectedCity.Name);
                 return Result.Success();
             },
             successMessage: $"{SelectedCity.Name} удален из избранного",
@@ -188,7 +188,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
     [RelayCommand]
     private async Task ToggleFavoriteAsync()
     {
-        Logger.LogInformation($"Toggling favorite for {CurrentWeather?.CityName}");
+        Logger.LogInformation("Toggling favorite for {CityName}", CurrentWeather?.CityName ?? "Unknown");
 
         if (IsCurrentCityFavorite)
             await RemoveFromFavoritesAsync();
@@ -231,7 +231,8 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
             return;
         }
 
-        Logger.LogInformation($"Loading weather for city: {city.Name} ({city.Latitude}, {city.Longitude})");
+        Logger.LogInformation("Loading weather for city: {CityName} ({Latitude}, {Longitude})",
+            city.Name, city.Latitude, city.Longitude);
 
         IsCurrentCityFavorite = false;
         SelectedCity = city;
@@ -263,7 +264,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
                 CurrentWeatherDisplay = new CurrentWeatherDisplay(current, Settings);
                 ForecastDays = forecast;
 
-                if (forecast != null && forecast.Any())
+                if (forecast != null && forecast.Count != 0)
                 {
                     HourlyForecast = forecast.SelectMany(d => d.Hours).OrderBy(h => h.Time).ToList();
 
@@ -277,14 +278,15 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
 
                     HourlyDataUpdated?.Invoke(this, HourlyForecastDisplay);
 
-                    Logger.LogInformation($"Loaded weather for {city.Name}: {current.TemperatureC}°C, {forecast.Count} forecast days");
+                    Logger.LogInformation("Loaded weather for {CityName}: {Temperature}°C, {ForecastDays} forecast days",
+                        city.Name, current.TemperatureC, forecast.Count);
                 }
                 else
                 {
                     HourlyForecast = new List<HourlyForecast>();
                     ForecastDaysDisplay = new List<ForecastDayDisplay>();
                     HourlyForecastDisplay = new List<HourlyForecastDisplay>();
-                    Logger.LogWarning($"No forecast data for {city.Name}");
+                    Logger.LogWarning("No forecast data for {CityName}", city.Name);
                 }
 
                 OnPropertyChanged(nameof(CurrentWeather));
@@ -316,12 +318,12 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
             if (result.IsSuccess)
             {
                 IsCurrentCityFavorite = result.Value;
-                Logger.LogDebug($"Is {CurrentWeather.CityName} favorite: {IsCurrentCityFavorite}");
+                Logger.LogDebug("Is {CityName} favorite: {IsFavorite}", CurrentWeather.CityName, IsCurrentCityFavorite);
             }
             else
             {
                 IsCurrentCityFavorite = false;
-                Logger.LogWarning($"Failed to check favorite status: {result.Error?.Message}");
+                Logger.LogWarning("Failed to check favorite status: {ErrorMessage}", result.Error?.Message);
             }
         }
         else
@@ -341,7 +343,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
             CurrentWeatherDisplay = new CurrentWeatherDisplay(CurrentWeather, Settings);
         }
 
-        if (ForecastDays != null && ForecastDays.Any())
+        if (ForecastDays != null && ForecastDays.Count != 0)
         {
             ForecastDaysDisplay = ForecastDays
                 .Select(day => new ForecastDayDisplay(day, Settings))
@@ -352,7 +354,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
             ForecastDaysDisplay = new List<ForecastDayDisplay>();
         }
 
-        if (HourlyForecast != null && HourlyForecast.Any())
+        if (HourlyForecast != null && HourlyForecast.Count != 0)
         {
             HourlyForecastDisplay = HourlyForecast
                 .Select(hour => new HourlyForecastDisplay(hour, Settings))
@@ -399,10 +401,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _settingsService.SettingsChanged -= OnSettingsChanged;
-    }
+    public void Dispose() => _settingsService.SettingsChanged -= OnSettingsChanged;
 
     #endregion
 }

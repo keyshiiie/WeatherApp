@@ -77,7 +77,7 @@ public partial class CurrentWeatherPage : ContentPage
 
     private void OnHourlyDataUpdated(object? sender, List<HourlyForecastDisplay> data)
     {
-        if (HourlyChartView == null || data == null || !data.Any())
+        if (HourlyChartView == null || data == null || data.Count == 0)
             return;
 
         Dispatcher.Dispatch(() =>

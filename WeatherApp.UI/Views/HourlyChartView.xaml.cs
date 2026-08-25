@@ -63,7 +63,7 @@ public partial class HourlyChartView : ContentView, IDisposable
         var view = (HourlyChartView)bindable;
         var data = (List<HourlyForecastDisplay>?)newValue;
 
-        if (data != null && data.Any())
+        if (data != null && data.Count != 0)
         {
             view.SetData(data);
         }
@@ -107,7 +107,7 @@ public partial class HourlyChartView : ContentView, IDisposable
 
     private void OnChartDataUpdated(object? sender, ChartDataUpdatedEventArgs e)
     {
-        if (_isDisposed || _chartDrawable == null || e?.DataPoints == null || !e.DataPoints.Any())
+        if (_isDisposed || _chartDrawable == null || e?.DataPoints == null || e.DataPoints.Count == 0)
             return;
 
         Dispatcher.Dispatch(() =>
@@ -159,10 +159,7 @@ public partial class HourlyChartView : ContentView, IDisposable
                 ClassId = dayGroup.Date.ToString(),
                 Command = new Command(() =>
                 {
-                    if (_viewModel != null)
-                    {
-                        _viewModel.SelectDayCommand.Execute(dayGroup);
-                    }
+                    _viewModel?.SelectDayCommand.Execute(dayGroup);
                 })
             };
 
