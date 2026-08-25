@@ -9,4 +9,8 @@ public partial class LoginPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
     }
+    protected override bool OnBackButtonPressed()
+    {
+        return true;
+    }
 }

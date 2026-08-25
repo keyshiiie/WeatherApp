@@ -114,9 +114,24 @@ public class NavigationService : INavigationService
         await GoToAsync("//settings");
     }
 
-    public async Task GoToLoginPageAsync()
+    public async Task ShowLoginModalAsync()
     {
-        await GoToAsync(nameof(LoginPage));
+        try
+        {
+            if (Shell.Current == null)
+            {
+                _logger.LogWarning("Shell.Current is null, cannot show login modal");
+                return;
+            }
+
+            await Shell.Current.GoToAsync(nameof(LoginPage), true);
+            _logger.LogInformation("Login modal shown");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show login modal");
+            throw;
+        }
     }
 
     public async Task GoToChangeApiKeyPageAsync()

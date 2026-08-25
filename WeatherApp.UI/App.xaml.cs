@@ -86,15 +86,15 @@ public partial class App : Application
 
             if (string.IsNullOrEmpty(apiKey))
             {
-                _logger.LogWarning("API key not found, redirecting to LoginPage");
+                _logger.LogWarning("API key not found, showing login modal");
 
                 if (_navigationService != null)
                 {
-                    await _navigationService.GoToLoginPageAsync();
+                    await _navigationService.ShowLoginModalAsync();
                 }
                 else
                 {
-                    await Shell.Current.GoToAsync(nameof(LoginPage));
+                    await Shell.Current.GoToAsync(nameof(LoginPage), true);
                 }
                 return;
             }

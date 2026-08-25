@@ -15,7 +15,7 @@ namespace WeatherApp.UI.Services
         Task GoToWeatherPageAsync(int cityId);
         Task GoToFavoritesPageAsync();
         Task GoToSettingsPageAsync();
-        Task GoToLoginPageAsync();
+        Task ShowLoginModalAsync();
         Task GoToChangeApiKeyPageAsync();
         Task<bool> DisplayAlertAsync(string title, string message, string accept = "OK", string? cancel = null);
         Task ShowToastAsync(string message);

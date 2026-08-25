@@ -10,6 +10,7 @@ namespace WeatherApp.UI.ViewModels;
 public partial class LoginPageViewModel : BaseViewModel
 {
     private readonly IApiKeyService _apiKeyService;
+    private bool _isClosing;
 
     [ObservableProperty]
     public partial string? ApiKey { get; set; }
@@ -17,11 +18,14 @@ public partial class LoginPageViewModel : BaseViewModel
     [ObservableProperty]
     public partial bool IsValidating { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsNotValidating { get; set; } = true;
+
     public LoginPageViewModel(
         IApiKeyService apiKeyService,
-        INavigationService navigationService, 
+        INavigationService navigationService,
         ILogger<LoginPageViewModel> logger)
-        : base(logger, navigationService) 
+        : base(logger, navigationService)
     {
         Title = "Вход";
         _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
@@ -31,6 +35,7 @@ public partial class LoginPageViewModel : BaseViewModel
     public override async Task OnAppearingAsync()
     {
         Logger.LogInformation("Login page appearing");
+        _isClosing = false;
 
         var result = await ExecuteWithResultAsync(
             async () =>
@@ -64,12 +69,12 @@ public partial class LoginPageViewModel : BaseViewModel
         }
 
         var trimmedKey = ApiKey.Trim();
+        IsValidating = true;
+        IsNotValidating = false;
 
         var result = await ExecuteWithResultAsync(
             async () =>
             {
-                IsValidating = true;
-
                 var saveResult = await _apiKeyService.SetApiKeyAsync(trimmedKey);
                 if (saveResult.IsFailure)
                     return Result.Failure(saveResult.Error!);
@@ -81,12 +86,14 @@ public partial class LoginPageViewModel : BaseViewModel
             errorMessage: "Не удалось сохранить API ключ"
         );
 
-        if (result.IsSuccess)
-        {
-            await NavigationService.GoBackAsync(); 
-        }
-
         IsValidating = false;
+        IsNotValidating = true;
+
+        if (result.IsSuccess && !_isClosing)
+        {
+            _isClosing = true;
+            await NavigationService.GoToMainPageAsync();
+        }
     }
 
     [RelayCommand]
@@ -103,6 +110,16 @@ public partial class LoginPageViewModel : BaseViewModel
         {
             Logger.LogError(ex, "Error opening link");
             await ShowAlertAsync("Ошибка", "Не удалось открыть ссылку");
+        }
+    }
+
+    [RelayCommand]
+    private void PreventDisappear()
+    {
+        if (!_isClosing && !IsValidating)
+        {
+            Logger.LogWarning("User attempted to close login modal without saving API key");
+            _ = ShowAlertAsync("Внимание", "Необходимо ввести API ключ для продолжения работы приложения");
         }
     }
 }

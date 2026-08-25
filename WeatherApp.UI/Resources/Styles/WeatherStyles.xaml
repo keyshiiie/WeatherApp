@@ -345,6 +345,15 @@
         <Setter Property="TextDecorations" Value="Underline" />
     </Style>
 
+    <Style x:Key="ModalIndicator" TargetType="BoxView">
+        <Setter Property="HeightRequest" Value="4" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TextTertiary}" />
+        <Setter Property="Margin" Value="0,8" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
     <!-- Стили для ChangeApiKeyPage -->
 
     <Style x:Key="ChangeApiKeyPageContainer" TargetType="Grid">

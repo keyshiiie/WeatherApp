@@ -4,17 +4,27 @@
              xmlns:vm="clr-namespace:WeatherApp.UI.ViewModels"
              x:Class="WeatherApp.UI.Views.LoginPage"
              x:DataType="vm:LoginPageViewModel"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Shell.NavBarIsVisible="False"
-             Shell.TitleView="{x:Null}">
+             Shell.TitleView="{x:Null}"
+             Shell.PresentationMode="ModalAnimated"
+             BackgroundColor="{StaticResource PageBackgroundColor}">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="Disappearing" Command="{Binding PreventDisappearCommand}" />
+    </ContentPage.Behaviors>
 
     <Grid Style="{StaticResource LoginPageContainer}">
         <ScrollView Style="{StaticResource ScrollContainer}">
             <VerticalStackLayout VerticalOptions="Center">
 
+                <BoxView Style="{StaticResource ModalIndicator}" />
+
                 <Label Text="Добро пожаловать!" 
                        Style="{StaticResource LoginTitle}" />
 
                 <Label Text="Для работы приложения необходим API-ключ от WeatherAPI.com" 
+                       HorizontalTextAlignment="Center"
                        Style="{StaticResource LoginSubtitle}" />
 
                 <VerticalStackLayout Spacing="16">
@@ -26,13 +36,19 @@
                             <Entry x:Name="ApiKeyEntry" 
                                    Text="{Binding ApiKey, Mode=TwoWay}" 
                                    Placeholder="Введите ключ..." 
-                                   Style="{StaticResource LoginEntry}" />
+                                   Style="{StaticResource LoginEntry}" 
+                                   IsEnabled="{Binding IsNotValidating}" />
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
                         <Button Command="{Binding LoginCommand}"
-                                Style="{StaticResource LoginButton}" />
+                                Style="{StaticResource LoginButton}"
+                                IsEnabled="{Binding IsNotValidating}" />
+
+                        <ActivityIndicator IsVisible="{Binding IsValidating}" 
+                                         IsRunning="{Binding IsValidating}" 
+                                         Color="{StaticResource PrimaryColor}" />
 
                         <HorizontalStackLayout Spacing="5"
                                                HorizontalOptions="Center">

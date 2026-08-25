@@ -39,12 +39,7 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg">
-			<Android_ForegroundScale>0.5</Android_ForegroundScale>
-			<iOS_ForegroundScale>0.5</iOS_ForegroundScale>
-			<Windows_ForegroundScale>1.0</Windows_ForegroundScale>
-			<MacCatalyst_ForegroundScale>0.5</MacCatalyst_ForegroundScale>
-		</MauiIcon>
+		<MauiIcon Include="Resources\AppIcon\appicon.svg"/>
 		
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#D7D7D7" BaseSize="128,128" />

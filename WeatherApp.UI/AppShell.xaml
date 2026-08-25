@@ -22,4 +22,6 @@
         <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" />
     </ShellItem>
 
+    <ShellContent Route="LoginPageModal" ContentTemplate="{DataTemplate local:LoginPage}" Shell.PresentationMode="ModalAnimated" />
+
 </Shell>
