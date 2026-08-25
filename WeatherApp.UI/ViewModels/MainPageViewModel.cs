@@ -1,13 +1,11 @@
-﻿using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using WeatherApp.Core.Models;
 using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
-using WeatherApp.UI.Views;
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -36,8 +34,9 @@ public partial class MainPageViewModel : BaseViewModel
         IWeatherService weatherService,
         IGeolocationService geolocationService,
         ICityService cityService,
+        INavigationService navigationService,
         ILogger<MainPageViewModel> logger)
-        : base(logger)
+        : base(logger, navigationService) 
     {
         Title = "Поиск";
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
@@ -305,10 +304,7 @@ public partial class MainPageViewModel : BaseViewModel
         try
         {
             Logger.LogInformation($"Navigating to weather page for: {city.Name}");
-
-            var cityJson = System.Text.Json.JsonSerializer.Serialize(city);
-            var uri = $"{nameof(CurrentWeatherPage)}?city={Uri.EscapeDataString(cityJson)}";
-            await Shell.Current.GoToAsync(uri);
+            await NavigationService.GoToWeatherPageAsync(city);
         }
         catch (Exception ex)
         {

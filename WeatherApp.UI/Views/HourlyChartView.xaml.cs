@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls;
 using WeatherApp.UI.DisplayModels;
+using WeatherApp.UI.Services;
 using WeatherApp.UI.ViewModels;
 
 namespace WeatherApp.UI.Views;
@@ -24,19 +25,31 @@ public partial class HourlyChartView : ContentView, IDisposable
         set => SetValue(DataPointsProperty, value);
     }
 
+    // Конструктор без параметров для XAML
     public HourlyChartView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
         SizeChanged += OnSizeChanged;
+    }
 
-        _viewModel = new HourlyChartViewModel(
-            LoggerFactory.Create(builder => builder.AddDebug()).CreateLogger<HourlyChartViewModel>());
-        BindingContext = _viewModel;
-
+    // Метод для установки ViewModel через DI
+    public void SetViewModel(HourlyChartViewModel viewModel)
+    {
         if (_viewModel != null)
         {
-            _viewModel.ChartDataUpdated += OnChartDataUpdated;
+            _viewModel.ChartDataUpdated -= OnChartDataUpdated;
+        }
+
+        _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+        BindingContext = _viewModel;
+
+        _viewModel.ChartDataUpdated += OnChartDataUpdated;
+
+        // Если уже загружены данные, обновляем
+        if (_viewModel.HasData)
+        {
+            UpdateChart();
         }
     }
 
@@ -220,27 +233,38 @@ public partial class HourlyChartView : ContentView, IDisposable
 
         try
         {
-            var multiBinding = new MultiBinding
+            // Исправлено: проверка на null
+            if (Application.Current?.Resources != null &&
+                Application.Current.Resources.TryGetValue("WeatherIconMulti", out var converter) &&
+                converter is IMultiValueConverter multiConverter)
             {
-                Converter = Application.Current.Resources["WeatherIconMulti"] as IMultiValueConverter
-            };
+                var multiBinding = new MultiBinding
+                {
+                    Converter = multiConverter
+                };
 
-            multiBinding.Bindings.Add(new Binding
-            {
-                Source = hour,
-                Path = "ConditionCode"
-            });
-            multiBinding.Bindings.Add(new Binding
-            {
-                Source = hour,
-                Path = "IsDay"
-            });
+                multiBinding.Bindings.Add(new Binding
+                {
+                    Source = hour,
+                    Path = "ConditionCode"
+                });
+                multiBinding.Bindings.Add(new Binding
+                {
+                    Source = hour,
+                    Path = "IsDay"
+                });
 
-            icon.SetBinding(Image.SourceProperty, multiBinding);
+                icon.SetBinding(Image.SourceProperty, multiBinding);
+            }
+            else
+            {
+                // Fallback, если конвертер не найден
+                icon.Source = GetDefaultWeatherIcon(hour.IsDay);
+            }
         }
         catch
         {
-            icon.Source = "appic_sun.png";
+            icon.Source = GetDefaultWeatherIcon(hour.IsDay);
         }
 
         container.Children.Add(icon);
@@ -266,15 +290,29 @@ public partial class HourlyChartView : ContentView, IDisposable
         return container;
     }
 
+    private string GetDefaultWeatherIcon(bool isDay)
+    {
+        return isDay ? "appic_sun.png" : "appic_moon.png";
+    }
+
     private void ScrollToCurrentHour()
     {
-        if (_viewModel?.CurrentHourIndex < 0 || MainScrollView == null || _isDisposed)
+        // Исправлено: проверка на null и валидность индекса
+        if (_viewModel == null ||
+            _viewModel.CurrentHourIndex < 0 ||
+            MainScrollView == null ||
+            _isDisposed)
             return;
 
         try
         {
             var screenWidth = Width;
             if (screenWidth <= 0) return;
+
+            // Исправлено: проверка, что индекс не выходит за границы
+            var currentDayData = _viewModel.CurrentDayData;
+            if (currentDayData == null || _viewModel.CurrentHourIndex >= currentDayData.Count)
+                return;
 
             var targetX = _viewModel.CurrentHourIndex * 100f - screenWidth / 2 + 50f;
             if (targetX < 0) targetX = 0;

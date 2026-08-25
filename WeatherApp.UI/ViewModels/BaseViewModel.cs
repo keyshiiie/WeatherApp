@@ -1,9 +1,7 @@
-﻿// WeatherApp.UI/ViewModels/BaseViewModel.cs
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Results;
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -15,10 +13,13 @@ public abstract partial class BaseViewModel : ObservableObject
     private bool _hasError;
 
     protected ILogger Logger { get; }
+    protected INavigationService NavigationService { get; }
 
-    protected BaseViewModel(ILogger logger)
+    protected BaseViewModel(ILogger logger, 
+        INavigationService navigationService)
     {
         Logger = logger;
+        NavigationService = navigationService;
     }
 
     public string Title
@@ -74,9 +75,6 @@ public abstract partial class BaseViewModel : ObservableObject
         HasError = false;
     }
 
-    /// <summary>
-    /// Выполняет действие с обработкой Result
-    /// </summary>
     protected async Task<Result<T>> ExecuteWithResultAsync<T>(
         Func<Task<Result<T>>> action,
         string successMessage = "",
@@ -127,9 +125,6 @@ public abstract partial class BaseViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Выполняет действие без возврата результата
-    /// </summary>
     protected async Task<Result> ExecuteWithResultAsync(
         Func<Task<Result>> action,
         string successMessage = "",
@@ -180,52 +175,29 @@ public abstract partial class BaseViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Показывает Toast сообщение
-    /// </summary>
-    protected virtual async Task ShowToastAsync(string message)
+    protected async Task ShowToastAsync(string message)
     {
-        try
-        {
-            await CommunityToolkit.Maui.Alerts.Toast.Make(message, CommunityToolkit.Maui.Core.ToastDuration.Short).Show();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to show toast");
-        }
+        await NavigationService.ShowToastAsync(message);
     }
 
-    /// <summary>
-    /// Показывает Alert сообщение
-    /// </summary>
-    protected virtual async Task ShowAlertAsync(string title, string message)
+    protected async Task<bool> ShowAlertAsync(string title, string message, string accept = "OK", string? cancel = null)
     {
-        try
-        {
-            await Shell.Current.CurrentPage.DisplayAlertAsync(title, message, "OK");
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Failed to show alert");
-        }
+        return await NavigationService.DisplayAlertAsync(title, message, accept, cancel);
     }
 
-    /// <summary>
-    /// Обрабатывает ошибку Result и возвращает понятное сообщение
-    /// </summary>
     protected string GetUserFriendlyErrorMessage(Error error)
     {
         return error switch
         {
-            ApiKeyMissingError => "⚠️ API ключ не найден. Добавьте его в настройках.",
-            NetworkError => "🌐 Нет подключения к интернету. Проверьте соединение.",
-            TimeoutError => "⏱️ Превышено время ожидания. Попробуйте еще раз.",
-            NotFoundError notFound => $"🔍 {notFound.Message}",
-            ApiError apiError when apiError.StatusCode == 401 => "🔑 Неверный API ключ. Проверьте настройки.",
-            ApiError apiError => $"❌ Ошибка API: {apiError.Message}",
-            DatabaseError dbError => $"💾 Ошибка базы данных: {dbError.Message}",
-            ValidationError validationError => $"⚠️ {validationError.Message}",
-            _ => $"❌ {error.Message}"
+            ApiKeyMissingError => "API ключ не найден. Добавьте его в настройках.",
+            NetworkError => "Нет подключения к интернету. Проверьте соединение.",
+            TimeoutError => "Превышено время ожидания. Попробуйте еще раз.",
+            NotFoundError notFound => $"{notFound.Message}",
+            ApiError apiError when apiError.StatusCode == 401 => "Неверный API ключ. Проверьте настройки.",
+            ApiError apiError => $"Ошибка API: {apiError.Message}",
+            DatabaseError dbError => $"Ошибка базы данных: {dbError.Message}",
+            ValidationError validationError => $"{validationError.Message}",
+            _ => $"{error.Message}"
         };
     }
 }

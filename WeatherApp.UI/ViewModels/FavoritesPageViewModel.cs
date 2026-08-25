@@ -6,6 +6,7 @@ using WeatherApp.Core.Models;
 using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.DisplayModels;
+using WeatherApp.UI.Services;
 using WeatherApp.UI.Views;
 
 namespace WeatherApp.UI.ViewModels;
@@ -23,8 +24,9 @@ public partial class FavoritesPageViewModel : BaseViewModel
         ICityService cityService,
         IWeatherService weatherService,
         ISettingsService settingsService,
+        INavigationService navigationService,
         ILogger<FavoritesPageViewModel> logger)
-        : base(logger)
+        : base(logger, navigationService)
     {
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
@@ -76,7 +78,20 @@ public partial class FavoritesPageViewModel : BaseViewModel
 
     private async Task LoadWeatherForAllCitiesAsync()
     {
-        var tasks = FavoriteCities.Select(city => LoadWeatherForCityAsync(city));
+        // Ограничиваем количество параллельных запросов
+        var semaphore = new SemaphoreSlim(3);
+        var tasks = FavoriteCities.Select(async city =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                await LoadWeatherForCityAsync(city);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
         await Task.WhenAll(tasks);
     }
 
@@ -137,10 +152,7 @@ public partial class FavoritesPageViewModel : BaseViewModel
 
         try
         {
-            var cityJson = System.Text.Json.JsonSerializer.Serialize(city);
-            var uri = $"{nameof(CurrentWeatherPage)}?city={Uri.EscapeDataString(cityJson)}";
-            await Shell.Current.GoToAsync(uri);
-
+            await NavigationService.GoToWeatherPageAsync(city);
             Logger.LogInformation($"Navigation to weather for {city.Name} successful");
         }
         catch (Exception ex)

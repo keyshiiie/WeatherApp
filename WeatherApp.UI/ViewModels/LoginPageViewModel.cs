@@ -1,10 +1,9 @@
-﻿// WeatherApp.UI/ViewModels/LoginPageViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
 using WeatherApp.Core.Services;
 using WeatherApp.Core.Results;
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -20,8 +19,9 @@ public partial class LoginPageViewModel : BaseViewModel
 
     public LoginPageViewModel(
         IApiKeyService apiKeyService,
+        INavigationService navigationService, 
         ILogger<LoginPageViewModel> logger)
-        : base(logger)
+        : base(logger, navigationService) 
     {
         Title = "Вход";
         _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
@@ -42,7 +42,7 @@ public partial class LoginPageViewModel : BaseViewModel
                 if (keyResult.Value)
                 {
                     Logger.LogInformation("Existing API key found");
-                    await ShowToastAsync("🔑 API ключ уже установлен");
+                    await ShowToastAsync("API ключ уже установлен");
                 }
 
                 return Result.Success(keyResult.Value);
@@ -77,13 +77,13 @@ public partial class LoginPageViewModel : BaseViewModel
                 Logger.LogInformation("API key saved successfully");
                 return Result.Success();
             },
-            successMessage: "✅ API ключ сохранен",
+            successMessage: "API ключ сохранен",
             errorMessage: "Не удалось сохранить API ключ"
         );
 
         if (result.IsSuccess)
         {
-            await Shell.Current.GoToAsync("..");
+            await NavigationService.GoBackAsync(); 
         }
 
         IsValidating = false;

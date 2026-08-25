@@ -1,11 +1,9 @@
-﻿using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using WeatherApp.Core.Models;
-using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
-using WeatherApp.UI.Views;
+using WeatherApp.UI.Services; // Добавляем
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -21,6 +19,7 @@ public partial class SettingsPageViewModel : BaseViewModel
 
     [ObservableProperty]
     private SpeedUnit _selectedSpeedUnit;
+
     [ObservableProperty]
     private ThemeMode _selectedThemeMode;
 
@@ -32,13 +31,15 @@ public partial class SettingsPageViewModel : BaseViewModel
 
     public List<SpeedUnit> SpeedUnits { get; } =
         Enum.GetValues(typeof(SpeedUnit)).Cast<SpeedUnit>().ToList();
-    public List<ThemeMode> ThemeModes { get; } = 
+
+    public List<ThemeMode> ThemeModes { get; } =
         Enum.GetValues(typeof(ThemeMode)).Cast<ThemeMode>().ToList();
 
     public SettingsPageViewModel(
         ISettingsService settingsService,
+        INavigationService navigationService, 
         ILogger<SettingsPageViewModel> logger)
-        : base(logger)
+        : base(logger, navigationService) 
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         Title = "Настройки";
@@ -68,7 +69,7 @@ public partial class SettingsPageViewModel : BaseViewModel
 
             Logger.LogInformation($"Settings loaded: Temp={SelectedTemperatureUnit}, " +
                 $"Pressure={SelectedPressureUnit}, " +
-                $"Speed={SelectedSpeedUnit}, " + 
+                $"Speed={SelectedSpeedUnit}, " +
                 $"Theme={SelectedThemeMode}");
         }
         else
@@ -194,7 +195,7 @@ public partial class SettingsPageViewModel : BaseViewModel
     {
         try
         {
-            await Shell.Current.GoToAsync(nameof(ChangeApiKeyPage));
+            await NavigationService.GoToChangeApiKeyPageAsync(); 
         }
         catch (Exception ex)
         {

@@ -33,10 +33,15 @@ public partial class CurrentWeatherPage : ContentPage
         }
     }
 
-    public CurrentWeatherPage(CurrentWeatherViewModel viewModel)
+    public CurrentWeatherPage(
+        CurrentWeatherViewModel viewModel,
+        HourlyChartViewModel chartViewModel) // Добавляем через DI
     {
         InitializeComponent();
         BindingContext = viewModel;
+
+        // Передаем ViewModel в HourlyChartView
+        HourlyChartView.SetViewModel(chartViewModel);
 
         if (viewModel != null)
         {
@@ -46,10 +51,17 @@ public partial class CurrentWeatherPage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        if (BindingContext is CurrentWeatherViewModel vm)
+        try
         {
-            await vm.OnAppearingAsync();
+            base.OnAppearing();
+            if (BindingContext is CurrentWeatherViewModel vm)
+            {
+                await vm.OnAppearingAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in OnAppearing: {ex.Message}");
         }
     }
 

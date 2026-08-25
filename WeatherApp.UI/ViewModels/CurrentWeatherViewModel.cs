@@ -5,10 +5,11 @@ using WeatherApp.Core.Models;
 using WeatherApp.Core.Results;
 using WeatherApp.Core.Services;
 using WeatherApp.UI.DisplayModels;
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
-public partial class CurrentWeatherViewModel : BaseViewModel
+public partial class CurrentWeatherViewModel : BaseViewModel, IDisposable
 {
     public event EventHandler<List<HourlyForecastDisplay>>? HourlyDataUpdated;
 
@@ -50,8 +51,9 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         IWeatherService weatherService,
         ICityService cityService,
         ISettingsService settingsService,
+        INavigationService navigationService,
         ILogger<CurrentWeatherViewModel> logger)
-        : base(logger)
+        : base(logger, navigationService)
     {
         _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         _cityService = cityService ?? throw new ArgumentNullException(nameof(cityService));
@@ -97,7 +99,7 @@ public partial class CurrentWeatherViewModel : BaseViewModel
     private async Task GoBackAsync()
     {
         Logger.LogInformation("Going back");
-        await Shell.Current.GoToAsync("..");
+        await NavigationService.GoBackAsync();
     }
 
     [RelayCommand]
@@ -219,6 +221,13 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         if (city == null)
         {
             Logger.LogWarning("LoadWeatherForCityAsync called with null city");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(city.Name))
+        {
+            Logger.LogWarning("LoadWeatherForCityAsync called with city without name");
+            await ShowAlertAsync("Ошибка", "Название города не указано");
             return;
         }
 
@@ -388,6 +397,11 @@ public partial class CurrentWeatherViewModel : BaseViewModel
         {
             Logger.LogError(ex, "Error updating favorite toolbar item");
         }
+    }
+
+    public void Dispose()
+    {
+        _settingsService.SettingsChanged -= OnSettingsChanged;
     }
 
     #endregion

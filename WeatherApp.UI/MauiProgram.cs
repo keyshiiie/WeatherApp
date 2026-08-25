@@ -47,8 +47,9 @@ public static class MauiProgram
 
         System.Diagnostics.Debug.WriteLine($"Database path: {dbPath}");
 
+        // Исправлено: проверка на null перед созданием директории
         var directory = Path.GetDirectoryName(dbPath);
-        if (!Directory.Exists(directory))
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
@@ -86,25 +87,24 @@ public static class MauiProgram
     {
         services.AddSingleton<IWeatherMapper, WeatherDtoMapper>();
         services.AddSingleton<ICityMapper, CityMapper>();
-
     }
 
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<IWeatherService, WeatherService>();
         services.AddSingleton<IGeolocationService, GeolocationService>();
-        services.AddScoped<IWeatherRepository, WeatherRepository>();
-        services.AddScoped<IFavoritesRepository, FavoritesRepository>();
-        services.AddScoped<IHistoryRepository, HistoryRepository>();
         services.AddScoped<ICityService, CityService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IApiKeyService, MauiApiKeyService>();
+        services.AddSingleton<INavigationService, NavigationService>();
     }
 
     private static void RegisterRepositories(IServiceCollection services)
     {
         services.AddScoped<IWeatherRepository, WeatherRepository>();
+        services.AddScoped<IFavoritesRepository, FavoritesRepository>();
+        services.AddScoped<IHistoryRepository, HistoryRepository>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)
@@ -115,6 +115,7 @@ public static class MauiProgram
         services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<LoginPageViewModel>();
         services.AddTransient<ChangeApiKeyPageViewModel>();
+        services.AddTransient<HourlyChartViewModel>(); 
     }
 
     private static void RegisterPages(IServiceCollection services)

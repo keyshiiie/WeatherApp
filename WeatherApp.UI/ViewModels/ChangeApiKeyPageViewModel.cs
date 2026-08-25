@@ -1,12 +1,9 @@
-﻿// WeatherApp.UI/ViewModels/ChangeApiKeyPageViewModel.cs
-using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using WeatherApp.Core.Services;
 using WeatherApp.Core.Results;
+using WeatherApp.Core.Services;
+using WeatherApp.UI.Services;
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -15,21 +12,25 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     private readonly IApiKeyService _apiKeyService;
 
     [ObservableProperty]
-    private string? _newApiKey;
+    public partial string? NewApiKey { get; set; }
+    [ObservableProperty]
+    public partial string? KeyStatus { get; set; }
 
     [ObservableProperty]
-    private string? _keyStatus;
-
-    [ObservableProperty]
-    private Color _keyStatusColor;
+    public partial Color KeyStatusColor { get; set; } = Colors.Gray;
 
     public ChangeApiKeyPageViewModel(
         IApiKeyService apiKeyService,
-        ILogger<ChangeApiKeyPageViewModel> logger)
-        : base(logger)
+        INavigationService navigationService,
+        ILogger<ChangeApiKeyPageViewModel> logger) 
+        : base(logger, navigationService)
     {
         Title = "API ключ";
         _apiKeyService = apiKeyService ?? throw new ArgumentNullException(nameof(apiKeyService));
+
+        // Устанавливаем начальное состояние
+        KeyStatus = "Проверка...";
+        KeyStatusColor = Colors.Gray;
     }
 
     public override async Task OnAppearingAsync()
@@ -93,7 +94,7 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
                 Logger.LogInformation("API key saved successfully");
                 return Result.Success();
             },
-            successMessage: "✅ API ключ успешно обновлен",
+            successMessage: "API ключ успешно обновлен", // Исправлена опечатка
             errorMessage: "Не удалось сохранить API ключ"
         );
 
@@ -101,7 +102,7 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
         {
             NewApiKey = string.Empty;
             await CheckKeyStatusAsync();
-            await Shell.Current.GoToAsync("..");
+            await NavigationService.GoBackAsync();
         }
     }
 
@@ -109,7 +110,7 @@ public partial class ChangeApiKeyPageViewModel : BaseViewModel
     private async Task CancelAsync()
     {
         Logger.LogInformation("Cancelling API key change");
-        await Shell.Current.GoToAsync("..");
+        await NavigationService.GoBackAsync();
     }
 
     [RelayCommand]

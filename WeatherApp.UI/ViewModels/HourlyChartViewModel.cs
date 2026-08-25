@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using WeatherApp.Core.Utils;
 using WeatherApp.UI.DisplayModels;
+using WeatherApp.UI.Services; // Добавляем
 
 namespace WeatherApp.UI.ViewModels;
 
@@ -35,7 +36,10 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 
     public event EventHandler<ChartDataUpdatedEventArgs>? ChartDataUpdated;
 
-    public HourlyChartViewModel(ILogger<HourlyChartViewModel> logger) : base(logger)
+    public HourlyChartViewModel(
+        ILogger<HourlyChartViewModel> logger,
+        INavigationService navigationService) 
+        : base(logger, navigationService)
     {
         Title = "Почасовой прогноз";
     }
