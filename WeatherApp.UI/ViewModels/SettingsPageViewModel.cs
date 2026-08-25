@@ -208,19 +208,12 @@ public partial class SettingsPageViewModel : BaseViewModel
         {
             Application.Current?.Dispatcher.Dispatch(() =>
             {
-                switch (theme)
+                Application.Current!.UserAppTheme = theme switch
                 {
-                    case ThemeMode.Light:
-                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Light;
-                        break;
-                    case ThemeMode.Dark:
-                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Dark;
-                        break;
-                    case ThemeMode.System:
-                    default:
-                        Application.Current!.UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Unspecified;
-                        break;
-                }
+                    ThemeMode.Light => Microsoft.Maui.ApplicationModel.AppTheme.Light,
+                    ThemeMode.Dark => Microsoft.Maui.ApplicationModel.AppTheme.Dark,
+                    _ => Microsoft.Maui.ApplicationModel.AppTheme.Unspecified,
+                };
             });
 
             Logger.LogInformation("Theme applied: {Theme}", theme);

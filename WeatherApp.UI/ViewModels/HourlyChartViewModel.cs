@@ -107,7 +107,7 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 
     private void UpdateCurrentDayData()
     {
-        if (SelectedDay?.HourlyData == null || !SelectedDay.HourlyData.Any())
+        if (SelectedDay?.HourlyData == null || SelectedDay.HourlyData.Count == 0)
         {
             CurrentDayData = null;
             return;
@@ -125,7 +125,7 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
         if (CurrentHourIndex == -1)
             CurrentHourIndex = CurrentDayData.FindIndex(d => d.Time > localTime);
 
-        if (CurrentHourIndex == -1 && CurrentDayData.Any())
+        if (CurrentHourIndex == -1 && CurrentDayData.Count != 0)
             CurrentHourIndex = 0;
 
         var temps = CurrentDayData.Select(d => d.TemperatureValue).ToList();
@@ -140,7 +140,7 @@ public partial class HourlyChartViewModel : BaseViewModel, IDisposable
 
     private void RaiseChartDataUpdated()
     {
-        if (CurrentDayData == null || !CurrentDayData.Any())
+        if (CurrentDayData == null || CurrentDayData.Count == 0)
             return;
 
         ChartDataUpdated?.Invoke(this, new ChartDataUpdatedEventArgs

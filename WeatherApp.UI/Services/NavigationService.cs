@@ -9,10 +9,7 @@ public class NavigationService : INavigationService
 {
     private readonly ILogger<NavigationService> _logger;
 
-    public NavigationService(ILogger<NavigationService> logger)
-    {
-        _logger = logger;
-    }
+    public NavigationService(ILogger<NavigationService> logger) => _logger = logger;
 
     public async Task GoToAsync(string route)
     {

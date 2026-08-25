@@ -43,10 +43,7 @@ public partial class CurrentWeatherPage : ContentPage
         // Передаем ViewModel в HourlyChartView
         HourlyChartView.SetViewModel(chartViewModel);
 
-        if (viewModel != null)
-        {
-            viewModel.HourlyDataUpdated += OnHourlyDataUpdated;
-        }
+        viewModel?.HourlyDataUpdated += OnHourlyDataUpdated;
     }
 
     protected override async void OnAppearing()

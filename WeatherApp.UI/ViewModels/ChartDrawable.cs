@@ -51,13 +51,13 @@ public class ChartDrawable : IDrawable
             points.Add(new PointF(x, y));
         }
 
-        DrawGrid(canvas, points, bottomY);
+        ChartDrawable.DrawGrid(canvas, points, bottomY);
         DrawLine(canvas, points);
         DrawPoints(canvas, points);
-        DrawFill(canvas, points, bottomY);
+        ChartDrawable.DrawFill(canvas, points, bottomY);
     }
 
-    private void DrawGrid(ICanvas canvas, List<PointF> points, float bottomY)
+    private static void DrawGrid(ICanvas canvas, List<PointF> points, float bottomY)
     {
         canvas.StrokeColor = Colors.White.WithAlpha(0.5f);
         canvas.StrokeSize = 1f;
@@ -71,7 +71,7 @@ public class ChartDrawable : IDrawable
         canvas.StrokeDashPattern = null;
     }
 
-    private void DrawLine(ICanvas canvas, List<PointF> points)
+    private static void DrawLine(ICanvas canvas, List<PointF> points)
     {
         canvas.StrokeColor = Colors.White;
         canvas.StrokeSize = 2.5f;
@@ -113,7 +113,7 @@ public class ChartDrawable : IDrawable
         }
     }
 
-    private void DrawFill(ICanvas canvas, List<PointF> points, float bottomY)
+    private static void DrawFill(ICanvas canvas, List<PointF> points, float bottomY)
     {
         var path = new PathF();
         path.MoveTo(points[0].X, bottomY);

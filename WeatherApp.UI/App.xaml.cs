@@ -58,19 +58,12 @@ public partial class App : Application
     {
         try
         {
-            switch (theme)
+            UserAppTheme = theme switch
             {
-                case ThemeMode.Light:
-                    UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Light;
-                    break;
-                case ThemeMode.Dark:
-                    UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Dark;
-                    break;
-                case ThemeMode.System:
-                default:
-                    UserAppTheme = Microsoft.Maui.ApplicationModel.AppTheme.Unspecified;
-                    break;
-            }
+                ThemeMode.Light => Microsoft.Maui.ApplicationModel.AppTheme.Light,
+                ThemeMode.Dark => Microsoft.Maui.ApplicationModel.AppTheme.Dark,
+                _ => Microsoft.Maui.ApplicationModel.AppTheme.Unspecified,
+            };
         }
         catch (Exception ex)
         {

@@ -86,11 +86,11 @@ public partial class MainPageViewModel : BaseViewModel
 
         if (result.IsSuccess && result.Value != null)
         {
-            if (result.Value.Any())
+            if (result.Value.Count != 0)
             {
                 Logger.LogInformation("Found {Count} cities for '{Query}'", result.Value.Count, SearchQuery);
                 SearchSuggestions = result.Value.Take(10).ToList();
-                ShowSearchSuggestions = SearchSuggestions.Any();
+                ShowSearchSuggestions = SearchSuggestions.Count != 0;
             }
             else
             {
